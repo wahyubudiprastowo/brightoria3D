@@ -111,7 +111,7 @@ export default function App() {
   }
 
   return (
-    <main>
+    <main className="adventure-shell">
       <header>
         <div className="brand">
           <div className="mark">
@@ -180,9 +180,13 @@ export default function App() {
           </section>
 
           <aside className={'mission-card ' + (panel ? 'open' : '')}>
-            <button className="close" onClick={() => setPanel(false)}>
+            <button className="close" aria-label="Tutup pilihan pulau" onClick={() => setPanel(false)}>
               <X />
             </button>
+
+            <div className="island-card-art" aria-hidden="true">
+              <img src={selected.image} alt="" />
+            </div>
 
             <span className="chip chip-game">
                 <Gamepad2 size={12} /> Game tersedia
@@ -246,7 +250,7 @@ export default function App() {
           <UsersRound />
           <span>Orang Tua</span>
         </button>
-        <button>
+        <button onClick={() => window.dispatchEvent(new Event('brightoria:open-character-picker'))}>
           <UserRound />
           <span>Profil</span>
         </button>

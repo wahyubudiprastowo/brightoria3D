@@ -7,6 +7,9 @@ export const modelUrls = {
   quran: '/assets/models/pulau-quran.glb',
   arabic: '/assets/models/pulau-arabic.glb',
   digital: '/assets/models/pulau-digital.glb',
+  math: '/assets/models/pulau-numeria.glb',
+  english: '/assets/models/pulau-english.glb',
+  adab: '/assets/models/pulau-adab.glb',
   tower: '/assets/models/menara.glb',
 } as const;
 

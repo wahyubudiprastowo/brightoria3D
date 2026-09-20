@@ -181,8 +181,8 @@ function Island({
         >
           <Billboard><IslandAura color={world.color} active={active} hovered={hovered} mastery={world.mastery} /></Billboard>
 
-          {world.id === 'quran' || world.id === 'arabic' || world.id === 'digital' ? (
-            <LocalModel url={modelUrls[world.id]} size={2.3} fallback={
+          {world.id in modelUrls ? (
+            <LocalModel url={modelUrls[world.id as keyof typeof modelUrls]} size={2.3} fallback={
               <Billboard><mesh><planeGeometry args={[2.3, 2.3]} />
                 <meshBasicMaterial map={texture} transparent alphaTest={0.05} depthWrite={false} />
               </mesh></Billboard>
@@ -243,6 +243,13 @@ function SkyDome() {
       <meshBasicMaterial vertexColors side={THREE.BackSide} fog={false} depthWrite={false} />
     </mesh>
   );
+}
+
+/** Local artwork only; the existing animated clouds and effects remain above it. */
+function SkyArtwork() {
+  const texture = useLoader(THREE.TextureLoader, '/assets/map/sky_dreamy_v2.webp');
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return <primitive object={texture} attach="background" />;
 }
 
 function GroundRings() {
@@ -355,7 +362,9 @@ function Scene({
       <directionalLight position={[4, 8, 6]} intensity={2} />
       <hemisphereLight args={['#dff8ff', '#f7d7a4', 0.9]} />
 
-      <SkyDome />
+      <AssetBoundary fallback={<SkyDome />}>
+        <Suspense fallback={<SkyDome />}><SkyArtwork /></Suspense>
+      </AssetBoundary>
       <WorldSkyRays />
       <ProceduralClouds />
       <Birds />

@@ -46,5 +46,29 @@
     "afterBytes": 26512,
     "beforeTriangles": 291108,
     "afterTriangles": 7000
+  },
+  {
+    "input": "assets-source/models/meshy-pulaunumeria.glb",
+    "output": "public/assets/models/pulau-numeria.glb",
+    "beforeBytes": 28382424,
+    "afterBytes": 607356,
+    "beforeTriangles": 956780,
+    "afterTriangles": 14268
+  },
+  {
+    "input": "assets-source/models/meshy-pulauenglish.glb",
+    "output": "public/assets/models/pulau-english.glb",
+    "beforeBytes": 19071888,
+    "afterBytes": 556592,
+    "beforeTriangles": 613090,
+    "afterTriangles": 13988
+  },
+  {
+    "input": "assets-source/models/meshy-pulauadab.glb",
+    "output": "public/assets/models/pulau-adab.glb",
+    "beforeBytes": 20692980,
+    "afterBytes": 503992,
+    "beforeTriangles": 550114,
+    "afterTriangles": 13982
   }
 ]
