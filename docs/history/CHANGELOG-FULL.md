@@ -1,0 +1,218 @@
+## 2026-09-20 ? Quran 2 dan pulau Arabic GLB
+
+- `meshy-pulauquran2.glb` dari Downloads disalin ke `assets-source/models/meshy-pulauquran2.glb`.
+- `pulau-quran.glb` kini berasal dari sumber Quran baru dan teroptimasi menjadi 513,6 KB dari 24,12 MB.
+- Model Quran lama (`meshy-pulauquran.glb`) tidak dibuang; hasil optimasinya kini menjadi `pulau-arabic.glb` 602,5 KB untuk Oasis Bahasa Arab.
+- `WorldScene.tsx`, `LocalModel.tsx`, dan `ArabicGame.tsx` diperbarui agar Quran, Arabic, dan Digital memakai GLB lokal dengan fallback gambar lama.
+- Laporan optimasi, dokumentasi source-of-truth, dan ringkasan status GLB diperbarui.
+
+## 2026-09-20 ? Startup browser dan integrasi GLB
+
+- Diagnosis: port 5173 ditempati proxy VS Code yang timeout; Vite default ke 5174.
+- Enam GLB unik dioptimalkan dari 214,81 MB menjadi 2,57 MB; sumber asli dipertahankan.
+- Integrasi Quran/Arabic/Digital pada peta dan game; menara Latihan; pesawat peta/SkyRun; Bri ringan.
+- Boundary dan Suspense per model, boundary luar Canvas game/CharacterPicker;
+  fallback menjaga kontrol DOM tersedia ketika WebGL gagal.
+- Rotasi/zoom, posisi cincin, evidence/mastery/XP dan kebijakan tanpa musik dipertahankan.
+- Validasi: typecheck/build, smoke browser, fallback model/WebGL, dan copy Android lulus.
+- Seluruh materi AI tetap draft. Rincian dan pipeline: `docs/technical/GLB-ASSETS.md`.
+
+# Patch 10 — Rekonsiliasi Dokumentasi + Juice Kit
+
+## Konteks masuk
+
+User meminta dua hal: (1) rekonsiliasi dokumentasi karena dicurigai sudah
+tidak sinkron dengan kode, dan (2) gameplay yang lebih menarik memakai
+prinsip dari skill referensi `threejs-game-skills` (paket skill Codex/
+Claude Code untuk polish gameplay/grafis/UI/audio/QA — bukan library kode,
+sehingga prinsipnya diterapkan manual: game-feel/"juice" polish).
+
+## Temuan audit (sebelum perbaikan)
+
+1. **Drift dokumentasi besar**: `AGENTS.md` dan `GAMEPLAY-CATALOG.md` versi
+   Patch 09 menyatakan hanya 2 dari 6 dunia punya game sungguhan. Audit
+   langsung terhadap `src/App.tsx` dan folder `src/game/*/` membuktikan
+   SEMUA 6 dunia sudah punya game sungguhan sejak Patch 07 — Quran, Adab,
+   dan English lewat mesin kuis bersama `src/game/quiz/QuizGame.tsx` yang
+   ternyata belum pernah didokumentasikan dengan benar statusnya.
+2. **Regresi posisi peta 3D**: `src/data/worlds.ts` ternyata sudah kembali
+   ke variasi Z hampir nol (pola pra-Patch-06), padahal Patch 06 pernah
+   memperbaikinya jadi formasi cincin (Z -1.9 s.d. +1.9) tepat untuk
+   mengatasi keluhan "peta belum terasa 3D". Regresi ini kemungkinan
+   terjadi saat `WorldScene.tsx` ditulis ulang di Patch 08 untuk integrasi
+   aset peta, dan `worlds.ts` ikut tertimpa versi lama.
+3. Folder `patches/patches-maps/` ditemukan sebagai duplikat/snapshot lama
+   Patch 06 yang membingungkan (berisi versi `WorldScene.tsx`/`worlds.ts`
+   yang berbeda dari yang berjalan di `src/`).
+
+## Perbaikan
+
+### A. Regresi peta diperbaiki
+`src/data/worlds.ts` dikembalikan ke formasi cincin Patch 06, dengan
+komentar penjelasan langsung di file (menjelaskan riwayat regresi) supaya
+tidak tertimpa lagi secara tidak sengaja di masa depan. Perbaikan aset map
+lokal dari Patch 08 di `WorldScene.tsx` TIDAK disentuh/tidak hilang.
+
+### B. Dokumentasi disinkronkan ulang
+`AGENTS.md`, `docs/agent-context/PROJECT-MEMORY.md`,
+`docs/gameplay/GAMEPLAY-CATALOG.md`, `docs/product/NEXT-STEPS.md` ditulis
+ulang untuk mencerminkan status kode aktual: enam dari enam dunia punya
+game sungguhan, kurikulum tetap berstatus draft menunggu pengesahan
+akademik, dan rekomendasi pembersihan repo (folder duplikat, file CSS sisa,
+dokumen arsitektur ganda) dicatat untuk dieksekusi.
+
+### C. Juice Kit — polish gameplay (game-feel)
+Modul baru `src/game/juice.tsx` menyediakan primitif reusable:
+- `Confetti` — partikel canvas 2D ringan (tanpa library baru), meledak
+  saat jawaban benar pertama kali dan saat dunia/misi selesai. Menghormati
+  `prefers-reduced-motion`.
+- `useStreak` + `StreakBadge` — penghitung jawaban benar beruntun DALAM
+  SATU SESI (motivasional, tidak disimpan lintas sesi, tidak menambah
+  kontrak evidence baru).
+- `useCountUp` — angka XP melompat naik (tween ease-out) alih-alih
+  instan (disiapkan untuk pemakaian lanjutan di HUD XP).
+- `usePunch` — className animasi "punch" (scale bounce ~0.3 detik) yang
+  otomatis hilang sendiri, dipicu oleh perubahan state (mis. hasil benar/
+  salah).
+
+Dipasang di:
+- `src/game/quiz/QuizGame.tsx` (mencakup Quran, Adab, English sekaligus
+  karena satu mesin dipakai bersama)
+- `src/game/numeria/NumeriaGame.tsx` (confetti di scene 3D + layar
+  ringkasan, balok jembatan "melompat" ringan saat benar)
+- `src/game/digital/DigitalGame.tsx` (streak, confetti, punch feedback)
+- `src/game/arabic/ArabicGame.tsx` (confetti di layar ringkasan ekspedisi)
+
+Seluruh efek **murni dekoratif** — dihapus total pun evidence/mastery/XP
+setiap game tetap identik. Tidak ada dependency baru, tidak ada musik
+latar, tidak ada perubahan pada kontrak evidence.
+
+## Delivery
+
+Patch ini menyentuh 7 file kode (`worlds.ts`, `juice.tsx` baru, `QuizGame.tsx`,
+`NumeriaGame.tsx`, `DigitalGame.tsx`, `ArabicGame.tsx`, `styles.css`) dan
+seluruh dokumen source-of-truth. Tidak ada perubahan `package.json` —
+tanpa dependency baru sama sekali.
+
+---
+
+# Patch 08 — Map assets terintegrasi
+
+`WorldScene.tsx` mengintegrasikan aset lokal baru dari `public/assets/map/`:
+background sky, tiga variasi connector route, dan waypoint marker. Peta tetap
+scene Three.js interaktif dengan `OrbitControls`, klik pulau, serta fallback
+non-3D melalui `WorldSceneErrorBoundary`/`FallbackGrid`. Tidak ada dependency
+baru dan tidak ada `<Environment>`.
+
+---
+
+# Patch 09 — Safari Kata Arab
+
+Oasis Bahasa Arab kini memiliki game kuis kosakata bergambar berbasis mesin
+`QuizGame` bersama. Materi mengikuti lembar user untuk hewan, buah,
+perlengkapan sekolah, ruang kelas, pakaian, dan benda rumah. Sesi memilih
+8 kartu dari koleksi 72 kartu dan mendahulukan kata yang belum selesai;
+mastery tetap dihitung atas seluruh koleksi. Konten Arab, harakat, transliterasi, dan
+terjemahan masih DRAFT sampai review serta pengesahan tim akademik Bright
+Academy. Tidak ada dependency baru atau audio eksternal.
+
+Patch 10 mengubah presentasi dari layar quiz generik menjadi mini-game
+ekspedisi: intro misi, jalur jejak 8 node, area oasis CSS, objek yang bisa
+dipilih dan dikumpulkan, petunjuk, feedback, ransel kata, serta ringkasan
+ekspedisi. Implementasi berada di `src/game/arabic/ArabicGame.tsx` dan
+`src/styles.css`; tidak mengubah evidence, mastery, atau aturan XP. Konten
+Arab tetap DRAFT sampai review serta pengesahan tim akademik Bright Academy.
+
+---
+
+# Changelog Lengkap — Brightoria (s.d. Patch 05)
+
+> Untuk riwayat Patch 00-03c detail, lihat dokumen versi Patch 03c/04.
+> Ringkasan ada di bagian bawah. Fokus dokumen ini: Patch 04 dan 05.
+
+## Patch 05 — Koreksi Peta 3D + Kurikulum Konkret
+
+### Konteks masuk
+
+Setelah Patch 04 terpasang, user melaporkan dua hal:
+1. Aset pulau sekarang **datar dan tidak bisa diputar** — kualitas visual
+   memang naik, tapi interaksi 3D (drag rotate, scroll zoom) yang disukai
+   sejak Patch 01-03c hilang. User menyatakan ini "tidak menarik".
+2. Dokumentasi gameplay (`GAMEPLAY-CATALOG.md`) masih terlalu generik,
+   belum benar-benar terikat konten pembelajaran Bright Academy yang
+   konkret.
+
+### Perbaikan #1: peta kembali 3D interaktif, teknik "billboard"
+
+`WorldScene.tsx` ditulis ulang total lagi (ketiga kalinya dalam tiga patch
+berturut-turut — lihat catatan evaluasi di bagian bawah):
+- Kembali memakai `<Canvas>` Three.js/React Three Fiber.
+- Enam gambar isometrik premium (bukan lagi geometri box/cone Patch 01-03c,
+  bukan lagi `<img>` DOM datar Patch 04) ditempel sebagai **tekstur** pada
+  plane 3D yang dibungkus `<Billboard>` dari drei — otomatis menghadap
+  kamera dari sudut mana pun.
+- `OrbitControls` dikembalikan dengan constraint sama seperti Patch 02/03
+  (`enablePan=false`, `minDistance`/`maxDistance`, `minPolarAngle`/
+  `maxPolarAngle`) — memberi rasa "diputar-putar" yang diminta user.
+- Ditambahkan efek glow (hover/aktif) dan ring (dipilih) memakai tekstur
+  asli yang disediakan user, plus animasi mengambang halus dan awan
+  melayang di latar untuk kedalaman visual.
+- Ditambahkan `WorldSceneErrorBoundary` — jika WebGL gagal render di
+  perangkat tertentu, otomatis fallback ke grid 2D sederhana
+  (`FallbackGrid`), mempertahankan kebijakan proyek "setiap Canvas 3D
+  wajib punya jaring pengaman non-3D" yang sudah ada sejak Numeria (Patch
+  03b).
+
+### Perbaikan #2: kurikulum konkret per dunia
+
+`GAMEPLAY-CATALOG.md` ditulis ulang dengan peta kurikulum spesifik per
+dunia (jenjang tajwid untuk Al-Qur'an, tema adab konkret, level bahasa
+Arab/Inggris berjenjang, level literasi digital) — masing-masing disertai
+tujuan pembelajaran eksplisit dan konsep mekanik game yang diusulkan.
+
+**Batasan jujur yang wajib dipertahankan:** kurikulum ini adalah draft
+disusun dari struktur umum pembelajaran homeschooling Islam, BUKAN salinan
+dokumen resmi internal Bright Academy (tidak ada akses ke dokumen tersebut
+dari sistem AI). Setiap agent berikutnya wajib mempertahankan disclaimer
+ini di dokumen dan tidak mengklaim draft sebagai final/resmi.
+
+### Evaluasi diri: tiga kali ubah pendekatan peta dalam tiga patch berturut
+
+```text
+Patch 03c: peta Three.js geometri sederhana (base sebelum masalah muncul)
+Patch 04 : diubah ke DOM/CSS murni — TERLALU JAUH mengorbankan interaksi
+Patch 05 : dikembalikan ke Three.js dengan billboard — kombinasi yang benar
+```
+
+Pelajaran untuk seluruh agent yang bekerja di proyek ini ke depan: ketika
+menyelesaikan masalah reliabilitas (seperti risiko WebGL gagal), **jangan
+langsung memilih solusi paling ekstrem (hapus fitur)**. Solusi yang lebih
+baik biasanya kombinasi: pertahankan fitur inti (3D interaktif) SAMBIL
+menambah jaring pengaman (error boundary + fallback), seperti yang sudah
+terbukti berhasil di `NumeriaGame.tsx` sejak Patch 03b dan sekarang
+diterapkan juga di `WorldScene.tsx` pada Patch 05.
+
+---
+
+## Patch 04 — Peta Aset Visual Asli + Perbaikan Reliabilitas (lihat catatan koreksi di atas)
+
+Ringkasan singkat (detail lengkap ada di histori sebelumnya): mengganti
+peta dari Three.js geometri sederhana ke DOM/CSS dengan 6 ilustrasi
+isometrik asli, menambah `AppErrorBoundary`, menjadikan `styles.css` file
+tunggal (menghentikan proses manual tempel CSS tiga patch sebelumnya).
+**Bagian mengganti peta ke DOM/CSS dikoreksi di Patch 05** — bagian lain
+(`AppErrorBoundary`, `styles.css` file tunggal) TETAP DIPERTAHANKAN karena
+terbukti bermanfaat dan tidak mengorbankan fitur apa pun.
+
+## Ringkasan Patch 00-03c
+
+- **Patch 00**: Diskusi produk — nama Brightoria, tiga jalur, enam dunia,
+  prinsip tanpa musik.
+- **Patch 01**: Fondasi 3D dasar, enam pulau geometris sederhana.
+- **Patch 02**: Landmark prosedural, parent dashboard, dokumentasi agent
+  pertama, berbagai masalah instalasi npm Windows diselesaikan.
+- **Patch 03**: Numeria Fraction Bridge — mini-game penuh pertama.
+- **Patch 03b**: Hotfix — hapus `<Environment>` drei penyebab macet blank,
+  tambah `ErrorBoundaryCanvas`.
+- **Patch 03c**: Badge "Game tersedia" vs "Segera hadir", dokumentasi
+  master lengkap pertama kali dibuat.

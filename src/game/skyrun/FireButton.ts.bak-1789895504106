@@ -1,0 +1,252 @@
+/**
+ * FireButton.ts — Tombol tembak untuk Penerbangan Ilmu (Patch 66).
+ *
+ * ====================================================================
+ * KENAPA MODUL MANDIRI, BUKAN BAGIAN SkyRunGame.tsx
+ * ====================================================================
+ * `SkyRunGame.tsx` sudah berkali-kali bermasalah — galat `onReadTick`
+ * saja butuh empat patch untuk benar-benar tuntas (59 sampai 63).
+ *
+ * Modul ini memasang tombolnya sendiri ke DOM dan berbicara lewat
+ * event global. Nol perubahan di berkas mana pun.
+ *
+ * Pola yang sama sudah terbukti aman pada empat tombol mengambang
+ * (ParentInsight, ExpeditionLauncher, AiCompanion, DailyPractice).
+ *
+ * ====================================================================
+ * PELAJARAN PATCH 53 DITERAPKAN
+ * ====================================================================
+ * Pada Patch 53 ditemukan bug berat: MutationObserver yang menulis
+ * `innerHTML` di dalam callback-nya sendiri, sehingga memicu dirinya
+ * berulang tanpa henti dan membekukan seluruh laman.
+ *
+ * Observer di sini HANYA menyetel properti `hidden` — itu perubahan
+ * ATRIBUT, sedangkan observer mengamati `childList`. Menyetelnya tidak
+ * pernah memicu observer kembali.
+ *
+ * ====================================================================
+ * DUA TUGAS SEKALIGUS
+ * ====================================================================
+ *   1. Mengirim event tembak  -> Blaster meletuskan tiga peluru
+ *   2. Mengirim event jawab   -> SkyRunGame mengunci jawaban jalur
+ *                                yang sedang ditempati
+ *
+ * Tugas kedua membuat tombolnya punya MAKNA. Tombol yang hanya
+ * menghasilkan kilatan cahaya akan terasa palsu bagi anak — ia akan
+ * segera berhenti menekannya.
+ *
+ * Bila SkyRunGame belum mendengarkan event jawab, tombolnya tetap
+ * berfungsi sebagai tembakan. Jadi berkas ini aman dipasang lebih
+ * dulu, tanpa urutan yang mengikat.
+ * ====================================================================
+ */
+
+/** Dikirim saat tombol ditekan. Didengarkan Blaster. */
+const FIRE_EVENT = 'brightoria:skyrun-fire';
+
+/** Dikirim bersamaan. Didengarkan SkyRunGame untuk mengunci jawaban. */
+const LOCK_EVENT = 'brightoria:skyrun-lock';
+
+const STYLE_ID = 'brightoria-fire-button-v1';
+
+const FIRE_CSS = `
+.skr-fire {
+  position: fixed;
+  left: 50%;
+  bottom: 118px;
+  transform: translateX(-50%);
+  z-index: 7;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 26px 13px 20px;
+  border: 0;
+  border-radius: 999px;
+
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  color: #2a1400;
+
+  background: linear-gradient(135deg, #ffd166 0%, #ff9a2e 55%, #f2760f 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 8px 22px rgba(190, 90, 10, 0.42);
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.12s ease;
+}
+
+.skr-fire:hover {
+  transform: translateX(-50%) translateY(-2px) scale(1.03);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 12px 28px rgba(190, 90, 10, 0.5);
+}
+
+/* Ditekan: mengecil tajam, lalu memantul balik. Umpan balik sentuh
+   yang terasa tegas — anak harus YAKIN tombolnya berfungsi. */
+.skr-fire:active {
+  transform: translateX(-50%) scale(0.93);
+  transition-duration: 0.06s;
+}
+
+.skr-fire[hidden] {
+  display: none !important;
+}
+
+.skr-fire-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.78);
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(120, 60, 0, 0.2);
+}
+
+/* Denyut lembut saat menganggur — mengundang tanpa mengganggu. */
+@media (prefers-reduced-motion: no-preference) {
+  .skr-fire {
+    animation: skr-fire-idle 2.8s ease-in-out infinite;
+  }
+}
+
+@keyframes skr-fire-idle {
+  0%, 100% {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.7) inset,
+      0 8px 22px rgba(190, 90, 10, 0.42);
+  }
+  50% {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.7) inset,
+      0 8px 28px rgba(255, 154, 46, 0.62);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skr-fire {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .skr-fire {
+    bottom: 104px;
+    padding: 11px 20px 11px 16px;
+    font-size: 13px;
+    gap: 7px;
+  }
+  .skr-fire-icon {
+    width: 23px;
+    height: 23px;
+    font-size: 13px;
+  }
+}
+`;
+
+declare global {
+  interface Window {
+    __brtFireButtonInit?: boolean;
+  }
+}
+
+function injectStyles(): void {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement('style');
+  style.id = STYLE_ID;
+  style.textContent = FIRE_CSS;
+  document.head.appendChild(style);
+}
+
+function mountFireButton(): void {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (window.__brtFireButtonInit) return;
+  window.__brtFireButtonInit = true;
+
+  try {
+    injectStyles();
+
+    const btn = document.createElement('button');
+    btn.className = 'skr-fire';
+    btn.type = 'button';
+    btn.hidden = true;
+    btn.setAttribute('aria-label', 'Tembak jawaban');
+    btn.innerHTML =
+      '<span class="skr-fire-icon" aria-hidden="true">🔥</span><span>Tembak!</span>';
+    document.body.appendChild(btn);
+
+    /** Jeda minimum antar-tembakan, mencegah spam yang merusak irama. */
+    const COOLDOWN = 260;
+    let lastFire = 0;
+
+    function fire() {
+      const now = Date.now();
+      if (now - lastFire < COOLDOWN) return;
+      lastFire = now;
+
+      try {
+        // 1. Letusan visual — selalu terjadi.
+        window.dispatchEvent(new Event(FIRE_EVENT));
+
+        // 2. Kunci jawaban — hanya berpengaruh bila SkyRunGame
+        //    mendengarkannya. Aman meski belum.
+        window.dispatchEvent(new Event(LOCK_EVENT));
+      } catch {
+        /* diamkan */
+      }
+    }
+
+    btn.addEventListener('click', fire);
+
+    // Spasi juga menembak — banyak anak lebih nyaman dengan papan ketik.
+    function onKey(e: KeyboardEvent) {
+      if (btn.hidden) return;
+      if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        fire();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+
+    /*
+     * Tombol hanya muncul saat Penerbangan Ilmu terbuka.
+     *
+     * Observer HANYA menyetel `hidden` — properti, bukan anak elemen.
+     * Jadi ia tidak pernah bisa memicu dirinya sendiri. Lihat catatan
+     * "PELAJARAN PATCH 53" di kepala berkas.
+     */
+    function sync() {
+      try {
+        btn.hidden = document.querySelector('.skr-overlay') === null;
+      } catch {
+        /* diamkan */
+      }
+    }
+
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(document.body, { childList: true, subtree: true });
+  } catch (err) {
+    // Kegagalan modul tambahan tidak boleh menghentikan aplikasi.
+    // eslint-disable-next-line no-console
+    console.error('[Brightoria] FireButton gagal dipasang (diabaikan):', err);
+  }
+}
+
+mountFireButton();
+
+export {};

@@ -1,0 +1,17 @@
+node_modules
+dist
+android/.gradle
+android/app/build
+.env*
+!.env.example
+
+.local-node/
+
+node_modules/
+dist/
+coverage/
+.vscode/
+.env
+.env.local
+*.log
+*.bak

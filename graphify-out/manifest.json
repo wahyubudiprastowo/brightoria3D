@@ -1,0 +1,457 @@
+{
+  "src/App.tsx": {
+    "mtime": 1789796244.0,
+    "ast_hash": "d7e707d037696acdc20be768b111874e",
+    "semantic_hash": ""
+  },
+  "src/ErrorBoundary.tsx": {
+    "mtime": 1789289084.6559832,
+    "ast_hash": "2660bb648381c33999e68ff5541a601d",
+    "semantic_hash": ""
+  },
+  "src/ai/AiCompanion.tsx": {
+    "mtime": 1789717508.0,
+    "ast_hash": "8a3c7f150d3006952a61126a283ff0f0",
+    "semantic_hash": ""
+  },
+  "src/ai/companion.ts": {
+    "mtime": 1789717352.0,
+    "ast_hash": "cc28d267154460985d11cfa3883a008d",
+    "semantic_hash": ""
+  },
+  "src/components/BriMascot.tsx": {
+    "mtime": 1789536948.3776457,
+    "ast_hash": "be15bd31c4584d64541a5e1bdd2a5e66",
+    "semantic_hash": ""
+  },
+  "src/components/WorldScene.tsx": {
+    "mtime": 1789895519.802894,
+    "ast_hash": "8958093d12e16366dc0770a5f4d13c67",
+    "semantic_hash": ""
+  },
+  "src/components/WorldScene3D.tsx": {
+    "mtime": 1789716578.0,
+    "ast_hash": "ba6e67e92559f85dbed93aef41025e28",
+    "semantic_hash": ""
+  },
+  "src/components/world3d/BlockyCharacter.tsx": {
+    "mtime": 1789801924.0,
+    "ast_hash": "0c11a86acec1352e43369962c5223364",
+    "semantic_hash": ""
+  },
+  "src/components/world3d/Island3D.tsx": {
+    "mtime": 1789807752.196184,
+    "ast_hash": "ef662bea0847bd305509003de453bf4e",
+    "semantic_hash": ""
+  },
+  "src/components/world3d/IslandProps.tsx": {
+    "mtime": 1789745406.0,
+    "ast_hash": "6b085902d460d8fcc53c69cbfca7f504",
+    "semantic_hash": ""
+  },
+  "src/components/world3d/MapDecor.tsx": {
+    "mtime": 1789895468.1843677,
+    "ast_hash": "5efbecb2b3771e42b5bc3a3e49fc26e5",
+    "semantic_hash": ""
+  },
+  "src/components/world3d/MapPlane.tsx": {
+    "mtime": 1789902893.0116575,
+    "ast_hash": "aca52b1373d236d0776e71a9c2c681c2",
+    "semantic_hash": ""
+  },
+  "src/components/world3d/Ocean3D.tsx": {
+    "mtime": 1789717820.0,
+    "ast_hash": "2081530f3a2a214487c0a44cea735511",
+    "semantic_hash": ""
+  },
+  "src/components/world3d/PracticeTower.tsx": {
+    "mtime": 1789865313.2336216,
+    "ast_hash": "5013026b08596d95cd78505e97c3bdfe",
+    "semantic_hash": ""
+  },
+  "src/components/world3d/SelectionMarker.tsx": {
+    "mtime": 1789807752.2129552,
+    "ast_hash": "c899b47ea1d3f7c9be1a7e013f864e41",
+    "semantic_hash": ""
+  },
+  "src/components/world3d/outfits.tsx": {
+    "mtime": 1789869117.977183,
+    "ast_hash": "c2e6ea5b38e048f3a446dc49d9c8fe2a",
+    "semantic_hash": ""
+  },
+  "src/components/worldFx.tsx": {
+    "mtime": 1789740215.392763,
+    "ast_hash": "7432e2baabe9f4ce32ce2cbcc9f2e7ff",
+    "semantic_hash": ""
+  },
+  "src/data/worlds.ts": {
+    "mtime": 1789520062.2714324,
+    "ast_hash": "7f42c0b2df52e275b8a8ec650f5402c5",
+    "semantic_hash": ""
+  },
+  "src/game/CharacterPicker.tsx": {
+    "mtime": 1789802046.0,
+    "ast_hash": "05f345dc8ad0c41b652a5bcff26ca37b",
+    "semantic_hash": ""
+  },
+  "src/game/DailyPractice.tsx": {
+    "mtime": 1789794832.0,
+    "ast_hash": "2e6debbac3ac8d8d3d6ddf349ffa3dc5",
+    "semantic_hash": ""
+  },
+  "src/game/ParentInsight.tsx": {
+    "mtime": 1789738480.3058286,
+    "ast_hash": "446f9f3d902dbc8e57204f0c5459655d",
+    "semantic_hash": ""
+  },
+  "src/game/adab/AdabGame.tsx": {
+    "mtime": 1789562834.7393622,
+    "ast_hash": "e4f41e773429df6693b0c0830f548967",
+    "semantic_hash": ""
+  },
+  "src/game/adab/evidence.ts": {
+    "mtime": 1789796244.0,
+    "ast_hash": "479776536df958eeef919c156d1e9313",
+    "semantic_hash": ""
+  },
+  "src/game/adab/levels.ts": {
+    "mtime": 1789270823.904525,
+    "ast_hash": "58977dda8712d350bf9e18f5426ce690",
+    "semantic_hash": ""
+  },
+  "src/game/adab/scenarios.ts": {
+    "mtime": 1789562833.220586,
+    "ast_hash": "af69895c818a65fa89a80727e06e2151",
+    "semantic_hash": ""
+  },
+  "src/game/arabic/ArabicGame.tsx": {
+    "mtime": 1789559328.1887107,
+    "ast_hash": "33b57e1363d344fecd88fe22e769d665",
+    "semantic_hash": ""
+  },
+  "src/game/arabic/arabicSfx.ts": {
+    "mtime": 1789559334.4423943,
+    "ast_hash": "d1d2bf86371b87f99044db494e0721c4",
+    "semantic_hash": ""
+  },
+  "src/game/arabic/arabicTts.ts": {
+    "mtime": 1789559328.659461,
+    "ast_hash": "4056c3dfe7cd898542ada05c56221c72",
+    "semantic_hash": ""
+  },
+  "src/game/arabic/curriculum.ts": {
+    "mtime": 1789559327.8102677,
+    "ast_hash": "e491dfdd1849943da131e46d2c0e2999",
+    "semantic_hash": ""
+  },
+  "src/game/arabic/evidence.ts": {
+    "mtime": 1789559334.224833,
+    "ast_hash": "4ed79745b57a6471205e7714033b403f",
+    "semantic_hash": ""
+  },
+  "src/game/arabic/levels.ts": {
+    "mtime": 1789559334.7013144,
+    "ast_hash": "c863da1bc72f9088b14e5fd78a008c55",
+    "semantic_hash": ""
+  },
+  "src/game/digital/DigitalGame.tsx": {
+    "mtime": 1789520062.4170475,
+    "ast_hash": "0bf4dd1257e424788fe028f2aa4150c9",
+    "semantic_hash": ""
+  },
+  "src/game/digital/evidence.ts": {
+    "mtime": 1789268504.7916064,
+    "ast_hash": "500a05696bcb7ce39b540c1185a3a21d",
+    "semantic_hash": ""
+  },
+  "src/game/digital/levels.ts": {
+    "mtime": 1789268502.6139197,
+    "ast_hash": "fc3f473435cd4129238ad21b5f1eb412",
+    "semantic_hash": ""
+  },
+  "src/game/english/EnglishGame.tsx": {
+    "mtime": 1789714007.4932115,
+    "ast_hash": "c45baecf993d348396e0440857856c88",
+    "semantic_hash": ""
+  },
+  "src/game/english/curriculum.ts": {
+    "mtime": 1789714007.360072,
+    "ast_hash": "9959bb50f0d925c3d94ca2a12eaa9bdd",
+    "semantic_hash": ""
+  },
+  "src/game/english/englishTts.ts": {
+    "mtime": 1789714007.3933213,
+    "ast_hash": "cb42e9552feb54a4f8a089d2c88068ce",
+    "semantic_hash": ""
+  },
+  "src/game/english/evidence.ts": {
+    "mtime": 1789714007.443498,
+    "ast_hash": "0a82b6a617f79e23b047c0bf88d3467d",
+    "semantic_hash": ""
+  },
+  "src/game/english/harborScene.tsx": {
+    "mtime": 1789714005.9272325,
+    "ast_hash": "737e8b923eef2419ad3e2dc5bfa088e5",
+    "semantic_hash": ""
+  },
+  "src/game/english/levels.ts": {
+    "mtime": 1789714007.244779,
+    "ast_hash": "a65e978171b0f55737f5f7b19b93cfec",
+    "semantic_hash": ""
+  },
+  "src/game/expedition/ArenaProps.tsx": {
+    "mtime": 1789790171.4927247,
+    "ast_hash": "f8848f7ec0e0042dbf3c153b2e9e5cc8",
+    "semantic_hash": ""
+  },
+  "src/game/expedition/ExpeditionGame.tsx": {
+    "mtime": 1789788801.6058683,
+    "ast_hash": "7523a4fcc098a0b59b6b1e6fce473c65",
+    "semantic_hash": ""
+  },
+  "src/game/expedition/ExpeditionLauncher.tsx": {
+    "mtime": 1789717186.0,
+    "ast_hash": "81d112d00fbbf6358a86d84be582edea",
+    "semantic_hash": ""
+  },
+  "src/game/expedition/NpcAira.tsx": {
+    "mtime": 1789826139.8351617,
+    "ast_hash": "0db0ab0631bc9fd3d28bd064a10fd257",
+    "semantic_hash": ""
+  },
+  "src/game/expedition/QuestHud.tsx": {
+    "mtime": 1789746772.3042126,
+    "ast_hash": "3b6861c5ee44c79556efa242336a9cda",
+    "semantic_hash": ""
+  },
+  "src/game/expedition/WorldPortalHost.tsx": {
+    "mtime": 1789787135.529773,
+    "ast_hash": "0fe9eacafcfd24d890bdda2eddd2ba00",
+    "semantic_hash": ""
+  },
+  "src/game/expedition/expeditionData.ts": {
+    "mtime": 1789786163.4736881,
+    "ast_hash": "b8d274c191d9d2dcb620423d0c25947a",
+    "semantic_hash": ""
+  },
+  "src/game/expedition/questData.ts": {
+    "mtime": 1789746772.3188684,
+    "ast_hash": "85ca223f69d563b2296ada156daeb07b",
+    "semantic_hash": ""
+  },
+  "src/game/expedition/questEngine.ts": {
+    "mtime": 1789746772.2765353,
+    "ast_hash": "ee374c84fd322b6cb8a0a5c9a7847eaa",
+    "semantic_hash": ""
+  },
+  "src/game/froggy/FroggyGame.tsx": {
+    "mtime": 1789869092.0249085,
+    "ast_hash": "4bb6d595fb6026e1d512dab9dc2723c2",
+    "semantic_hash": ""
+  },
+  "src/game/identity.ts": {
+    "mtime": 1789801674.0,
+    "ast_hash": "ac579e9fa8557b303cdb614537a19c94",
+    "semantic_hash": ""
+  },
+  "src/game/juice.tsx": {
+    "mtime": 1789520062.3142588,
+    "ast_hash": "cbfebd25c5e2b5a440d72c4c954d08bd",
+    "semantic_hash": ""
+  },
+  "src/game/juice3d.ts": {
+    "mtime": 1789626389.4460168,
+    "ast_hash": "6d536a4af61a8ef1b0e35adaba6e1795",
+    "semantic_hash": ""
+  },
+  "src/game/kidsUi.ts": {
+    "mtime": 1789714005.8273506,
+    "ast_hash": "b4bab98aa33f1d622f902963306418c5",
+    "semantic_hash": ""
+  },
+  "src/game/math/mathGenerator.ts": {
+    "mtime": 1789795069.3767898,
+    "ast_hash": "e4874f98ce2b9eaf792bbd664cd30a9e",
+    "semantic_hash": ""
+  },
+  "src/game/numeria/BridgeWalker.tsx": {
+    "mtime": 1789826138.512358,
+    "ast_hash": "7079cadb7df17dd51108d00be7831c5f",
+    "semantic_hash": ""
+  },
+  "src/game/numeria/NumeriaGame.tsx": {
+    "mtime": 1789797036.0,
+    "ast_hash": "df129a98ac6f43945cdf6374bdfad4b1",
+    "semantic_hash": ""
+  },
+  "src/game/numeria/bridgeLevels.ts": {
+    "mtime": 1789873799.0297449,
+    "ast_hash": "8d49e94125a36548a8c78d1455332c6a",
+    "semantic_hash": ""
+  },
+  "src/game/numeria/evidence.ts": {
+    "mtime": 1789796244.0,
+    "ast_hash": "3612cc38dbf8cb8ae192fed9c37b8573",
+    "semantic_hash": ""
+  },
+  "src/game/numeria/levels.ts": {
+    "mtime": 1789796244.0,
+    "ast_hash": "2a4baecb566e4ef662679b1017e677a4",
+    "semantic_hash": ""
+  },
+  "src/game/numeria/mathCurriculum.ts": {
+    "mtime": 1789873797.5760598,
+    "ast_hash": "162c6e749aab31eea4461321258a7b53",
+    "semantic_hash": ""
+  },
+  "src/game/practiceEngine.ts": {
+    "mtime": 1789738477.9493957,
+    "ast_hash": "9d49ad32e56e10651fd2daa4b7e4f118",
+    "semantic_hash": ""
+  },
+  "src/game/progress.ts": {
+    "mtime": 1789289084.72555,
+    "ast_hash": "7d66153f1cc4c57f5eb7f963712f5c6a",
+    "semantic_hash": ""
+  },
+  "src/game/progressHub.ts": {
+    "mtime": 1789723062.3509853,
+    "ast_hash": "9677e308da935f4c1d9d4281555904d3",
+    "semantic_hash": ""
+  },
+  "src/game/quiz/QuizGame.tsx": {
+    "mtime": 1789520062.4526553,
+    "ast_hash": "79d33d254318699e399158b3f6af2799",
+    "semantic_hash": ""
+  },
+  "src/game/quiz/evidence.ts": {
+    "mtime": 1789270759.0991273,
+    "ast_hash": "a22c7fa08a91158f6f23c077926eda46",
+    "semantic_hash": ""
+  },
+  "src/game/quran/QuranGame.tsx": {
+    "mtime": 1789634591.717115,
+    "ast_hash": "4ace9487566d6dd00867c6e58fb1ec9d",
+    "semantic_hash": ""
+  },
+  "src/game/quran/curriculum.ts": {
+    "mtime": 1789634591.6279426,
+    "ast_hash": "271c9772609c3fc36a049347060d03f0",
+    "semantic_hash": ""
+  },
+  "src/game/quran/evidence.ts": {
+    "mtime": 1789634591.5837617,
+    "ast_hash": "fb5d8640853e624acb9ffc452e22ab6d",
+    "semantic_hash": ""
+  },
+  "src/game/quran/levels.ts": {
+    "mtime": 1789270816.1556523,
+    "ast_hash": "a5b91f4f202b8acd64ad55122167d503",
+    "semantic_hash": ""
+  },
+  "src/game/quran/quranTts.ts": {
+    "mtime": 1789634591.6669717,
+    "ast_hash": "e1c4afb815255c484ed716be169ff808",
+    "semantic_hash": ""
+  },
+  "src/game/reviewDeck.ts": {
+    "mtime": 1789736973.1105683,
+    "ast_hash": "f8e636856295c11613689be259e925e5",
+    "semantic_hash": ""
+  },
+  "src/game/skyrun/Blaster.tsx": {
+    "mtime": 1789884067.5020294,
+    "ast_hash": "18e18a665b764923771343a428189152",
+    "semantic_hash": ""
+  },
+  "src/game/skyrun/EngineTrail.tsx": {
+    "mtime": 1789881225.102907,
+    "ast_hash": "98e20e8997ba01ed8b8ba509b1757290",
+    "semantic_hash": ""
+  },
+  "src/game/skyrun/ShipModel.tsx": {
+    "mtime": 1789882622.2051723,
+    "ast_hash": "34c8db27395dce9c5afd40dcb266a1af",
+    "semantic_hash": ""
+  },
+  "src/game/skyrun/SkyRunGame.tsx": {
+    "mtime": 1789895504.1063368,
+    "ast_hash": "97e7e3cb871e6e71bd330e44974a2f18",
+    "semantic_hash": ""
+  },
+  "src/game/skyrun/SpaceField.tsx": {
+    "mtime": 1789884067.4429305,
+    "ast_hash": "d118d052830df747b89ad9f6c4fa8e6d",
+    "semantic_hash": ""
+  },
+  "src/game/skyrun/skyRunQuestions.ts": {
+    "mtime": 1789795071.2019417,
+    "ast_hash": "8a6246ef9e8a94090ba38ba3af8cfe3d",
+    "semantic_hash": ""
+  },
+  "src/game/sound.ts": {
+    "mtime": 1789268500.232156,
+    "ast_hash": "885585917d3b7b6e04579bd50782a1b8",
+    "semantic_hash": ""
+  },
+  "src/game/uiPolish.ts": {
+    "mtime": 1789740213.590207,
+    "ast_hash": "3416139322e2ef0ee76186002945b72e",
+    "semantic_hash": ""
+  },
+  "src/main.tsx": {
+    "mtime": 1789873798.9965906,
+    "ast_hash": "239d7dc440f88a07f68e4339895dfbb8",
+    "semantic_hash": ""
+  },
+  "src/render/CinematicRig.tsx": {
+    "mtime": 1789715982.0,
+    "ast_hash": "2df2e0f9049bdec3c67da4151b2d5ba7",
+    "semantic_hash": ""
+  },
+  "src/render/Postfx.tsx": {
+    "mtime": 1789743280.1590886,
+    "ast_hash": "b5309822695cedafe218983d5ef403d8",
+    "semantic_hash": ""
+  },
+  "src/render/ProceduralEnv.tsx": {
+    "mtime": 1789786161.3725798,
+    "ast_hash": "e1738bc61fb62d267556316ed75aea08",
+    "semantic_hash": ""
+  },
+  "src/render/quality.ts": {
+    "mtime": 1789743280.1950562,
+    "ast_hash": "f7ea4c89e3cdf6ad20cbb941337a27d2",
+    "semantic_hash": ""
+  },
+  "src/theme/brandHeader.ts": {
+    "mtime": 1789792081.2680902,
+    "ast_hash": "eb297954dca2476b1a7988777b2b330b",
+    "semantic_hash": ""
+  },
+  "src/theme/brightBrand.ts": {
+    "mtime": 1789786161.440076,
+    "ast_hash": "7b5ecfe8fe6dbf3bb09452511283740f",
+    "semantic_hash": ""
+  },
+  "src/theme/playerBadge.ts": {
+    "mtime": 1789802212.0,
+    "ast_hash": "96fd91f646691c31605cd9f0a1021a54",
+    "semantic_hash": ""
+  },
+  "src/theme/railButtons.ts": {
+    "mtime": 1789869090.2085447,
+    "ast_hash": "d2fe168e1137185824f50ddb5d719d17",
+    "semantic_hash": ""
+  },
+  "src/theme/uiRefine.ts": {
+    "mtime": 1789873797.4842713,
+    "ast_hash": "024bce53daa5e79e483d3807718acb06",
+    "semantic_hash": ""
+  },
+  "src/vite-env.d.ts": {
+    "mtime": 1789289084.6727467,
+    "ast_hash": "0352474ba2918efe13895edbc3780d94",
+    "semantic_hash": ""
+  }
+}

@@ -1,0 +1,496 @@
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Canvas, useLoader, useThree } from '@react-three/fiber';
+import { Billboard, Html, Line, OrbitControls, Sparkles } from '@react-three/drei';
+import * as THREE from 'three';
+import React from 'react';
+import { worlds as worldsData, routeConnections, type World } from '../data/worlds';
+import BriMascot from './BriMascot';
+import PracticeTower from './world3d/PracticeTower';
+import {
+  Birds,
+  IslandAura,
+  Ocean,
+  ProceduralClouds,
+  SelectionGlow,
+  WorldSkyRays,
+  useSafeFrame,
+} from './worldFx';
+
+/**
+ * WorldScene — Patch 37 (MERAPIKAN EFEK & LABEL PETA).
+ *
+ * ====================================================================
+ * MASALAH YANG DIPERBAIKI (dari screenshot pengguna):
+ * ====================================================================
+ * 1. Kerucut cahaya raksasa menutupi peta.
+ *    `SelectionBeam` (Patch 33) diganti `SelectionGlow` — semua elemen
+ *    penanda kini berada DI BAWAH pulau, tidak lagi menjulang ke langit.
+ *    Detail lengkap ada di worldFx.tsx.
+ *
+ * 2. Label pulau saling tumpang tindih dan ukurannya berubah-ubah.
+ *    Penyebab: `<Html distanceFactor={7}>` membuat label ikut membesar
+ *    mengikuti perspektif 3D. Di layar lebar, label jadi besar sekali dan
+ *    bertabrakan dengan pulau tetangga (terlihat jelas pada "Kampung
+ *    Adab" yang menutupi pulaunya sendiri).
+ *
+ *    PERBAIKAN: `distanceFactor` DIHAPUS. Tanpa properti itu, drei
+ *    merender label pada ukuran piksel TETAP (tidak terpengaruh jarak
+ *    kamera), sehingga ukurannya konsisten di semua zoom dan resolusi.
+ *    Label juga digeser sedikit lebih ke bawah dan diberi kelas ukuran
+ *    dari uiPolish.ts supaya lebarnya terkunci.
+ *
+ * 3. Partikel kilau terlalu ramai.
+ *    `<Sparkles>` diperkecil (count 22 -> 12, scale 2.4 -> 1.6) agar
+ *    menjadi aksen, bukan gangguan.
+ *
+ * ====================================================================
+ * YANG TIDAK DIUBAH (dijaga agar tidak merusak yang sudah bekerja):
+ *   - Formasi cincin posisi 6 dunia (dari worlds.ts)
+ *   - Logika pemilihan/klik pulau, props, kontrak komponen
+ *   - Fallback 2D jika WebGL gagal
+ *   - Fix label bocor ke overlay game: zIndexRange={[30, 0]} (Patch 11)
+ *   - Kamera responsif mobile (Patch 17)
+ *   - Maskot Bri dan reaksinya
+ * ====================================================================
+ */
+
+function useResponsiveViewport() {
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth <= 700,
+  );
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 700);
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  return isMobile;
+}
+
+function CameraRig({ isMobile }: { isMobile: boolean }) {
+  const { camera } = useThree();
+  useEffect(() => {
+    const persp = camera as THREE.PerspectiveCamera;
+    if (isMobile) {
+      persp.fov = 58;
+      persp.position.set(0, 1.0, 6.6);
+    } else {
+      persp.fov = 50;
+      persp.position.set(0, 1.1, 8.2);
+    }
+    persp.updateProjectionMatrix();
+  }, [isMobile, camera]);
+  return null;
+}
+
+/** Bayangan lembut di bawah pulau — prosedural (radial gradient). */
+let sharedShadowTexture: THREE.CanvasTexture | null = null;
+function getShadowTexture(): THREE.CanvasTexture {
+  if (sharedShadowTexture) return sharedShadowTexture;
+  const size = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  gradient.addColorStop(0, 'rgba(18,40,44,0.34)');
+  gradient.addColorStop(0.55, 'rgba(18,40,44,0.14)');
+  gradient.addColorStop(1, 'rgba(18,40,44,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  sharedShadowTexture = new THREE.CanvasTexture(canvas);
+  sharedShadowTexture.needsUpdate = true;
+  return sharedShadowTexture;
+}
+
+function Island({
+  world,
+  index,
+  active,
+  hovered,
+  onSelect,
+  onHover,
+}: {
+  world: World;
+  index: number;
+  active: boolean;
+  hovered: boolean;
+  onSelect: (w: World) => void;
+  onHover: (id: string | null) => void;
+}) {
+  const texture = useLoader(THREE.TextureLoader, world.image);
+  const shadowTexture = getShadowTexture();
+  const groupRef = useRef<THREE.Group>(null);
+  const scaleRef = useRef<THREE.Group>(null);
+  const baseY = world.position[1];
+  const spawnTime = useRef<number | null>(null);
+
+  useSafeFrame((state) => {
+    if (!groupRef.current) return;
+    const t = state.clock.elapsedTime;
+
+    groupRef.current.position.y = baseY + Math.sin(t * 0.7 + world.position[0]) * 0.09;
+
+    // Pop-in bertahap saat peta pertama dibuka (stagger per pulau)
+    if (scaleRef.current) {
+      if (spawnTime.current === null) spawnTime.current = t + index * 0.09;
+      const elapsed = t - spawnTime.current;
+      if (elapsed < 0) {
+        scaleRef.current.scale.setScalar(0.001);
+      } else if (elapsed < 0.55) {
+        const p = elapsed / 0.55;
+        const eased = 1 - Math.pow(1 - p, 3);
+        const overshoot = eased * 1.08 - (eased > 0.8 ? (eased - 0.8) * 0.4 : 0);
+        scaleRef.current.scale.setScalar(Math.max(0.001, overshoot));
+      } else {
+        const target = active ? 1.16 : hovered ? 1.08 : 1;
+        const current = scaleRef.current.scale.x;
+        scaleRef.current.scale.setScalar(current + (target - current) * 0.15);
+      }
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={world.position}>
+      <mesh position={[0, -0.95, -0.05]} rotation={[-Math.PI / 2.5, 0, 0]}>
+        <planeGeometry args={[1.9, 1.35]} />
+        <meshBasicMaterial map={shadowTexture} transparent depthWrite={false} fog={false} />
+      </mesh>
+
+      <Billboard follow position={[0, 0, 0]}>
+        <group
+          ref={scaleRef}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect(world);
+          }}
+          onPointerOver={(e) => {
+            e.stopPropagation();
+            onHover(world.id);
+            document.body.style.cursor = 'pointer';
+          }}
+          onPointerOut={() => {
+            onHover(null);
+            document.body.style.cursor = 'auto';
+          }}
+        >
+          <IslandAura color={world.color} active={active} hovered={hovered} mastery={world.mastery} />
+
+          <mesh>
+            <planeGeometry args={[2.3, 2.3]} />
+            <meshBasicMaterial map={texture} transparent alphaTest={0.05} depthWrite={false} />
+          </mesh>
+        </group>
+      </Billboard>
+
+      {/*
+        Patch 37: `distanceFactor` DIHAPUS.
+        Dengan properti itu, drei menskalakan label mengikuti perspektif 3D
+        sehingga ukurannya berubah-ubah dan bertabrakan di layar lebar.
+        Tanpa `distanceFactor`, label dirender pada ukuran piksel TETAP —
+        konsisten di semua zoom dan resolusi.
+      */}
+      <Html
+        center
+        position={[0, -1.45, 0]}
+        occlude={false}
+        zIndexRange={[30, 0]}
+        className="world-label-anchor"
+      >
+        <button className={'world-label' + (active ? ' active' : '')} onClick={() => onSelect(world)}>
+          <b>{world.name}</b>
+          <span>{world.subtitle}</span>
+          <i>{world.mastery}%</i>
+        </button>
+      </Html>
+    </group>
+  );
+}
+
+function SkyDome() {
+  const geometry = useMemo(() => {
+    const geo = new THREE.SphereGeometry(30, 48, 48);
+    const pos = geo.attributes.position;
+    const colors: number[] = [];
+    const top = new THREE.Color('#6f93d1');
+    const mid = new THREE.Color('#f0b8d9');
+    const horizon = new THREE.Color('#ffd9a0');
+    for (let i = 0; i < pos.count; i++) {
+      const y = pos.getY(i);
+      const t = THREE.MathUtils.clamp((y + 30) / 60, 0, 1);
+      const c = t > 0.55 ? mid.clone().lerp(top, (t - 0.55) / 0.45) : horizon.clone().lerp(mid, t / 0.55);
+      colors.push(c.r, c.g, c.b);
+    }
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    return geo;
+  }, []);
+
+  return (
+    <mesh geometry={geometry} renderOrder={-10}>
+      <meshBasicMaterial vertexColors side={THREE.BackSide} fog={false} depthWrite={false} />
+    </mesh>
+  );
+}
+
+function GroundRings() {
+  const radii = [1.9, 3.3, 4.7];
+  return (
+    <>
+      {radii.map((r, i) => {
+        const points: [number, number, number][] = [];
+        for (let a = 0; a <= 64; a++) {
+          const t = (a / 64) * Math.PI * 2;
+          points.push([Math.cos(t) * r, -2.94, Math.sin(t) * r]);
+        }
+        return (
+          <Line key={i} points={points} color="#ffffff" transparent opacity={0.18} lineWidth={1} fog={false} />
+        );
+      })}
+    </>
+  );
+}
+
+function RouteNode({ position }: { position: [number, number, number] }) {
+  const ref = useRef<THREE.Mesh>(null);
+  useSafeFrame((state) => {
+    if (!ref.current) return;
+    const t = state.clock.elapsedTime;
+    const pulse = 1 + Math.sin(t * 2.4 + position[0]) * 0.16;
+    ref.current.scale.setScalar(pulse);
+  });
+  return (
+    <Billboard position={position}>
+      <mesh position={[0, 0, -0.01]}>
+        <circleGeometry args={[0.17, 20]} />
+        <meshBasicMaterial
+          color="#ffb703"
+          transparent
+          opacity={0.42}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          fog={false}
+        />
+      </mesh>
+      <mesh ref={ref}>
+        <circleGeometry args={[0.075, 18]} />
+        <meshBasicMaterial color="#fff6dc" fog={false} />
+      </mesh>
+    </Billboard>
+  );
+}
+
+function Routes({ worlds }: { worlds: World[] }) {
+  return (
+    <>
+      {routeConnections.map(([a, b], i) => {
+        const wa = worlds[a];
+        const wb = worlds[b];
+        if (!wa || !wb) return null;
+        const points: [number, number, number][] = [wa.position, wb.position];
+        const mid: [number, number, number] = [
+          (wa.position[0] + wb.position[0]) / 2,
+          (wa.position[1] + wb.position[1]) / 2,
+          (wa.position[2] + wb.position[2]) / 2,
+        ];
+        return (
+          <group key={i}>
+            <Line
+              points={points}
+              color="#ffb703"
+              dashed
+              dashSize={0.16}
+              gapSize={0.11}
+              transparent
+              opacity={0.7}
+              lineWidth={2.2}
+              fog={false}
+            />
+            <RouteNode position={mid} />
+          </group>
+        );
+      })}
+    </>
+  );
+}
+
+function Scene({
+  worlds,
+  selected,
+  onSelect,
+  isMobile,
+}: {
+  worlds: World[];
+  selected: World;
+  onSelect: (w: World) => void;
+  isMobile: boolean;
+}) {
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [reactTrigger, setReactTrigger] = useState(0);
+  const prevSelected = useRef(selected.id);
+
+  if (prevSelected.current !== selected.id) {
+    prevSelected.current = selected.id;
+    setReactTrigger((n) => n + 1);
+  }
+
+  return (
+    <>
+      <CameraRig isMobile={isMobile} />
+
+      <fog attach="fog" args={['#f3d9e8', 13, 22]} />
+      <ambientLight intensity={1.85} />
+      <directionalLight position={[4, 8, 6]} intensity={2} />
+      <hemisphereLight args={['#dff8ff', '#f7d7a4', 0.9]} />
+
+      <SkyDome />
+      <WorldSkyRays />
+      <ProceduralClouds />
+      <Birds />
+
+      <Suspense fallback={null}>
+        <Ocean />
+        <GroundRings />
+
+        {/*
+          Menara Latihan — berdiri di TENGAH lingkaran pulau.
+
+          Sengaja BUKAN pulau ketujuh: enam pulau adalah mata pelajaran,
+          sedangkan Latihan memakai materi DARI keenamnya. Bentuk menara
+          yang menjulang membuat anak langsung tahu ini bukan dunia lain.
+
+          Posisi (0,0,0) aman — pulau terdekat berjarak ~2,79 unit.
+          Formasi cincin di worlds.ts TIDAK disentuh sama sekali.
+        */}
+        <PracticeTower />
+
+        <Routes worlds={worlds} />
+
+        {worlds.map((w, i) => (
+          <Island
+            key={w.id}
+            world={w}
+            index={i}
+            active={w.id === selected.id}
+            hovered={w.id === hovered}
+            onSelect={onSelect}
+            onHover={setHovered}
+          />
+        ))}
+
+        {/* Patch 37: penanda pulau terpilih yang tidak lagi menjulang
+            ke langit — semua lapisan berada di bawah/sekitar pulau. */}
+        <SelectionGlow position={selected.position} color={selected.accent} />
+
+        {/* Patch 37: kilau diperkecil (count 22 -> 12, scale 2.4 -> 1.6)
+            agar menjadi aksen halus, bukan elemen yang meramaikan peta. */}
+        <Sparkles
+          count={12}
+          scale={[1.6, 1.6, 1]}
+          size={2.4}
+          speed={0.4}
+          color={selected.accent}
+          position={selected.position}
+        />
+
+        <BriMascot targetPosition={selected.position} reactTrigger={reactTrigger} />
+      </Suspense>
+
+      <OrbitControls
+        makeDefault
+        enablePan={false}
+        enableDamping
+        dampingFactor={0.08}
+        rotateSpeed={0.55}
+        minDistance={isMobile ? 4.8 : 6}
+        maxDistance={isMobile ? 8.5 : 10.5}
+        minPolarAngle={Math.PI * 0.22}
+        maxPolarAngle={Math.PI * 0.72}
+      />
+    </>
+  );
+}
+
+function FallbackGrid({
+  worlds,
+  selected,
+  onSelect,
+}: {
+  worlds: World[];
+  selected: World;
+  onSelect: (w: World) => void;
+}) {
+  return (
+    <div className="world-fallback">
+      <p className="world-fallback-note">
+        Tampilan 3D tidak dapat dimuat di perangkat ini. Pilih dunia dari daftar di bawah.
+      </p>
+      <div className="world-fallback-grid">
+        {worlds.map((w) => (
+          <button
+            key={w.id}
+            className={'world-fallback-card' + (w.id === selected.id ? ' active' : '')}
+            onClick={() => onSelect(w)}
+          >
+            <img src={w.image} alt={w.name} />
+            <b>{w.name}</b>
+            <span>{w.mastery}% mastery</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+class WorldSceneErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: unknown) {
+    // eslint-disable-next-line no-console
+    console.error('WorldScene 3D render failed, falling back to 2D grid:', error);
+  }
+  render() {
+    if (this.state.hasError) return this.props.fallback;
+    return this.props.children;
+  }
+}
+
+export default function WorldScene({
+  worlds,
+  selected,
+  onSelect,
+}: {
+  worlds: World[];
+  selected: World;
+  onSelect: (w: World) => void;
+}) {
+  const isMobile = useResponsiveViewport();
+
+  const fallback = useMemo(
+    () => <FallbackGrid worlds={worlds} selected={selected} onSelect={onSelect} />,
+    [worlds, selected, onSelect],
+  );
+
+  return (
+    <WorldSceneErrorBoundary fallback={fallback}>
+      <Canvas
+        shadows={false}
+        dpr={[1, 2]}
+        camera={{ position: [0, 1.1, 8.2], fov: 50 }}
+        gl={{ antialias: true, powerPreference: 'high-performance' }}
+      >
+        <Scene worlds={worlds} selected={selected} onSelect={onSelect} isMobile={isMobile} />
+      </Canvas>
+    </WorldSceneErrorBoundary>
+  );
+}
+
+export { worldsData };

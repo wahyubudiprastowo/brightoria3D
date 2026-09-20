@@ -1,0 +1,1467 @@
+import CanvasBoundary from '../../components/CanvasBoundary';
+import LocalModel, { modelUrls } from '../../components/world3d/LocalModel';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import * as THREE from 'three';
+import CinematicRig, { ThreePointLights } from '../../render/CinematicRig';
+import Postfx from '../../render/Postfx';
+import ProceduralEnv from '../../render/ProceduralEnv';
+import { getQuality, scaleCount } from '../../render/quality';
+import { NAVY, SKY, WORLD } from '../../theme/brightBrand';
+import { recordMathAnswer, type Fraction, type MathVisual } from '../math/mathGenerator';
+import {
+  LANE_COUNT,
+  buildFlight,
+  getWordPoolSize,
+  loadRecord,
+  saveRecord,
+  type SkyQuestion,
+  type SkyTopic,
+} from './skyRunQuestions';
+import ShipModel from './ShipModel';
+import Blaster from './Blaster';
+import SpaceField from './SpaceField';
+
+/**
+ * SkyRunGame.tsx — "Penerbangan Ilmu" (Patch 49).
+ *
+ * ====================================================================
+ * MASALAH YANG DIPERBAIKI: "PILIHANNYA DI MANA?"
+ * ====================================================================
+ * Pada Patch 47/48, pilihan jawaban HANYA ada di gerbang 3D. Itu
+ * bermasalah karena tiga hal yang saling memperburuk:
+ *
+ *   1. GERBANG LAHIR DI DALAM KABUT.
+ *      Gerbang muncul di z = -58 sementara kamera di z = 9.4 — jaraknya
+ *      67 unit. Kabut mulai di 26 dan penuh di 70, jadi saat pertama
+ *      muncul gerbang itu 94% tertutup kabut. Praktis tak terlihat.
+ *      Anak harus menunggu hampir dua detik sebelum pilihannya terbaca.
+ *
+ *   2. LABEL MENUMPUK JADI GUMPALAN.
+ *      Label memakai <Html> berukuran piksel tetap. Saat gerbang jauh,
+ *      ketiga jalur memproyeksi ke titik yang hampir sama di layar —
+ *      jadi tiga label berukuran penuh saling menimpa di tengah layar.
+ *
+ *   3. TIDAK ADA RUJUKAN TETAP.
+ *      Begitu gerbang lewat, pilihan hilang sepenuhnya. Tidak ada
+ *      tempat lain untuk membacanya.
+ *
+ * ====================================================================
+ * PERBAIKANNYA: PILIHAN PUNYA DUA TEMPAT
+ * ====================================================================
+ * 1. PAPAN PILIHAN TETAP DI BAWAH LAYAR.
+ *    Tiga kartu sejajar, selalu terbaca, menandai jalur mana yang
+ *    sedang ditempati. Ini jadi rujukan utama — anak tidak perlu
+ *    menyipitkan mata ke gerbang yang jauh.
+ *
+ *    Kartunya juga BISA DIKETUK untuk langsung pindah jalur. Jadi ia
+ *    sekaligus menjadi cara bermain alternatif bagi anak yang belum
+ *    lancar memakai tombol panah.
+ *
+ * 2. LABEL GERBANG DIGAMBAR KE TEKSTUR, BUKAN <Html>.
+ *    Dengan begitu label ikut mengecil secara perspektif dan ikut
+ *    tersaput kabut — sama seperti cincinnya. Tidak ada lagi gumpalan
+ *    label di tengah layar.
+ *
+ * 3. GERBANG LAHIR LEBIH DEKAT, KABUT DIMUNDURKAN.
+ *    Jarak lahir -34 (dari -58), kabut 35-85 (dari 26-70). Saat
+ *    pertama muncul gerbang kini hanya 17% tersaput — terlihat jelas
+ *    sejak awal.
+ *
+ * ====================================================================
+ * PERBAIKAN KINERJA YANG IKUT TERSELESAIKAN
+ * ====================================================================
+ * Versi lama memanggil setState untuk posisi gerbang SETIAP FRAME —
+ * artinya 60 render ulang per detik untuk tiga komponen <Html> yang
+ * mahal. Sekarang posisi digerakkan lewat ref langsung ke objek
+ * Three.js, jadi nol render ulang selama penerbangan.
+ * ====================================================================
+ */
+
+const STYLE_ID = 'brightoria-skyrun-styles-v3';
+const OLD_STYLE_IDS = ['brightoria-skyrun-styles-v1', 'brightoria-skyrun-styles-v2'];
+
+/**
+ * Wadah jalur pesawat.
+ *
+ * Sengaja TIDAK memakai React.RefObject: tipe itu menjadikan `current`
+ * bernilai `number | null`, sedangkan useRef(1) selalu berisi angka.
+ */
+type LaneRef = { current: number };
+
+/** Posisi mendatar tiga jalur. */
+const LANE_X = [-3.1, 0, 3.1];
+
+/** Jarak gerbang saat pertama muncul. Lihat catatan kabut di atas. */
+const GATE_START_Z = -26;
+
+/**
+ * Lama gerbang DIAM di kejauhan sebelum mulai mendekat.
+ *
+ * Ini perbaikan terpenting di Patch 59. Umpan balik pengguna:
+ * "belum sempat membaca dan mencerna sudah gak kerasa memilih".
+ *
+ * Hitungan versi lama membuktikan keluhan itu:
+ *   jarak 34,6 unit / kecepatan 12 = 2,88 detik
+ *   dikurangi kabut yang menyaput gerbang saat lahir -> ~2,2 detik
+ *
+ * Dalam 2,2 detik anak harus: membaca aksara Arab, mengingat artinya,
+ * membaca tiga pilihan, memutuskan, lalu menggerakkan pesawat. Itu
+ * mustahil untuk anak 6-12.
+ *
+ * Sekarang gerbang DIAM DULU selama fase baca, baru mendekat. Anak
+ * punya waktu memahami sebelum tekanan waktu dimulai.
+ */
+const READ_TIME = 2.6;
+
+/** Titik lintas: saat gerbang melewati nilai ini, jawaban dinilai. */
+const GATE_CROSS_Z = 0.6;
+
+/** Kecepatan gerbang mendekat (unit per detik). */
+const GATE_SPEED = 6.5;
+
+type GateState = 'idle' | 'hit' | 'reveal' | 'dim';
+
+const SKYRUN_CSS = `
+.skr-overlay { position: fixed; inset: 0; z-index: 92; background: #001445; display: flex; flex-direction: column; }
+.skr-canvas { position: absolute; inset: 0; }
+
+/* ---------- Panel pertanyaan ---------- */
+.skr-question {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  z-index: 4; width: min(620px, calc(100vw - 28px));
+  background: rgba(255,255,255,0.96); border-radius: 19px;
+  padding: 12px 18px; text-align: center;
+  box-shadow: 0 10px 28px rgba(0,20,69,0.32);
+  border-bottom: 4px solid #28a8e0;
+  pointer-events: none;
+}
+.skr-q-emoji { font-size: 26px; line-height: 1; margin-bottom: 3px; }
+.skr-q-text { font-size: 24px; font-weight: 900; color: #002880; line-height: 1.22; }
+.skr-q-text.arabic { font-family: 'Noto Naskh Arabic','Amiri',serif; direction: rtl; font-size: 30px; }
+.skr-q-hint { font-size: 10.5px; color: #5a7691; margin-top: 3px; }
+.skr-q-ask { font-size: 10.5px; font-weight: 800; color: #28a8e0; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* ---------- Batang pecahan ---------- */
+.skr-visual { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 8px 0 2px; flex-wrap: wrap; }
+.skr-frac { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.skr-frac-bar {
+  display: flex; gap: 2px; padding: 3px;
+  background: #eef4f9; border-radius: 7px; border: 1.5px solid #cfe2ef;
+}
+.skr-frac-cell { width: 16px; height: 20px; border-radius: 3px; background: #ffffff; border: 1px solid #d7e5ef; }
+.skr-frac-cell.on { background: linear-gradient(160deg,#5fc0ea,#1c94cc); border-color: #1c94cc; }
+.skr-frac-label { font-size: 11.5px; font-weight: 900; color: #1a5578; }
+.skr-visual-op { font-size: 20px; font-weight: 900; color: #5a7691; }
+
+/* ---------- Papan skor ---------- */
+.skr-hud { position: absolute; top: 12px; left: 12px; z-index: 5; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+.skr-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.94); border: 2px solid #a8dcf5;
+  border-radius: 999px; padding: 5px 12px;
+  font-size: 11.5px; font-weight: 900; color: #002880;
+  box-shadow: 0 5px 14px rgba(0,20,69,0.26);
+}
+.skr-chip.streak { background: linear-gradient(135deg,#fff3d6,#ffe2a3); border-color: #e0a63e; color: #7a5410; }
+.skr-chip.level { background: linear-gradient(135deg,#eaf7ef,#d4efe0); border-color: #3fbf7f; color: #14624f; }
+
+.skr-close {
+  position: absolute; top: 12px; right: 12px; z-index: 5;
+  border: 0; background: #ffffff; border-radius: 50%;
+  width: 38px; height: 38px; display: grid; place-items: center;
+  cursor: pointer; color: #002880; font-size: 18px; font-weight: 900;
+  box-shadow: 0 5px 14px rgba(0,20,69,0.26);
+}
+
+/* ============================================================
+   PAPAN PILIHAN — inti perbaikan Patch 49
+   ------------------------------------------------------------
+   Selalu terbaca, menandai jalur aktif, dan bisa diketuk untuk
+   pindah jalur secara langsung.
+   ============================================================ */
+.skr-lanes {
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 6; display: flex; gap: 9px;
+  width: min(620px, calc(100vw - 180px));
+}
+.skr-lane {
+  flex: 1; min-width: 0;
+  border: 3px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.9);
+  border-radius: 16px; padding: 10px 9px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer; font-family: inherit;
+  box-shadow: 0 6px 18px rgba(0,20,69,0.3);
+  transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+  user-select: none; -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.skr-lane-num {
+  display: grid; place-items: center;
+  width: 19px; height: 19px; border-radius: 50%;
+  background: #e3eef7; color: #5a7691;
+  font-size: 10.5px; font-weight: 900; flex-shrink: 0;
+}
+.skr-lane-text {
+  font-size: 15px; font-weight: 900; color: #002880;
+  line-height: 1.2; text-align: center;
+  overflow-wrap: anywhere;
+}
+.skr-lane-text.arabic { font-family: 'Noto Naskh Arabic','Amiri',serif; direction: rtl; font-size: 19px; }
+
+/* Jalur yang sedang ditempati pesawat. */
+.skr-lane.active {
+  border-color: #28a8e0; background: #ffffff;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 26px rgba(40,168,224,0.5);
+}
+.skr-lane.active .skr-lane-num { background: #28a8e0; color: #fff; }
+
+/* Setelah dinilai. */
+.skr-lane.hit { border-color: #3fbf7f; background: #e8f9f1; }
+.skr-lane.hit .skr-lane-num { background: #3fbf7f; color: #fff; }
+.skr-lane.reveal { border-color: #e0a63e; background: #fff6e4; }
+.skr-lane.reveal .skr-lane-num { background: #e0a63e; color: #fff; }
+.skr-lane.dim { opacity: 0.42; }
+
+/* Penunjuk kecil di atas kartu jalur aktif. */
+.skr-lane-caret {
+  position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  font-size: 15px; color: #28a8e0; line-height: 1;
+}
+
+/* ---------- Umpan balik ---------- */
+.skr-feedback {
+  position: absolute; top: 47%; left: 50%; transform: translate(-50%,-50%);
+  z-index: 7; text-align: center; pointer-events: none;
+  animation: skr-pop 0.45s cubic-bezier(0.34,1.56,0.64,1);
+  width: min(460px, calc(100vw - 40px));
+}
+.skr-fb-badge {
+  display: inline-block; padding: 10px 24px; border-radius: 999px;
+  font-size: 20px; font-weight: 900; color: #fff;
+  box-shadow: 0 10px 28px rgba(0,20,69,0.4);
+}
+.skr-fb-badge.good { background: linear-gradient(135deg,#3fbf7f,#17856f); }
+.skr-fb-badge.miss { background: linear-gradient(135deg,#67c4ec,#1c94cc); }
+.skr-fb-answer {
+  margin-top: 8px; background: rgba(255,255,255,0.96);
+  border-radius: 14px; padding: 9px 16px; font-size: 13px;
+  font-weight: 800; color: #002880; line-height: 1.5;
+  box-shadow: 0 6px 18px rgba(0,20,69,0.26);
+}
+.skr-levelup {
+  margin-top: 8px; background: linear-gradient(135deg,#3fbf7f,#17856f);
+  color: #fff; border-radius: 999px; padding: 7px 17px;
+  font-size: 12px; font-weight: 900;
+  box-shadow: 0 8px 20px rgba(23,133,111,0.4);
+}
+@keyframes skr-pop {
+  0% { opacity: 0; transform: translate(-50%,-50%) scale(0.7); }
+  100% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+}
+
+/* ---------- Kemudi ---------- */
+.skr-steer {
+  position: absolute; bottom: 30px; z-index: 5;
+  width: 64px; height: 64px; border-radius: 50%;
+  border: 2px solid rgba(168,220,245,0.5);
+  background: rgba(255,255,255,0.2);
+  color: #ffffff; font-size: 27px; font-weight: 900;
+  display: grid; place-items: center; cursor: pointer;
+  user-select: none; -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(6px);
+}
+.skr-steer:active { background: rgba(40,168,224,0.45); }
+.skr-steer.left { left: 16px; }
+.skr-steer.right { right: 16px; }
+
+.skr-read {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  z-index: 6; text-align: center; pointer-events: none;
+  animation: skr-read-in 0.3s ease;
+}
+.skr-read-badge {
+  display: inline-block; padding: 9px 22px; border-radius: 999px;
+  background: linear-gradient(135deg,#ffd166,#e0a63e); color: #4a3218;
+  font-size: 17px; font-weight: 900;
+  box-shadow: 0 9px 24px rgba(0,20,69,0.34);
+}
+.skr-read-track {
+  width: 190px; height: 9px; margin: 10px auto 0;
+  background: rgba(255,255,255,0.4); border-radius: 999px; overflow: hidden;
+}
+.skr-read-fill {
+  display: block; height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg,#ffd166,#3fbf7f);
+  transition: width 0.1s linear;
+}
+@keyframes skr-read-in {
+  0% { opacity: 0; transform: translate(-50%,-50%) scale(0.85); }
+  100% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+}
+
+.skr-hint {
+  position: absolute; bottom: 118px; left: 50%; transform: translateX(-50%);
+  z-index: 4; background: rgba(0,40,128,0.86); color: #d6eefb;
+  border-radius: 999px; padding: 6px 16px; font-size: 10.5px;
+  white-space: nowrap; pointer-events: none;
+}
+
+/* ---------- Layar mulai & hasil ---------- */
+.skr-screen {
+  position: absolute; inset: 0; z-index: 9;
+  background: linear-gradient(160deg, rgba(0,20,69,0.93), rgba(11,63,143,0.93));
+  display: grid; place-items: center; padding: 20px;
+  overflow-y: auto;
+}
+.skr-panel {
+  background: #ffffff; border-radius: 26px; padding: 24px 22px;
+  width: min(440px, 100%); text-align: center;
+  box-shadow: 0 20px 56px rgba(0,0,0,0.42);
+  border-top: 6px solid #28a8e0;
+}
+.skr-panel-emoji { font-size: 46px; line-height: 1; }
+.skr-panel h2 { margin: 9px 0 5px; font-size: 20px; color: #002880; }
+.skr-panel p { margin: 0 0 15px; font-size: 13px; line-height: 1.6; color: #5a7691; }
+
+.skr-topics { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+.skr-topic {
+  display: flex; align-items: center; gap: 12px; text-align: left;
+  border: 2.5px solid #cfe6f5; background: #f7fbfe; border-radius: 19px;
+  padding: 14px 15px; cursor: pointer; font-family: inherit; width: 100%;
+  transition: transform 0.12s ease, border-color 0.15s ease;
+}
+.skr-topic:hover:not(:disabled) { transform: translateY(-2px); border-color: #67c4ec; }
+.skr-topic:disabled { opacity: 0.5; cursor: not-allowed; }
+.skr-topic.angka { border-color: #cfe0f5; background: linear-gradient(160deg,#f7faff,#eaf1fc); }
+.skr-topic.angka:hover:not(:disabled) { border-color: #6d8ed0; }
+.skr-topic-icon { font-size: 30px; line-height: 1; flex-shrink: 0; }
+.skr-topic-body { flex: 1; min-width: 0; }
+.skr-topic-title { font-size: 14.5px; font-weight: 900; color: #002880; }
+.skr-topic-desc { font-size: 11px; color: #5a7691; line-height: 1.45; margin-top: 2px; }
+.skr-topic-tag {
+  display: inline-block; margin-top: 5px; font-size: 9.5px; font-weight: 900;
+  padding: 3px 9px; border-radius: 999px; background: #d6eefb; color: #1a5578;
+}
+.skr-topic-tag.level { background: #d4efe0; color: #14624f; }
+.skr-topic-arrow { font-size: 19px; color: #67c4ec; flex-shrink: 0; }
+
+.skr-stats { display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; }
+.skr-stat {
+  background: linear-gradient(160deg,#e9f4fb,#d6eefb); border: 1px solid #a8dcf5;
+  border-radius: 15px; padding: 10px 14px; min-width: 84px;
+}
+.skr-stat b { display: block; font-size: 22px; color: #002880; line-height: 1.1; }
+.skr-stat span { display: block; font-size: 9.5px; color: #5a7691; margin-top: 2px; }
+.skr-btn {
+  border: 0; border-radius: 17px; padding: 14px 20px;
+  font-size: 15px; font-weight: 900; cursor: pointer;
+  font-family: inherit; width: 100%; min-height: 52px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.skr-btn.primary { background: linear-gradient(135deg,#28a8e0,#002880); color: #fff; box-shadow: 0 9px 24px rgba(0,40,128,0.34); }
+.skr-btn.ghost { background: #fff; border: 2px solid #cfe6f5; color: #002880; margin-top: 9px; }
+.skr-howto { text-align: left; background: #f2f9fd; border-radius: 15px; padding: 12px 14px; margin-bottom: 15px; }
+.skr-howto div { font-size: 11.5px; color: #1a5578; line-height: 1.7; }
+
+@media (max-width: 760px) {
+  .skr-question { padding: 10px 14px; top: 9px; }
+  .skr-q-text { font-size: 20px; }
+  .skr-q-text.arabic { font-size: 25px; }
+  .skr-q-emoji { font-size: 22px; }
+  .skr-frac-cell { width: 13px; height: 17px; }
+
+  /* Di layar sempit, kemudi dipindah ke bawah papan pilihan supaya
+     kartunya tetap selebar mungkin dan teksnya terbaca. */
+  .skr-lanes { width: calc(100vw - 20px); bottom: 74px; gap: 7px; }
+  .skr-lane { padding: 9px 7px; border-radius: 14px; }
+  .skr-lane-text { font-size: 13px; }
+  .skr-lane-text.arabic { font-size: 17px; }
+  .skr-steer { width: 58px; height: 58px; font-size: 24px; bottom: 12px; }
+  .skr-steer.left { left: 22px; }
+  .skr-steer.right { right: 22px; }
+  .skr-read {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  z-index: 6; text-align: center; pointer-events: none;
+  animation: skr-read-in 0.3s ease;
+}
+.skr-read-badge {
+  display: inline-block; padding: 9px 22px; border-radius: 999px;
+  background: linear-gradient(135deg,#ffd166,#e0a63e); color: #4a3218;
+  font-size: 17px; font-weight: 900;
+  box-shadow: 0 9px 24px rgba(0,20,69,0.34);
+}
+.skr-read-track {
+  width: 190px; height: 9px; margin: 10px auto 0;
+  background: rgba(255,255,255,0.4); border-radius: 999px; overflow: hidden;
+}
+.skr-read-fill {
+  display: block; height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg,#ffd166,#3fbf7f);
+  transition: width 0.1s linear;
+}
+@keyframes skr-read-in {
+  0% { opacity: 0; transform: translate(-50%,-50%) scale(0.85); }
+  100% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+}
+
+.skr-hint { bottom: 168px; }
+}
+`;
+
+function useInjectStyles() {
+  useEffect(() => {
+    OLD_STYLE_IDS.forEach((id) => document.getElementById(id)?.remove());
+    if (document.getElementById(STYLE_ID)) return;
+    const el = document.createElement('style');
+    el.id = STYLE_ID;
+    el.textContent = SKYRUN_CSS;
+    document.head.appendChild(el);
+  }, []);
+}
+
+// ---------------------------------------------------------------------------
+// BATANG PECAHAN (HTML, bukan 3D)
+// ---------------------------------------------------------------------------
+
+/**
+ * Menggambar pecahan sebagai batang bersekat.
+ *
+ * Dibatasi 12 sekat: lebih dari itu tiap sekat terlalu tipis untuk
+ * dihitung mata — dan soal yang butuh lebih dari 12 memang tidak
+ * muncul pada tingkat mana pun.
+ */
+function FractionBar({ fraction }: { fraction: Fraction }) {
+  const cells = Math.min(fraction.den, 12);
+  return (
+    <div className="skr-frac">
+      <div className="skr-frac-bar">
+        {Array.from({ length: cells }).map((_, i) => (
+          <span key={i} className={'skr-frac-cell' + (i < fraction.num ? ' on' : '')} />
+        ))}
+      </div>
+      <div className="skr-frac-label">
+        {fraction.num}/{fraction.den}
+      </div>
+    </div>
+  );
+}
+
+function VisualRow({ visual }: { visual: MathVisual }) {
+  return (
+    <div className="skr-visual">
+      {visual.fractions.map((f, i) => (
+        <span key={i} style={{ display: 'contents' }}>
+          {i > 0 && visual.operator && <span className="skr-visual-op">{visual.operator}</span>}
+          <FractionBar fraction={f} />
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// LABEL GERBANG SEBAGAI TEKSTUR
+// ---------------------------------------------------------------------------
+
+/**
+ * Menggambar teks jawaban ke kanvas, lalu dipakai sebagai tekstur.
+ *
+ * Kenapa bukan <Html> seperti versi sebelumnya: <Html> berukuran
+ * piksel tetap, sehingga saat gerbang jauh ketiga label memproyeksi ke
+ * titik yang hampir sama dan saling menimpa. Tekstur ikut mengecil
+ * secara perspektif dan ikut tersaput kabut — persis seperti cincinnya.
+ *
+ * Ukuran huruf menyusut otomatis bila teksnya panjang, agar tidak
+ * terpotong di tepi papan.
+ */
+function makeLabelTexture(text: string, isArabic: boolean): THREE.CanvasTexture {
+  const w = 512;
+  const h = 200;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+
+  // Papan putih bersudut membulat.
+  const r = 34;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.moveTo(r, 0);
+  ctx.lineTo(w - r, 0);
+  ctx.quadraticCurveTo(w, 0, w, r);
+  ctx.lineTo(w, h - r);
+  ctx.quadraticCurveTo(w, h, w - r, h);
+  ctx.lineTo(r, h);
+  ctx.quadraticCurveTo(0, h, 0, h - r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  const family = isArabic ? "'Noto Naskh Arabic','Amiri',serif" : "'Nunito',system-ui,sans-serif";
+
+  // Susutkan huruf sampai muat, dengan batas bawah agar tetap terbaca.
+  let size = isArabic ? 92 : 80;
+  ctx.font = `900 ${size}px ${family}`;
+  while (ctx.measureText(text).width > w - 56 && size > 28) {
+    size -= 4;
+    ctx.font = `900 ${size}px ${family}`;
+  }
+
+  ctx.fillStyle = '#002880';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, w / 2, h / 2 + (isArabic ? 6 : 2), w - 48);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 4;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+// ---------------------------------------------------------------------------
+// PESAWAT PEMAIN
+// ---------------------------------------------------------------------------
+
+/**
+ * Pesawat bergaya blocky agar selaras dengan karakter di Ekspedisi.
+ *
+ * Kemiringan saat berbelok dihitung dari selisih posisi sekarang
+ * dengan jalur tujuan — bukan dari tombol yang ditekan. Dengan begitu
+ * pesawat memiringkan badan selama masih bergerak, lalu meluruskan
+ * diri saat sampai. Inilah yang membuat manuver terasa punya bobot.
+ */
+function Ship({ laneRef }: { laneRef: LaneRef }) {
+  const group = useRef<THREE.Group>(null);
+  const body = useRef<THREE.Group>(null);
+  const currentX = useRef(0);
+
+  /**
+   * Dorongan mesin, 0-1.
+   *
+   * Disimpan di ref, bukan state: nilainya berubah tiap frame, dan
+   * lewat useState itu berarti 60 render ulang per detik.
+   */
+  const thrust = useRef(1);
+  const quality = getQuality();
+
+  useFrame((state, delta) => {
+    try {
+      const dt = Math.min(delta, 0.05);
+      if (!group.current) return;
+
+      const targetX = LANE_X[laneRef.current] ?? 0;
+      const prevX = currentX.current;
+      currentX.current += (targetX - prevX) * Math.min(1, dt * 7.5);
+
+      const t = state.clock.elapsedTime;
+      group.current.position.x = currentX.current;
+      group.current.position.y = -0.9 + Math.sin(t * 1.9) * 0.09;
+
+      // Mesin menyala lebih besar saat sedang bermanuver.
+      const moving = Math.abs(targetX - currentX.current);
+      thrust.current = 1 + Math.min(0.5, moving * 0.28);
+
+      if (body.current && quality.motion) {
+        /*
+         * Kemiringan dihitung dari SELISIH posisi, bukan dari tombol
+         * yang ditekan. Dengan begitu kapal memiringkan badan selama
+         * masih bergerak, lalu meluruskan diri saat sampai — itulah
+         * yang membuat manuver terasa punya bobot.
+         */
+        const offset = targetX - currentX.current;
+        const bank = THREE.MathUtils.clamp(offset * 0.32, -0.7, 0.7);
+        body.current.rotation.z +=
+          (bank - body.current.rotation.z) * Math.min(1, dt * 8);
+        body.current.rotation.y = -bank * 0.32;
+        body.current.rotation.x = Math.sin(t * 2.3) * 0.03;
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[Brightoria] SkyRun Ship error (diredam):', err);
+    }
+  });
+
+  return (
+    <group ref={group} position={[0, -0.9, 3.4]}>
+      <group ref={body}>
+        <LocalModel url={modelUrls.plane} size={2.1} rotationY={-Math.PI / 2} fallback={<ShipModel thrustRef={thrust} />}>
+          <group rotation={[0, Math.PI, 0]}><Blaster left={[-0.62, -0.06, 0.66]} right={[0.62, -0.06, 0.66]} color="#7fd4ff" /></group>
+        </LocalModel>
+      </group>
+    </group>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// GERBANG JAWABAN
+// ---------------------------------------------------------------------------
+
+function Gate({
+  laneIndex,
+  label,
+  isArabic,
+  state,
+}: {
+  laneIndex: number;
+  label: string;
+  isArabic: boolean;
+  state: GateState;
+}) {
+  const ringRef = useRef<THREE.Mesh>(null);
+  const quality = getQuality();
+
+  const texture = useMemo(() => makeLabelTexture(label, isArabic), [label, isArabic]);
+
+  // Tekstur kanvas memakai memori GPU. Tanpa pembuangan ini, tiap
+  // pergantian soal meninggalkan tekstur menggantung.
+  useEffect(() => {
+    return () => {
+      texture.dispose();
+    };
+  }, [texture]);
+
+  const color =
+    state === 'hit'
+      ? '#3fbf7f'
+      : state === 'reveal'
+        ? '#e0a63e'
+        : state === 'dim'
+          ? '#6d8ed0'
+          : SKY.base;
+  const glow = state === 'dim' ? 0.25 : state === 'idle' ? 1.2 : 2.5;
+
+  useFrame((clock) => {
+    if (!ringRef.current || !quality.motion) return;
+    ringRef.current.rotation.z = clock.clock.elapsedTime * 0.5 + laneIndex;
+  });
+
+  return (
+    <group position={[LANE_X[laneIndex], -0.2, 0]}>
+      <mesh ref={ringRef}>
+        <torusGeometry args={[1.42, 0.14, 10, 28]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={glow}
+          roughness={0.3}
+          metalness={0.55}
+        />
+      </mesh>
+
+      {/* Membran tembus pandang di dalam cincin. */}
+      <mesh>
+        <circleGeometry args={[1.35, 28]} />
+        <meshBasicMaterial
+          color={color}
+          transparent
+          opacity={state === 'dim' ? 0.06 : 0.16}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Papan jawaban — tekstur, bukan <Html>. Lihat catatan di atas. */}
+      <mesh position={[0, 0, 0.06]}>
+        <planeGeometry args={[2.05, 0.8]} />
+        <meshBasicMaterial
+          map={texture}
+          transparent
+          opacity={state === 'dim' ? 0.4 : 1}
+          toneMapped={false}
+        />
+      </mesh>
+
+      {/* Bingkai tipis mengikuti warna keadaan. */}
+      <mesh position={[0, 0, 0.055]}>
+        <planeGeometry args={[2.15, 0.9]} />
+        <meshBasicMaterial color={color} transparent opacity={state === 'dim' ? 0.2 : 0.85} />
+      </mesh>
+
+      <pointLight color={color} intensity={state === 'dim' ? 0.4 : 2.2} distance={7} />
+    </group>
+  );
+}
+
+/**
+ * Menggerakkan ketiga gerbang sebagai satu kesatuan.
+ *
+ * Posisi digerakkan lewat ref langsung ke objek Three.js, BUKAN lewat
+ * setState. Versi sebelumnya memanggil setState tiap frame — 60 render
+ * ulang per detik untuk tiga komponen yang mahal. Sekarang nol.
+ */
+function GateRunner({
+  question,
+  laneStates,
+  paused,
+  onCross,
+  onReadTick,
+}: {
+  question: SkyQuestion;
+  laneStates: GateState[];
+  paused: boolean;
+  onCross: () => void;
+  /** Sisa fase baca, 1 -> 0. Dipakai HUD menampilkan bilah waktu. */
+  onReadTick: (remaining: number) => void;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const zRef = useRef(GATE_START_Z);
+  const crossed = useRef(false);
+  /** Sisa waktu fase baca. Gerbang diam selama nilai ini > 0. */
+  const readRef = useRef(READ_TIME);
+
+  useEffect(() => {
+    zRef.current = GATE_START_Z;
+    crossed.current = false;
+    readRef.current = READ_TIME;
+    if (groupRef.current) groupRef.current.position.z = GATE_START_Z;
+  }, [question]);
+
+  useFrame((_state, delta) => {
+    try {
+      if (paused) return;
+      const dt = Math.min(delta, 0.05);
+
+      // --- Fase baca: gerbang DIAM, anak membaca tanpa tekanan ---
+      if (readRef.current > 0) {
+        readRef.current -= dt;
+        onReadTick(Math.max(0, readRef.current / READ_TIME));
+        return;
+      }
+      onReadTick(0);
+
+      zRef.current += GATE_SPEED * dt;
+      if (groupRef.current) groupRef.current.position.z = zRef.current;
+
+      if (!crossed.current && zRef.current >= GATE_CROSS_Z) {
+        crossed.current = true;
+        onCross();
+      }
+    } catch (err) {
+      /*
+       * Galat PEMROGRAMAN (ReferenceError, TypeError) dilaporkan keras.
+       *
+       * Patch 59-60 sempat memuat bug di mana prop tidak ter-destructure,
+       * sehingga melempar ReferenceError tiap frame. Blok catch yang
+       * menelan semuanya membuat bug itu tersembunyi — gejalanya hanya
+       * "pesawat macet", tanpa petunjuk apa pun di Console.
+       *
+       * Galat lain tetap diredam agar satu kesalahan tidak mematikan
+       * seluruh scene (pelajaran Patch 15).
+       */
+      if (err instanceof ReferenceError || err instanceof TypeError) {
+        // eslint-disable-next-line no-console
+        console.error('[Brightoria] BUG di GateRunner — harap laporkan:', err);
+      } else {
+        // eslint-disable-next-line no-console
+        console.error('[Brightoria] SkyRun GateRunner error (diredam):', err);
+      }
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={[0, 0, GATE_START_Z]}>
+      {question.options.map((label, i) => (
+        <Gate
+          key={`${question.id}-${i}`}
+          laneIndex={i}
+          label={label}
+          isArabic={question.optionsAreArabic}
+          state={laneStates[i]}
+        />
+      ))}
+    </group>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PENANDA JALUR DI "LANTAI"
+// ---------------------------------------------------------------------------
+
+/**
+ * Tiga jalur cahaya memanjang ke kejauhan.
+ *
+ * Fungsinya memetakan kartu pilihan di bawah layar ke posisi ruang:
+ * anak melihat bahwa kartu kiri sama dengan jalur kiri. Tanpa ini,
+ * hubungan antara papan pilihan dan gerbang 3D harus ditebak sendiri.
+ */
+function LaneGuides({ laneRef }: { laneRef: LaneRef }) {
+  const refs = useRef<(THREE.Mesh | null)[]>([]);
+
+  useFrame(() => {
+    refs.current.forEach((mesh, i) => {
+      if (!mesh) return;
+      const material = mesh.material as THREE.MeshBasicMaterial;
+      if (!material) return;
+      const isActive = laneRef.current === i;
+      const target = isActive ? 0.28 : 0.08;
+      material.opacity += (target - material.opacity) * 0.12;
+    });
+  });
+
+  return (
+    <group>
+      {LANE_X.map((x, i) => (
+        <mesh
+          key={i}
+          ref={(el) => {
+            refs.current[i] = el;
+          }}
+          position={[x, -2.3, -14]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        >
+          <planeGeometry args={[2.4, 46]} />
+          <meshBasicMaterial color={SKY.light} transparent opacity={0.08} depthWrite={false} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// LATAR
+// ---------------------------------------------------------------------------
+
+/**
+ * Awan yang melaju melewati pesawat.
+ *
+ * Bukan hiasan: tanpa objek yang bergerak mundur, mata tidak punya
+ * acuan bahwa pesawat sedang melaju.
+ */
+function Clouds() {
+  /*
+   * Diganti SpaceField pada Patch 61.
+   *
+   * Nama fungsi DIPERTAHANKAN agar pemanggilan <Clouds /> di dalam
+   * scene tidak perlu diubah.
+   */
+  return <SpaceField />;
+}
+
+/** Garis kecepatan: penanda laju yang murah dan efektif. */
+function SpeedLines() {
+  const ref = useRef<THREE.Points>(null);
+  const quality = getQuality();
+
+  const positions = useMemo(() => {
+    const n = Math.max(40, scaleCount(150));
+    const arr = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      arr[i * 3] = (Math.random() - 0.5) * 26;
+      arr[i * 3 + 1] = (Math.random() - 0.5) * 16;
+      arr[i * 3 + 2] = -48 + Math.random() * 62;
+    }
+    return arr;
+  }, []);
+
+  useFrame((_state, delta) => {
+    try {
+      if (!ref.current || !quality.motion) return;
+      const dt = Math.min(delta, 0.05);
+      const attr = ref.current.geometry.attributes.position as THREE.BufferAttribute;
+      const arr = attr.array as Float32Array;
+      for (let i = 0; i < arr.length; i += 3) {
+        arr[i + 2] += 30 * dt;
+        if (arr[i + 2] > 14) {
+          arr[i + 2] = -48;
+          arr[i] = (Math.random() - 0.5) * 26;
+          arr[i + 1] = (Math.random() - 0.5) * 16;
+        }
+      }
+      attr.needsUpdate = true;
+    } catch {
+      /* diamkan */
+    }
+  });
+
+  return (
+    <points ref={ref}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.16}
+        color={WORLD.dust}
+        transparent
+        opacity={0.55}
+        sizeAttenuation
+        depthWrite={false}
+      />
+    </points>
+  );
+}
+
+/** Kamera mengikuti pesawat dengan jeda lembut, memberi rasa inersia. */
+function ChaseCamera({ laneRef }: { laneRef: LaneRef }) {
+  const camera = useThree((s) => s.camera);
+  const currentX = useRef(0);
+
+  useFrame((_state, delta) => {
+    try {
+      const dt = Math.min(delta, 0.05);
+      const targetX = (LANE_X[laneRef.current] ?? 0) * 0.42;
+      currentX.current += (targetX - currentX.current) * Math.min(1, dt * 4.2);
+      camera.position.set(currentX.current, 1.5, 9.4);
+      camera.lookAt(currentX.current * 0.55, -0.4, -6);
+    } catch {
+      /* diamkan */
+    }
+  });
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// KOMPONEN UTAMA
+// ---------------------------------------------------------------------------
+
+type Phase = 'choose' | 'intro' | 'flying' | 'between' | 'done';
+
+export default function SkyRunGame({
+  onExit,
+  onXpEarned,
+}: {
+  onExit: () => void;
+  onXpEarned: (amount: number) => void;
+}) {
+  useInjectStyles();
+  const quality = getQuality();
+
+  const [topic, setTopic] = useState<SkyTopic | null>(null);
+  const [plan, setPlan] = useState(() => ({ questions: [] as SkyQuestion[], levelLabel: '' }));
+  const [phase, setPhase] = useState<Phase>('choose');
+  const [index, setIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [correct, setCorrect] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  const [laneStates, setLaneStates] = useState<GateState[]>(() => Array(LANE_COUNT).fill('idle'));
+  const [feedback, setFeedback] = useState<{
+    good: boolean;
+    answer: string;
+    explanation?: string;
+    levelUp?: 'up' | 'down' | null;
+  } | null>(null);
+
+  /**
+   * Jalur pesawat disimpan di DUA tempat:
+   *   laneRef  — dibaca useFrame setiap frame, tanpa memicu render
+   *   laneUi   — dipakai papan pilihan di lapisan HTML
+   *
+   * Keduanya hanya berubah saat anak berpindah jalur (beberapa kali per
+   * detik paling banyak), jadi tidak ada beban render berarti.
+   */
+  const laneRef = useRef(1);
+  const [laneUi, setLaneUi] = useState(1);
+
+  /**
+   * Sisa fase baca, 1 -> 0.
+   *
+   * Disimpan di ref DAN state: ref dibaca tiap frame tanpa render
+   * ulang, state hanya diperbarui saat nilainya berubah cukup jauh
+   * (>2%) supaya bilah waktu bergerak halus tanpa 60 render/detik.
+   */
+  const readRef = useRef(1);
+  const [readUi, setReadUi] = useState(1);
+
+  const handleReadTick = useCallback((remaining: number) => {
+    readRef.current = remaining;
+    setReadUi((prev) => (Math.abs(prev - remaining) > 0.02 ? remaining : prev));
+  }, []);
+
+  const record = useMemo(() => loadRecord(), []);
+  const wordPool = useMemo(() => getWordPoolSize(), []);
+  const question = plan.questions[index] ?? null;
+  const slot = topic ? record[topic] : record.kata;
+
+  function chooseTopic(picked: SkyTopic) {
+    const built = buildFlight(picked);
+    setTopic(picked);
+    setPlan({ questions: built.questions, levelLabel: built.levelLabel ?? '' });
+    setPhase('intro');
+  }
+
+const setLane = useCallback(
+    (next: number) => {
+      if (phase !== 'flying') return;
+      // Selama fase baca, pesawat dikunci di tengah. Anak diberi ruang
+      // memahami soal dulu sebelum boleh bergerak.
+      if (readRef.current > 0) return;
+      const clamped = Math.max(0, Math.min(LANE_COUNT - 1, next));
+      laneRef.current = clamped;
+      setLaneUi(clamped);
+    },
+    [phase],
+  );
+
+  const steer = useCallback(
+    (dir: -1 | 1) => {
+      setLane(laneRef.current + dir);
+    },
+    [setLane],
+  );
+
+  /** Dipanggil saat gerbang melewati pesawat. */
+  const handleCross = useCallback(() => {
+    if (!question) return;
+
+    const chosen = laneRef.current;
+    const isRight = chosen === question.correctIndex;
+
+    const nextStates: GateState[] = Array(LANE_COUNT).fill('dim');
+    if (isRight) {
+      nextStates[chosen] = 'hit';
+    } else {
+      // Jawaban benar tetap disorot agar menjadi momen belajar,
+      // bukan sekadar kegagalan.
+      nextStates[question.correctIndex] = 'reveal';
+    }
+    setLaneStates(nextStates);
+
+    // Soal angka dicatat ke mesin adaptif — tingkat kesulitan
+    // menyesuaikan diri dari lima jawaban terakhir.
+    let levelUp: 'up' | 'down' | null = null;
+    if (question.math) {
+      const result = recordMathAnswer(question.math, chosen);
+      levelUp = result.levelChanged;
+    }
+
+    if (isRight) {
+      const nextStreak = streak + 1;
+      // Bonus beruntun bertingkat: menghargai ketepatan berturut-turut
+      // tanpa membuat skor melonjak liar.
+      const gained = 100 + Math.min(nextStreak - 1, 5) * 25;
+      setScore((s) => s + gained);
+      setCorrect((c) => c + 1);
+      setStreak(nextStreak);
+      setBestStreak((b) => Math.max(b, nextStreak));
+      setFeedback({ good: true, answer: '', levelUp });
+    } else {
+      // Tidak ada pengurangan apa pun — hanya beruntun yang terputus.
+      setStreak(0);
+      setFeedback({
+        good: false,
+        answer: question.options[question.correctIndex],
+        explanation: question.explanation,
+        levelUp,
+      });
+    }
+
+    setPhase('between');
+  }, [question, streak]);
+
+/** Jeda singkat setelah melintas, lalu lanjut ke soal berikutnya. */
+  useEffect(() => {
+    if (phase !== 'between') return;
+    // Jawaban salah diberi jeda lebih lama agar penjelasannya sempat
+    // terbaca — inilah bedanya momen belajar dengan sekadar gagal.
+    const delay = feedback?.good ? 950 : feedback?.explanation ? 2300 : 1600;
+    const timer = window.setTimeout(() => {
+      setFeedback(null);
+      setLaneStates(Array(LANE_COUNT).fill('idle'));
+
+      if (index + 1 >= plan.questions.length) {
+        setPhase('done');
+      } else {
+        setIndex((i) => i + 1);
+        laneRef.current = 1;
+        setLaneUi(1);
+        setPhase('flying');
+      }
+    }, delay);
+    return () => window.clearTimeout(timer);
+  }, [phase, feedback, index, plan.questions.length]);
+
+  /** Simpan rekor & berikan XP saat penerbangan selesai. */
+  useEffect(() => {
+    if (phase !== 'done' || !topic) return;
+    const xp = correct * 6;
+    if (xp > 0) onXpEarned(xp);
+
+    const next = loadRecord();
+    next[topic] = {
+      bestScore: Math.max(next[topic].bestScore, score),
+      bestStreak: Math.max(next[topic].bestStreak, bestStreak),
+      flights: next[topic].flights + 1,
+    };
+    saveRecord(next);
+  }, [phase, topic, correct, score, bestStreak, onXpEarned]);
+
+  // --- Papan ketik ---
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const key = e.key.toLowerCase();
+      if (key === 'escape') {
+        onExit();
+        return;
+      }
+      if (key === 'a' || key === 'arrowleft') {
+        e.preventDefault();
+        steer(-1);
+      }
+      if (key === 'd' || key === 'arrowright') {
+        e.preventDefault();
+        steer(1);
+      }
+      // Angka 1-3 memilih jalur langsung.
+      if (key === '1' || key === '2' || key === '3') {
+        e.preventDefault();
+        setLane(Number(key) - 1);
+      }
+      if ((key === 'enter' || key === ' ') && phase === 'intro') {
+        e.preventDefault();
+        setPhase('flying');
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [steer, setLane, phase, onExit]);
+
+  function flyAgain() {
+    if (!topic) return;
+    const built = buildFlight(topic);
+    setPlan({ questions: built.questions, levelLabel: built.levelLabel ?? '' });
+    setIndex(0);
+    setScore(0);
+    setCorrect(0);
+    setStreak(0);
+    setBestStreak(0);
+    setLaneStates(Array(LANE_COUNT).fill('idle'));
+    setFeedback(null);
+    laneRef.current = 1;
+    setLaneUi(1);
+    setPhase('flying');
+  }
+
+  function backToChoose() {
+    setTopic(null);
+    setPlan({ questions: [], levelLabel: '' });
+    setIndex(0);
+    setScore(0);
+    setCorrect(0);
+    setStreak(0);
+    setBestStreak(0);
+    setFeedback(null);
+    laneRef.current = 1;
+    setLaneUi(1);
+    setPhase('choose');
+  }
+
+  const showScene = phase === 'flying' || phase === 'between';
+
+  return (
+    <div className="skr-overlay">
+      <div className="skr-canvas">
+        <CanvasBoundary><Canvas
+          shadows={quality.shadows}
+          dpr={quality.dpr}
+          camera={{ position: [0, 1.5, 9.4], fov: 56, near: 0.1, far: 140 }}
+          gl={{ antialias: quality.antialias, powerPreference: 'high-performance', stencil: false }}
+        >
+          <CinematicRig exposure={1.06} />
+          <ProceduralEnv intensity={0.85} />
+          {/* Latar biru pekat — membuat bongkahan es-biru lebih menonjol. */}
+          <color attach="background" args={['#0a2f6b']} />
+          {/* Kabut dimundurkan agar gerbang terlihat jelas sejak lahir. */}
+          <fog attach="fog" args={[WORLD.skyHorizon, 35, 85]} />
+          <ThreePointLights intensity={1} shadowRadius={16} />
+
+          <ChaseCamera laneRef={laneRef} />
+          <Clouds />
+          <SpeedLines />
+          <LaneGuides laneRef={laneRef} />
+          <Ship laneRef={laneRef} />
+
+          {question && showScene && (
+            <GateRunner
+              question={question}
+              laneStates={laneStates}
+              paused={phase !== 'flying' && phase !== 'between'}
+              onCross={handleCross}
+              onReadTick={handleReadTick}
+            />
+          )}
+
+          {quality.postfx && <Postfx intensity={0.34} threshold={0.86} vignette={0.3} />}
+        </Canvas></CanvasBoundary>
+      </div>
+
+      {/* ---------------- Papan skor ---------------- */}
+      {showScene && (
+        <>
+          <div className="skr-hud">
+            <span className="skr-chip">
+              ✈️ {index + 1}/{plan.questions.length}
+            </span>
+            <span className="skr-chip">⭐ {score.toLocaleString('id-ID')}</span>
+            {topic === 'angka' && plan.levelLabel && (
+              <span className="skr-chip level">📊 {plan.levelLabel}</span>
+            )}
+            {streak >= 2 && <span className="skr-chip streak">🔥 {streak} beruntun</span>}
+          </div>
+
+          <button className="skr-close" onClick={onExit} aria-label="Keluar">
+            ×
+          </button>
+
+          {question && (
+            <div className="skr-question">
+              {question.emoji && <div className="skr-q-emoji">{question.emoji}</div>}
+              <div className={'skr-q-text' + (question.promptIsArabic ? ' arabic' : '')}>
+                {question.prompt}
+              </div>
+              {question.visual && <VisualRow visual={question.visual} />}
+              <div className="skr-q-hint">{question.hint}</div>
+              <div className="skr-q-ask">{question.ask}</div>
+            </div>
+          )}
+
+          {showScene && readUi > 0 && !feedback && (
+        <div className="skr-read">
+          <div className="skr-read-badge">👀 Baca dulu...</div>
+          <div className="skr-read-track">
+            <span className="skr-read-fill" style={{ width: `${readUi * 100}%` }} />
+          </div>
+        </div>
+      )}
+
+      {feedback && (
+            <div className="skr-feedback">
+              <div className={'skr-fb-badge ' + (feedback.good ? 'good' : 'miss')}>
+                {feedback.good ? '✓ Tepat!' : 'Hampir!'}
+              </div>
+              {!feedback.good && feedback.answer && (
+                <div className="skr-fb-answer">
+                  Jawabannya: <b>{feedback.answer}</b>
+                  {feedback.explanation && (
+                    <>
+                      <br />
+                      {feedback.explanation}
+                    </>
+                  )}
+                </div>
+              )}
+              {feedback.levelUp === 'up' && (
+                <div className="skr-levelup">📈 Naik tingkat! Soalnya jadi lebih menantang</div>
+              )}
+              {feedback.levelUp === 'down' && (
+                <div className="skr-levelup">🌱 Kita pelan-pelan dulu ya</div>
+              )}
+            </div>
+          )}
+
+          {/* ---------------- PAPAN PILIHAN ----------------
+              Selalu terbaca, menandai jalur aktif, dan bisa diketuk
+              untuk pindah jalur. Inilah inti perbaikan Patch 49. */}
+          {question && (
+            <div className="skr-lanes">
+              {question.options.map((opt, i) => {
+                const gate = laneStates[i];
+                const cls =
+                  'skr-lane' +
+                  (laneUi === i && gate === 'idle' ? ' active' : '') +
+                  (gate !== 'idle' ? ` ${gate}` : '');
+                return (
+                  <button
+                    key={`${question.id}-lane-${i}`}
+                    className={cls}
+                    style={{ position: 'relative' }}
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      setLane(i);
+                    }}
+                    aria-label={`Pilih jalur ${i + 1}: ${opt}`}
+                  >
+                    {laneUi === i && gate === 'idle' && <span className="skr-lane-caret">▲</span>}
+                    <span className="skr-lane-num">{i + 1}</span>
+                    <span
+                      className={'skr-lane-text' + (question.optionsAreArabic ? ' arabic' : '')}
+                    >
+                      {opt}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <button
+            className="skr-steer left"
+            onPointerDown={(e) => {
+              e.preventDefault();
+              steer(-1);
+            }}
+            aria-label="Belok kiri"
+          >
+            ‹
+          </button>
+          <button
+            className="skr-steer right"
+            onPointerDown={(e) => {
+              e.preventDefault();
+              steer(1);
+            }}
+            aria-label="Belok kanan"
+          >
+            ›
+          </button>
+
+          {index === 0 && phase === 'flying' && (
+            <div className="skr-hint">Ketuk kartu jawaban atau pakai tombol ‹ ›</div>
+          )}
+        </>
+      )}
+
+      {/* ---------------- Pemilih materi ---------------- */}
+      {phase === 'choose' && (
+        <div className="skr-screen">
+          <div className="skr-panel">
+            <div className="skr-panel-emoji">✈️</div>
+            <h2>Penerbangan Ilmu</h2>
+            <p>Mau terbang membawa materi apa?</p>
+
+            <div className="skr-topics">
+              <button
+                className="skr-topic"
+                onClick={() => chooseTopic('kata')}
+                disabled={wordPool < LANE_COUNT}
+              >
+                <span className="skr-topic-icon">📖</span>
+                <span className="skr-topic-body">
+                  <span className="skr-topic-title">Kata</span>
+                  <span className="skr-topic-desc">
+                    {wordPool < LANE_COUNT
+                      ? 'Main dulu di salah satu dunia untuk membuka mode ini'
+                      : 'Kosakata yang sudah kamu kuasai dari tiga dunia'}
+                  </span>
+                  {wordPool >= LANE_COUNT && (
+                    <span className="skr-topic-tag">{wordPool} kata siap</span>
+                  )}
+                </span>
+                <span className="skr-topic-arrow">›</span>
+              </button>
+
+              <button className="skr-topic angka" onClick={() => chooseTopic('angka')}>
+                <span className="skr-topic-icon">🔢</span>
+                <span className="skr-topic-body">
+                  <span className="skr-topic-title">Angka</span>
+                  <span className="skr-topic-desc">
+                    Pecahan dengan tingkat kesulitan yang menyesuaikan kemampuanmu
+                  </span>
+                  <span className="skr-topic-tag level">Tidak pernah habis</span>
+                </span>
+                <span className="skr-topic-arrow">›</span>
+              </button>
+            </div>
+
+            <button className="skr-btn ghost" onClick={onExit}>
+              Nanti saja
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------- Layar mulai ---------------- */}
+      {phase === 'intro' && (
+        <div className="skr-screen">
+          <div className="skr-panel">
+            <div className="skr-panel-emoji">{topic === 'angka' ? '🔢' : '📖'}</div>
+            <h2>{topic === 'angka' ? 'Penerbangan Angka' : 'Penerbangan Kata'}</h2>
+            <p>
+              {topic === 'angka'
+                ? `Tingkat sekarang: ${plan.levelLabel}. Terbangkan pesawatmu menembus gerbang jawaban yang benar!`
+                : 'Terbangkan pesawatmu menembus gerbang jawaban yang benar!'}
+            </p>
+
+            <div className="skr-howto">
+              <div>👆 Ketuk kartu jawaban di bawah layar untuk pindah jalur</div>
+              <div>⬅️ ➡️ Atau pakai tombol ‹ › , tombol A / D, atau angka 1-3</div>
+              <div>🎯 Pesawatmu harus melewati gerbang berisi jawaban yang tepat</div>
+              <div>🔥 Jawaban benar berturut-turut memberi bonus lebih besar</div>
+              <div>💙 Salah tidak mengurangi apa pun — terus coba saja!</div>
+              {topic === 'angka' && (
+                <div>📈 Kalau sering benar, soalnya otomatis jadi lebih menantang</div>
+              )}
+            </div>
+
+            {slot.bestScore > 0 && (
+              <div className="skr-stats">
+                <div className="skr-stat">
+                  <b>{slot.bestScore.toLocaleString('id-ID')}</b>
+                  <span>skor terbaik</span>
+                </div>
+                <div className="skr-stat">
+                  <b>{slot.bestStreak}</b>
+                  <span>beruntun terbaik</span>
+                </div>
+              </div>
+            )}
+
+            <button className="skr-btn primary" onClick={() => setPhase('flying')}>
+              Mulai terbang →
+            </button>
+            <button className="skr-btn ghost" onClick={backToChoose}>
+              Ganti materi
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------- Layar hasil ---------------- */}
+      {phase === 'done' && (
+        <div className="skr-screen">
+          <div className="skr-panel">
+            <div className="skr-panel-emoji">
+              {correct === plan.questions.length
+                ? '🏆'
+                : correct >= plan.questions.length / 2
+                  ? '🎉'
+                  : '💪'}
+            </div>
+            <h2>Penerbangan selesai!</h2>
+            <p>
+              {correct === plan.questions.length
+                ? 'Sempurna! Semua gerbang kamu lewati dengan tepat.'
+                : 'Kerja bagus! Terbang lagi untuk skor yang lebih tinggi.'}
+            </p>
+
+            <div className="skr-stats">
+              <div className="skr-stat">
+                <b>{score.toLocaleString('id-ID')}</b>
+                <span>skor</span>
+              </div>
+              <div className="skr-stat">
+                <b>
+                  {correct}/{plan.questions.length}
+                </b>
+                <span>tepat</span>
+              </div>
+              <div className="skr-stat">
+                <b>{bestStreak}</b>
+                <span>beruntun</span>
+              </div>
+            </div>
+
+            {score > slot.bestScore && slot.bestScore > 0 && (
+              <p style={{ color: '#e0a63e', fontWeight: 900, marginTop: -8 }}>✨ Rekor baru!</p>
+            )}
+
+            <button className="skr-btn primary" onClick={flyAgain}>
+              Terbang lagi ✈️
+            </button>
+            <button className="skr-btn ghost" onClick={backToChoose}>
+              Ganti materi
+            </button>
+            <button className="skr-btn ghost" onClick={onExit}>
+              Selesai
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "input": "meshypesawat.glb",
+    "output": "public/assets/models/pesawat.glb",
+    "beforeBytes": 16188668,
+    "afterBytes": 200416,
+    "beforeTriangles": 544694,
+    "afterTriangles": 7500
+  },
+  {
+    "input": "assets-source/models/meshy-pulauquran2.glb",
+    "output": "public/assets/models/pulau-quran.glb",
+    "beforeBytes": 24116372,
+    "afterBytes": 513636,
+    "beforeTriangles": 814202,
+    "afterTriangles": 13984
+  },
+  {
+    "input": "meshy-pulauquran.glb",
+    "output": "public/assets/models/pulau-arabic.glb",
+    "beforeBytes": 25606264,
+    "afterBytes": 602472,
+    "beforeTriangles": 855074,
+    "afterTriangles": 16834
+  },
+  {
+    "input": "meshy-pulau-digital.glb",
+    "output": "public/assets/models/pulau-digital.glb",
+    "beforeBytes": 49926912,
+    "afterBytes": 517256,
+    "beforeTriangles": 1792726,
+    "afterTriangles": 13998
+  },
+  {
+    "input": "meshy-pulau-tower.glb",
+    "output": "public/assets/models/menara.glb",
+    "beforeBytes": 93730116,
+    "afterBytes": 709536,
+    "beforeTriangles": 3390098,
+    "afterTriangles": 18000
+  },
+  {
+    "input": "assets-source/models/bri.glb",
+    "output": "public/assets/models/bri.glb",
+    "beforeBytes": 5240736,
+    "afterBytes": 26512,
+    "beforeTriangles": 291108,
+    "afterTriangles": 7000
+  }
+]
