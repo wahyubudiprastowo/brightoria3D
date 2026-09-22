@@ -1,8 +1,10 @@
-import { useMemo, useRef } from 'react';
+import { Suspense, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { getQuality, scaleCount } from '../../render/quality';
 import { worlds } from '../../data/worlds';
+import LocalModel, { AssetBoundary, modelUrls } from './LocalModel';
 
 /**
  * MapDecor.tsx — Hiasan peta petualangan (Patch 68).
@@ -56,6 +58,9 @@ import { worlds } from '../../data/worlds';
 /** Warna emas jalur, diambil dari referensi. */
 const GOLD = '#f5cb68';
 const GOLD_BRIGHT = '#fff3c4';
+const CLOUD_MODEL_URLS = {
+  pastel: '/assets/models/cloud-pastel-drift.glb',
+} as const;
 
 // ---------------------------------------------------------------------------
 // JALUR TITIK EMAS
@@ -83,7 +88,6 @@ function PathDots({
 }) {
   const ref = useRef<THREE.InstancedMesh>(null);
   const quality = getQuality();
-
   const count = Math.max(4, scaleCount(9));
 
   const geometry = useMemo(() => new THREE.SphereGeometry(0.055, 8, 8), []);
@@ -321,7 +325,7 @@ function IslandBanners() {
  * Dibangun dari gugus bola pipih — awan satu gundukan terbaca sebagai
  * batu, bukan awan. Ini pelajaran dari Patch 65.
  */
-function CloudRing() {
+function ProceduralCloudRing() {
   const quality = getQuality();
 
   const geometry = useMemo(() => {
@@ -425,6 +429,148 @@ function CloudRing() {
   );
 }
 
+function normalizeCloudModel(source: THREE.Object3D) {
+  const model = source.clone(true);
+  const box = new THREE.Box3().setFromObject(model);
+  const size = new THREE.Vector3();
+  const center = new THREE.Vector3();
+  box.getSize(size);
+  box.getCenter(center);
+
+  const longest = Math.max(size.x, size.y, size.z, 0.001);
+  const scale = 2.25 / longest;
+  model.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
+  model.scale.setScalar(scale);
+
+  model.traverse((node) => {
+    if (node instanceof THREE.Mesh) {
+      node.castShadow = false;
+      node.receiveShadow = false;
+      const material = node.material;
+      const materials = Array.isArray(material) ? material : [material];
+      materials.forEach((mat) => {
+        if (mat instanceof THREE.MeshStandardMaterial) {
+          mat.transparent = true;
+          mat.opacity = Math.min(mat.opacity, 0.84);
+          mat.depthWrite = false;
+          mat.roughness = 1;
+          mat.metalness = 0;
+          mat.emissive = new THREE.Color('#d8eefb');
+          mat.emissiveIntensity = 0.24;
+          mat.side = THREE.DoubleSide;
+        }
+      });
+    }
+  });
+
+  return model;
+}
+
+function CloudClusterModel({
+  placement,
+}: {
+  placement: {
+    pos: [number, number, number];
+    scale: number;
+    rot: number;
+    puff: number;
+  };
+}) {
+  const { scene } = useGLTF(CLOUD_MODEL_URLS.pastel, false, true);
+  const base = useMemo(() => normalizeCloudModel(scene), [scene]);
+
+  const layers = useMemo(() => {
+    const count = placement.puff;
+    return Array.from({ length: count }).map((_, i) => {
+      const phase = i / Math.max(1, count - 1);
+      return {
+        key: i,
+        model: base.clone(true),
+        position: [
+          (phase - 0.5) * 0.7,
+          Math.sin(phase * Math.PI) * 0.18,
+          (i % 2 === 0 ? -0.18 : 0.2) * (0.7 + phase),
+        ] as [number, number, number],
+        rotation: [0.08 * (i - 1), placement.rot + i * 1.74, -0.06 * i] as [
+          number,
+          number,
+          number,
+        ],
+        scale: [1 + phase * 0.16, 0.72 + phase * 0.2, 0.92 + (i % 2) * 0.18] as [
+          number,
+          number,
+          number,
+        ],
+      };
+    });
+  }, [base, placement.puff, placement.rot]);
+
+  return (
+    <group position={placement.pos} scale={placement.scale}>
+      {layers.map((layer) => (
+        <primitive
+          key={layer.key}
+          object={layer.model}
+          position={layer.position}
+          rotation={layer.rotation}
+          scale={layer.scale}
+        />
+      ))}
+    </group>
+  );
+}
+
+function ModelCloudRingContent() {
+  const quality = getQuality();
+  const placements = useMemo(() => {
+    let s = 991;
+    const rand = () => {
+      s = (s * 9301 + 49297) % 233280;
+      return s / 233280;
+    };
+
+    const count = quality.tier === 'low' ? 7 : 13;
+    return Array.from({ length: count }).map((_, i) => {
+      const angle = (i / count) * Math.PI * 2 + rand() * 0.46;
+      const radius = 7.2 + rand() * 3.1;
+      return {
+        key: i,
+        pos: [
+          Math.cos(angle) * radius,
+          -1.05 + rand() * 1.35,
+          Math.sin(angle) * radius,
+        ] as [number, number, number],
+        scale: 0.68 + rand() * 0.58,
+        rot: angle + Math.PI / 2 + rand() * 0.8,
+        puff: quality.tier === 'low' ? 2 : i % 3 === 0 ? 3 : 2,
+      };
+    });
+  }, [quality.tier]);
+
+  return (
+    <group>
+      {placements.map((placement) => (
+        <CloudClusterModel
+          key={placement.key}
+          placement={placement}
+        />
+      ))}
+    </group>
+  );
+}
+
+function CloudRing() {
+  return (
+    <AssetBoundary fallback={<ProceduralCloudRing />}>
+      <Suspense fallback={<ProceduralCloudRing />}>
+        <ModelCloudRingContent />
+      </Suspense>
+    </AssetBoundary>
+  );
+}
+
+useGLTF.preload(CLOUD_MODEL_URLS.pastel);
+
 // ---------------------------------------------------------------------------
 // PUNCAK GUNUNG DI KEJAUHAN
 // ---------------------------------------------------------------------------
@@ -496,20 +642,82 @@ function DistantPeaks() {
 }
 
 // ---------------------------------------------------------------------------
+// LOOKOUT FOREGROUND
+// ---------------------------------------------------------------------------
+
+function LookoutGrass({ x, z, scale = 1 }: { x: number; z: number; scale?: number }) {
+  return (
+    <group position={[x, 0.18, z]} scale={scale}>
+      {[0, 1, 2].map((i) => (
+        <mesh key={i} position={[i * 0.08 - 0.08, 0.06, (i % 2) * 0.04]} rotation={[0, i * 1.7, 0]}>
+          <coneGeometry args={[0.055, 0.25, 5]} />
+          <meshStandardMaterial color={i === 1 ? '#78b957' : '#4f9a45'} roughness={0.9} flatShading />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function LookoutPlatform() {
+  return (
+    <group position={[-4.95, -1.86, 4.08]} rotation={[0, 0.34, 0]} scale={0.92}>
+      <mesh position={[0, -0.08, 0]} rotation={[0, Math.PI / 8, 0]}>
+        <cylinderGeometry args={[1.18, 1.42, 0.36, 8]} />
+        <meshStandardMaterial color="#8a7a64" roughness={0.94} metalness={0.02} flatShading />
+      </mesh>
+      <mesh position={[0, 0.13, 0]} rotation={[0, Math.PI / 8, 0]}>
+        <cylinderGeometry args={[1.2, 1.12, 0.12, 8]} />
+        <meshStandardMaterial color="#6fa257" roughness={0.88} flatShading />
+      </mesh>
+
+      {[
+        [-0.85, -0.5, 1.2],
+        [-0.58, 0.48, 0.8],
+        [0.68, -0.42, 0.95],
+        [0.92, 0.22, 0.75],
+      ].map(([x, z, s], i) => (
+        <LookoutGrass key={i} x={x} z={z} scale={s} />
+      ))}
+
+      <mesh position={[-0.42, 0.25, -0.55]}>
+        <sphereGeometry args={[0.08, 10, 8]} />
+        <meshStandardMaterial color="#fff7d4" emissive="#fff0a8" emissiveIntensity={0.28} roughness={0.7} />
+      </mesh>
+      <mesh position={[-0.42, 0.25, -0.55]}>
+        <sphereGeometry args={[0.035, 8, 6]} />
+        <meshStandardMaterial color="#e8b84f" roughness={0.7} />
+      </mesh>
+    </group>
+  );
+}
+
+function ForegroundCompanions() {
+  return (
+    <group>
+      <LookoutPlatform />
+      <group position={[-5.2, -1.36, 3.98]} rotation={[0, 0.54, 0]}>
+        <LocalModel url={modelUrls.wanderer} size={0.82} rotationY={Math.PI} fallback={null} />
+      </group>
+      <group position={[-4.46, -1.45, 4.38]} rotation={[0, 0.12, 0]}>
+        <LocalModel url={modelUrls.cat} size={0.38} rotationY={Math.PI * 0.9} fallback={null} />
+      </group>
+    </group>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // KOMPONEN UTAMA
 // ---------------------------------------------------------------------------
 
 export default function MapDecor() {
-  const quality = getQuality();
-
   return (
     <group>
       <QuestPaths />
       <IslandBanners />
       <CloudRing />
+      <ForegroundCompanions />
       {/* Gunung dilewati di tier rendah — ia hanya memberi kedalaman,
           jadi pengaruhnya pada rasa paling kecil di antara semuanya. */}
-      {quality.tier !== 'low' && <DistantPeaks />}
     </group>
   );
 }

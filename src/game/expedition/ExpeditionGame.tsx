@@ -107,7 +107,10 @@ const EXPEDITION_CSS = `
 .exp-overlay { position: fixed; inset: 0; z-index: 80; background: #001445; display: flex; flex-direction: column; }
 .exp-canvas-wrap { position: absolute; inset: 0; }
 .exp-hud-top { position: absolute; top: 0; left: 0; right: 0; z-index: 3; display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 14px; pointer-events: none; gap: 10px; }
+.exp-hud-left { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; pointer-events: none; }
 .exp-badge { pointer-events: auto; display: inline-flex; align-items: center; gap: 7px; background: #ffffffee; border: 2px solid #a8dcf5; border-radius: 999px; padding: 7px 13px; font-size: 12px; font-weight: 900; color: #002880; box-shadow: 0 6px 16px rgba(0,20,69,0.28); }
+.exp-camera-toggle { pointer-events: auto; border: 2px solid #a8dcf5; background: #ffffffee; color: #002880; border-radius: 999px; padding: 7px 12px; font-size: 11px; font-weight: 900; box-shadow: 0 6px 16px rgba(0,20,69,0.24); cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+.exp-camera-toggle.on { background: #002880; color: #d6eefb; border-color: #67c4ec; }
 .exp-brand-mark { height: 20px; width: 20px; object-fit: contain; display: block; }
 .exp-close { pointer-events: auto; border: 0; background: #ffffff; border-radius: 50%; width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer; color: #002880; font-size: 19px; font-weight: 900; box-shadow: 0 6px 16px rgba(0,20,69,0.28); flex-shrink: 0; }
 .exp-stick { position: absolute; left: 18px; bottom: 22px; width: 132px; height: 132px; border-radius: 50%; background: rgba(255,255,255,0.16); border: 2px solid rgba(168,220,245,0.45); z-index: 4; touch-action: none; }
@@ -116,6 +119,7 @@ const EXPEDITION_CSS = `
 .exp-action.locked { background: linear-gradient(135deg,#7c97ae,#4a5f6e); }
 .exp-action.talk { background: linear-gradient(135deg,#1c94cc,#0d7ab0); }
 .exp-hint { position: absolute; left: 50%; transform: translateX(-50%); bottom: 24px; z-index: 3; background: #002880e0; color: #d6eefb; border-radius: 999px; padding: 8px 18px; font-size: 11px; white-space: nowrap; pointer-events: none; }
+.exp-hint.locked { background: #0b6155e8; }
 .exp-portal-label { background: #fffffff2; border-radius: 12px; padding: 5px 11px; text-align: center; min-width: 100px; box-shadow: 0 5px 12px rgba(0,20,69,0.26); }
 .exp-portal-label b { display: block; font-size: 10.5px; color: #002880; }
 .exp-portal-label span { display: block; font-size: 8.5px; color: #5a7691; }
@@ -130,6 +134,32 @@ const EXPEDITION_CSS = `
 ${QUEST_HUD_CSS}
 ${WORLD_PORTAL_CSS}
 `;
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function applyCameraLook(control: CameraControlState, rawDx: number, rawDy: number, locked: boolean) {
+  const dx = Math.abs(rawDx) < 0.35 ? 0 : rawDx;
+  const dy = Math.abs(rawDy) < 0.35 ? 0 : rawDy;
+  if (dx === 0 && dy === 0) return;
+
+  const horizontalDominant = Math.abs(dx) > Math.abs(dy) * 1.75;
+  const verticalDominant = Math.abs(dy) > Math.abs(dx) * 1.3;
+  const yawSensitivity = locked ? 0.0055 : 0.0062;
+  const pitchSensitivity = locked ? 0.0025 : 0.0022;
+
+  if (locked) {
+    control.followYaw -= dx * yawSensitivity;
+    control.yawOffset = 0;
+  } else {
+    control.yawOffset -= dx * yawSensitivity;
+  }
+
+  if (locked || verticalDominant || !horizontalDominant) {
+    control.pitchOffset = clamp(control.pitchOffset + dy * pitchSensitivity, -0.68, 0.58);
+  }
+}
 
 function useInjectStyles() {
   useEffect(() => {
@@ -146,6 +176,14 @@ interface InputState {
   x: number;
   z: number;
   interact: boolean;
+}
+
+interface CameraControlState {
+  yawOffset: number;
+  followYaw: number;
+  locked: boolean;
+  pitchOffset: number;
+  distanceOffset: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -437,10 +475,12 @@ function Portal({
 
 function Explorer({
   input,
+  cameraControl,
   onMove,
   frozen,
 }: {
   input: RefObject<InputState>;
+  cameraControl: RefObject<CameraControlState>;
   onMove: (x: number, z: number) => void;
   frozen: boolean;
 }) {
@@ -465,13 +505,25 @@ function Explorer({
       const MAX_SPEED = 6.2;
       const FRICTION = 9;
 
-      const wish = new THREE.Vector2(frozen ? 0 : inp.x, frozen ? 0 : inp.z);
+      const controls = cameraControl.current;
+      const lockedToCamera = controls?.locked === true;
+      const rawWish = new THREE.Vector2(frozen ? 0 : inp.x, frozen ? 0 : inp.z);
+      if (rawWish.length() > 1) rawWish.normalize();
+      const baseYaw = lockedToCamera ? (controls?.followYaw ?? facing.current) : 0;
+      const sin = Math.sin(baseYaw);
+      const cos = Math.cos(baseYaw);
+      const wish = lockedToCamera
+        ? new THREE.Vector2(
+            rawWish.x * cos - rawWish.y * sin,
+            rawWish.x * -sin - rawWish.y * cos,
+          )
+        : rawWish.clone();
       const wishLen = wish.length();
       if (wishLen > 1) wish.normalize();
 
       if (wishLen > 0.02) {
-        velocity.current.x += wish.x * ACCEL * dt;
-        velocity.current.y += wish.y * ACCEL * dt;
+        const desiredVelocity = wish.clone().multiplyScalar(MAX_SPEED);
+        velocity.current.lerp(desiredVelocity, Math.min(1, dt * 18));
       } else {
         const damp = Math.max(0, 1 - FRICTION * dt);
         velocity.current.multiplyScalar(damp);
@@ -509,22 +561,32 @@ function Explorer({
       motion.current.speed = Math.min(1, speed / MAX_SPEED);
       motion.current.airborne = false;
 
-      if (speed > 0.25) {
+      if (lockedToCamera) {
+        facing.current = baseYaw;
+        controls!.followYaw = facing.current;
+      } else if (wishLen > 0.12) {
+        facing.current = Math.atan2(wish.x, wish.y);
+      } else if (speed > 0.25) {
         facing.current = Math.atan2(velocity.current.x, velocity.current.y);
       }
       const targetQuat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, facing.current, 0));
-      group.current.quaternion.slerp(targetQuat, Math.min(1, dt * 11));
+      group.current.quaternion.slerp(targetQuat, Math.min(1, dt * (wishLen > 0.12 ? 28 : 11)));
 
       onMove(px, pz);
 
       // Kamera third-person: pegas + look-ahead ke arah gerak.
       const lookAhead = velocity.current.clone().multiplyScalar(0.28);
-      camTarget.set(px + lookAhead.x, ground + 1.3, pz + lookAhead.y);
-      const behind = 7.8;
+      const pitchOffset = controls?.pitchOffset ?? 0;
+      const distanceOffset = controls?.distanceOffset ?? 0;
+      camTarget.set(px + lookAhead.x, ground + 1.25 + pitchOffset * 0.35, pz + lookAhead.y);
+      const behind = 7.8 + distanceOffset;
+      const cameraAngle = lockedToCamera ? facing.current : facing.current + (controls?.yawOffset ?? 0);
+      const cameraHeight = ground + 4.9 + pitchOffset * 4.8 + distanceOffset * 0.18;
+      const trailingDistance = behind * (0.55 + Math.max(0, -pitchOffset) * 0.18);
       camDesired.set(
-        px - Math.sin(facing.current) * behind * 0.55,
-        ground + 4.9,
-        pz - Math.cos(facing.current) * behind * 0.55 + 3.5,
+        px - Math.sin(cameraAngle) * trailingDistance,
+        Math.max(ground + 1.45, cameraHeight),
+        pz - Math.cos(cameraAngle) * trailingDistance,
       );
       camera.position.lerp(camDesired, Math.min(1, dt * 2.6));
       camera.lookAt(camTarget);
@@ -548,6 +610,7 @@ function Explorer({
 
 function ExpeditionScene({
   input,
+  cameraControl,
   collected,
   onCollect,
   onNearPortal,
@@ -558,6 +621,7 @@ function ExpeditionScene({
   airaHasReady,
 }: {
   input: RefObject<InputState>;
+  cameraControl: RefObject<CameraControlState>;
   collected: Set<string>;
   onCollect: (id: string) => void;
   onNearPortal: (id: string | null) => void;
@@ -629,7 +693,7 @@ function ExpeditionScene({
 
       <Terrain />
       <ArenaProps />
-      <Explorer input={input} onMove={handleMove} frozen={frozen} />
+      <Explorer input={input} cameraControl={cameraControl} onMove={handleMove} frozen={frozen} />
 
       <NpcAira
         x={AIRA_POSITION[0]}
@@ -724,6 +788,13 @@ export default function ExpeditionGame({
   const quality = getQuality();
 
   const inputRef = useRef<InputState>({ x: 0, z: 0, interact: false });
+  const cameraControlRef = useRef<CameraControlState>({
+    yawOffset: 0,
+    followYaw: 0,
+    locked: false,
+    pitchOffset: 0,
+    distanceOffset: 0,
+  });
 
   const [state, setState] = useState<ExpeditionState>(() => refreshQuests(loadState()));
   const [nearPortal, setNearPortal] = useState<string | null>(null);
@@ -736,9 +807,11 @@ export default function ExpeditionGame({
   } | null>(null);
   const [reward, setReward] = useState<{ crystal: CrystalType; amount: number } | null>(null);
   const [openWorldId, setOpenWorldId] = useState<string | null>(null);
+  const [cameraLocked, setCameraLocked] = useState(false);
 
   const stickRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLDivElement>(null);
+  const canvasWrapRef = useRef<HTMLDivElement>(null);
   const keys = useRef<Record<string, boolean>>({});
 
   const collected = useMemo(() => new Set(state.stars), [state.stars]);
@@ -849,6 +922,27 @@ export default function ExpeditionGame({
     else handleEnterPortal();
   }
 
+  function unlockCamera() {
+    if (document.pointerLockElement) document.exitPointerLock();
+    setCameraLocked(false);
+  }
+
+  function toggleCameraLock() {
+    if (dialog || openWorldId) return;
+    const wrap = canvasWrapRef.current;
+    if (!wrap) return;
+
+    if (document.pointerLockElement === wrap || cameraLocked) {
+      unlockCamera();
+      return;
+    }
+
+    const lockResult = wrap.requestPointerLock?.();
+    if (lockResult && 'catch' in lockResult) {
+      lockResult.catch(() => setCameraLocked(false));
+    }
+  }
+
   useEffect(() => {
     function update() {
       const k = keys.current;
@@ -859,6 +953,16 @@ export default function ExpeditionGame({
     }
     function down(e: KeyboardEvent) {
       const key = e.key.toLowerCase();
+      if (key === 'shift') {
+        e.preventDefault();
+        if (!e.repeat) toggleCameraLock();
+        return;
+      }
+      if (
+        ['w', 'a', 's', 'd', 'arrowup', 'arrowleft', 'arrowdown', 'arrowright', ' '].includes(key)
+      ) {
+        e.preventDefault();
+      }
       keys.current[key] = true;
       if (openWorldId) return;
       if (dialog) return;
@@ -877,7 +981,40 @@ export default function ExpeditionGame({
       window.removeEventListener('keyup', up);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nearPortal, nearAira, dialog, state, openWorldId]);
+  }, [nearPortal, nearAira, dialog, state, openWorldId, cameraLocked]);
+
+  useEffect(() => {
+    const wrap = canvasWrapRef.current;
+
+    function onPointerLockChange() {
+      setCameraLocked(document.pointerLockElement === wrap);
+    }
+
+    function onPointerLockMove(e: MouseEvent) {
+      if (document.pointerLockElement !== wrap) return;
+      applyCameraLook(cameraControlRef.current, e.movementX, e.movementY, true);
+    }
+
+    document.addEventListener('pointerlockchange', onPointerLockChange);
+    document.addEventListener('mousemove', onPointerLockMove);
+    return () => {
+      document.removeEventListener('pointerlockchange', onPointerLockChange);
+      document.removeEventListener('mousemove', onPointerLockMove);
+    };
+  }, []);
+
+  useEffect(() => {
+    if ((dialog || openWorldId) && cameraLocked) unlockCamera();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dialog, openWorldId, cameraLocked]);
+
+  useEffect(() => {
+    cameraControlRef.current.locked = cameraLocked;
+    if (cameraLocked) {
+      cameraControlRef.current.followYaw += cameraControlRef.current.yawOffset;
+      cameraControlRef.current.yawOffset = 0;
+    }
+  }, [cameraLocked]);
 
   useEffect(() => {
     const stick = stickRef.current;
@@ -932,13 +1069,79 @@ export default function ExpeditionGame({
     };
   }, []);
 
+  useEffect(() => {
+    const wrap = canvasWrapRef.current;
+    if (!wrap) return;
+
+    let active = false;
+    let lastX = 0;
+    let lastY = 0;
+    let pointerId: number | null = null;
+
+    function onContextMenu(e: MouseEvent) {
+      e.preventDefault();
+    }
+
+    function onPointerDown(e: PointerEvent) {
+      if (e.pointerType === 'mouse' && e.button !== 1 && e.button !== 2) return;
+      active = true;
+      pointerId = e.pointerId;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      wrap!.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    }
+
+    function onPointerMove(e: PointerEvent) {
+      if (!active || e.pointerId !== pointerId) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      applyCameraLook(cameraControlRef.current, dx, dy, false);
+      e.preventDefault();
+    }
+
+    function onWheel(e: WheelEvent) {
+      cameraControlRef.current.distanceOffset = clamp(
+        cameraControlRef.current.distanceOffset + e.deltaY * 0.006,
+        -2.2,
+        4.8,
+      );
+      e.preventDefault();
+    }
+
+    function onPointerUp(e: PointerEvent) {
+      if (e.pointerId !== pointerId) return;
+      active = false;
+      pointerId = null;
+      if (wrap!.hasPointerCapture(e.pointerId)) wrap!.releasePointerCapture(e.pointerId);
+      e.preventDefault();
+    }
+
+    wrap.addEventListener('contextmenu', onContextMenu);
+    wrap.addEventListener('pointerdown', onPointerDown);
+    wrap.addEventListener('pointermove', onPointerMove);
+    wrap.addEventListener('pointerup', onPointerUp);
+    wrap.addEventListener('pointercancel', onPointerUp);
+    wrap.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      wrap.removeEventListener('contextmenu', onContextMenu);
+      wrap.removeEventListener('pointerdown', onPointerDown);
+      wrap.removeEventListener('pointermove', onPointerMove);
+      wrap.removeEventListener('pointerup', onPointerUp);
+      wrap.removeEventListener('pointercancel', onPointerUp);
+      wrap.removeEventListener('wheel', onWheel);
+    };
+  }, []);
+
   const nearSpec = nearPortal ? (portals.find((p) => p.id === nearPortal) ?? null) : null;
   const openSpec = openWorldId ? (portals.find((p) => p.id === openWorldId) ?? null) : null;
   const arenaHudVisible = openWorldId === null;
 
   return (
     <div className="exp-overlay">
-      <div className="exp-canvas-wrap">
+      <div className="exp-canvas-wrap" ref={canvasWrapRef}>
         <CanvasBoundary><Canvas
           shadows={quality.shadows}
           dpr={quality.dpr}
@@ -947,6 +1150,7 @@ export default function ExpeditionGame({
         >
           <ExpeditionScene
             input={inputRef}
+            cameraControl={cameraControlRef}
             collected={collected}
             onCollect={handleCollect}
             onNearPortal={setNearPortal}
@@ -962,11 +1166,20 @@ export default function ExpeditionGame({
       {arenaHudVisible && (
         <>
           <div className="exp-hud-top">
+            <div className="exp-hud-left">
             <span className="exp-badge">
               <img src="/assets/brand/bright-icon.png" alt="" className="exp-brand-mark" />⭐{' '}
               {summary.stars}/{starSpots.length} &bull; 📜 {summary.questsDone}/
               {summary.questsTotal}
             </span>
+              <button
+                className={'exp-camera-toggle' + (cameraLocked ? ' on' : '')}
+                onClick={toggleCameraLock}
+                type="button"
+              >
+                Kamera {cameraLocked ? 'Lock ON' : 'Lock OFF'} · Shift
+              </button>
+            </div>
             <button className="exp-close" onClick={onExit} aria-label="Keluar">
               ×
             </button>
@@ -1000,7 +1213,11 @@ export default function ExpeditionGame({
                 : `🔒 ${nearSpec.starsRequired} bintang`}
             </button>
           ) : (
-            <div className="exp-hint">Geser joystick atau tekan W A S D untuk berjalan</div>
+            <div className={'exp-hint' + (cameraLocked ? ' locked' : '')}>
+              {cameraLocked
+                ? 'Kamera lock aktif: gerakkan mouse untuk melihat sekitar · Shift untuk lepas'
+                : 'W A S D untuk berjalan · klik kanan geser kamera · Shift untuk lock kamera'}
+            </div>
           )}
 
           {dialog && (

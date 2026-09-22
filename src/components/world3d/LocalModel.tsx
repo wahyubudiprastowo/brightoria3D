@@ -11,6 +11,8 @@ export const modelUrls = {
   english: '/assets/models/pulau-english.glb',
   adab: '/assets/models/pulau-adab.glb',
   tower: '/assets/models/menara.glb',
+  wanderer: '/assets/models/starbound-wanderer.glb',
+  cat: '/assets/models/white-cat-red-scarf.glb',
 } as const;
 
 export class AssetBoundary extends Component<

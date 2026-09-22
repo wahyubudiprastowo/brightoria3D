@@ -1,6 +1,7 @@
 import CanvasBoundary from '../../components/CanvasBoundary';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import CinematicRig, { ThreePointLights } from '../../render/CinematicRig';
 import Postfx from '../../render/Postfx';
@@ -70,6 +71,15 @@ const STEP_Y = 0.13;
 
 /** Lama satu lompatan, dalam detik. */
 const JUMP_DURATION = 0.72;
+const FROGGY_MODEL_URL = '/assets/models/froggy.glb';
+const FROGGY_JUMP_MODEL_URL = '/assets/models/froggy-jump.glb';
+const FROGGY_LILY_PAD_URL = '/assets/models/froggy-lily-pad.glb';
+const FROGGY_LOTUS_URL = '/assets/models/froggy-lotus.glb';
+const FROGGY_CATTAIL_URL = '/assets/models/froggy-cattail-grove.glb';
+const FROGGY_LANTERN_A_URL = '/assets/models/froggy-lantern-oasis-a.glb';
+const FROGGY_LANTERN_B_URL = '/assets/models/froggy-lantern-oasis-b.glb';
+const FROGGY_LEAF_SIGN_URL = '/assets/models/froggy-lotus-leaf-sign.glb';
+const FROGGY_OASIS_BG_URL = '/assets/froggy/oasis-desert-background.png';
 
 type PadState = 'idle' | 'hit' | 'reveal' | 'dim';
 
@@ -92,8 +102,15 @@ function stepCenter(step: number): [number, number, number] {
 }
 
 const FROGGY_CSS = `
-.frg-overlay { position: fixed; inset: 0; z-index: 92; background: #0b2c24; display: flex; flex-direction: column; }
+.frg-overlay {
+  position: fixed; inset: 0; z-index: 92; display: flex; flex-direction: column;
+  background:
+    linear-gradient(180deg, rgba(255,244,218,0.08), rgba(0,68,74,0.35)),
+    url('/assets/froggy/oasis-desert-background.png') center center / cover no-repeat,
+    #0b2c24;
+}
 .frg-canvas { position: absolute; inset: 0; }
+.frg-canvas canvas { background: transparent !important; }
 
 /* ---------- Panel pertanyaan ---------- */
 .frg-question {
@@ -478,11 +495,11 @@ function Water() {
     <mesh ref={ref} position={[0, -0.42, -60]} rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[120, 220]} />
       <meshStandardMaterial
-        color="#1f7a68"
-        roughness={0.06}
-        metalness={0.62}
+        color="#2aa8a7"
+        roughness={0.035}
+        metalness={0.7}
         transparent
-        opacity={0.94}
+        opacity={0.9}
       />
     </mesh>
   );
@@ -605,9 +622,7 @@ function LilyPad({
       </mesh>
 
       {/* Daun */}
-      <mesh
-        castShadow={quality.shadows}
-        receiveShadow={quality.shadows}
+      <group
         onClick={(e) => {
           e.stopPropagation();
           if (interactive && onPick) onPick();
@@ -623,9 +638,23 @@ function LilyPad({
           document.body.style.cursor = 'auto';
         }}
       >
-        <cylinderGeometry args={[1.25, 1.18, 0.16, 8]} />
-        <meshStandardMaterial color={padColor} roughness={0.72} metalness={0.05} flatShading />
-      </mesh>
+        <DecorModel
+          url={FROGGY_LILY_PAD_URL}
+          size={2.45}
+          position={[0, 0.04, 0]}
+          rotation={[0, bobPhase * 0.18, 0]}
+          fallback={
+            <mesh castShadow={quality.shadows} receiveShadow={quality.shadows}>
+              <cylinderGeometry args={[1.25, 1.18, 0.16, 8]} />
+              <meshStandardMaterial color={padColor} roughness={0.72} metalness={0.05} flatShading />
+            </mesh>
+          }
+        />
+        <mesh position={[0, 0.07, 0]} visible={false}>
+          <cylinderGeometry args={[1.38, 1.3, 0.2, 16]} />
+          <meshBasicMaterial transparent opacity={0} />
+        </mesh>
+      </group>
 
       {/* Guratan daun — memecah permukaan agar tidak terbaca cakram polos */}
       {[0, 1, 2].map((i) => (
@@ -711,6 +740,379 @@ function LilyPad({
 // ---------------------------------------------------------------------------
 // KATAK
 // ---------------------------------------------------------------------------
+
+function ProceduralFrogBody({ quality }: { quality: ReturnType<typeof getQuality> }) {
+  return (
+    <>
+      <mesh castShadow={quality.shadows}>
+        <boxGeometry args={[0.58, 0.38, 0.66]} />
+        <meshStandardMaterial color="#4caf50" roughness={0.68} metalness={0.04} flatShading />
+      </mesh>
+      <mesh position={[0, -0.14, 0.02]}>
+        <boxGeometry args={[0.5, 0.14, 0.58]} />
+        <meshStandardMaterial color="#c9e8a8" roughness={0.8} flatShading />
+      </mesh>
+      <mesh position={[0, 0.2, 0.2]} castShadow={quality.shadows}>
+        <boxGeometry args={[0.52, 0.28, 0.34]} />
+        <meshStandardMaterial color="#57bd58" roughness={0.68} flatShading />
+      </mesh>
+      {[-0.16, 0.16].map((x) => (
+        <group key={x} position={[x, 0.4, 0.22]}>
+          <mesh>
+            <sphereGeometry args={[0.13, 10, 10]} />
+            <meshStandardMaterial color="#6cc96d" roughness={0.6} flatShading />
+          </mesh>
+          <mesh position={[0, 0.02, 0.1]}>
+            <sphereGeometry args={[0.07, 10, 10]} />
+            <meshBasicMaterial color="#17110e" />
+          </mesh>
+          <mesh position={[0.03, 0.06, 0.14]}>
+            <sphereGeometry args={[0.026, 8, 8]} />
+            <meshBasicMaterial color="#ffffff" />
+          </mesh>
+        </group>
+      ))}
+      {[-1, 1].map((side) => (
+        <group key={side} position={[side * 0.31, -0.11, -0.16]}>
+          <mesh rotation={[0, 0, side * 0.3]} castShadow={quality.shadows}>
+            <boxGeometry args={[0.15, 0.3, 0.2]} />
+            <meshStandardMaterial color="#43a047" roughness={0.7} flatShading />
+          </mesh>
+          <mesh position={[side * 0.06, -0.2, 0.08]}>
+            <boxGeometry args={[0.2, 0.09, 0.3]} />
+            <meshStandardMaterial color="#c9e8a8" roughness={0.8} flatShading />
+          </mesh>
+        </group>
+      ))}
+      {[-1, 1].map((side) => (
+        <mesh key={side} position={[side * 0.24, -0.16, 0.26]} castShadow={quality.shadows}>
+          <boxGeometry args={[0.11, 0.18, 0.12]} />
+          <meshStandardMaterial color="#43a047" roughness={0.7} flatShading />
+        </mesh>
+      ))}
+    </>
+  );
+}
+
+function FittedModel({
+  url,
+  size,
+  rotation = [0, 0, 0],
+  position = [0, 0, 0],
+  fallback = null,
+}: {
+  url: string;
+  size: number;
+  rotation?: [number, number, number];
+  position?: [number, number, number];
+  fallback?: ReactNode;
+}) {
+  const quality = getQuality();
+  const { scene } = useGLTF(url, false, true);
+  const model = useMemo(() => {
+    const clone = scene.clone(true);
+    const box = new THREE.Box3().setFromObject(clone);
+    const dimensions = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    const wrapper = new THREE.Group();
+    wrapper.add(clone);
+    clone.position.sub(center);
+    wrapper.scale.setScalar(size / (Math.max(dimensions.x, dimensions.y, dimensions.z) || 1));
+    clone.traverse((node) => {
+      if (node instanceof THREE.Mesh) {
+        node.castShadow = quality.shadows;
+        node.receiveShadow = quality.shadows;
+      }
+    });
+    return wrapper;
+  }, [scene, size, quality.shadows]);
+
+  return (
+    <group position={position} rotation={rotation}>
+      <primitive object={model} dispose={null} />
+    </group>
+  );
+}
+
+class DecorModelBoundary extends Component<
+  { children: ReactNode; fallback: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(error: Error) {
+    console.warn('[Brightoria] Froggy decor fallback:', error);
+  }
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
+function DecorModel(props: Parameters<typeof FittedModel>[0]) {
+  return (
+    <DecorModelBoundary fallback={props.fallback ?? null}>
+      <Suspense fallback={props.fallback ?? null}>
+        <FittedModel {...props} />
+      </Suspense>
+    </DecorModelBoundary>
+  );
+}
+
+function Waterfall() {
+  const sheet = useRef<THREE.Group>(null);
+  const foam = useRef<THREE.Points>(null);
+  const droplets = useMemo(() => {
+    const arr = new Float32Array(70 * 3);
+    for (let i = 0; i < 70; i++) {
+      arr[i * 3] = (Math.random() - 0.5) * 2.2;
+      arr[i * 3 + 1] = Math.random() * 2.2;
+      arr[i * 3 + 2] = (Math.random() - 0.5) * 0.35;
+    }
+    return arr;
+  }, []);
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    if (sheet.current) {
+      sheet.current.position.y = Math.sin(t * 5.2) * 0.05;
+      sheet.current.children.forEach((child, i) => {
+        if (child instanceof THREE.Mesh) {
+          const mat = child.material as THREE.MeshBasicMaterial;
+          mat.opacity = 0.3 + Math.sin(t * 5.5 + i) * 0.08;
+          child.scale.y = 1 + Math.sin(t * 4.1 + i) * 0.05;
+        }
+      });
+    }
+    if (foam.current) {
+      foam.current.rotation.y += 0.006;
+      const pos = foam.current.geometry.getAttribute('position') as THREE.BufferAttribute;
+      for (let i = 0; i < pos.count; i++) {
+        const y = pos.getY(i) - 0.025 - (i % 5) * 0.002;
+        pos.setY(i, y < -0.12 ? 2.1 : y);
+      }
+      pos.needsUpdate = true;
+    }
+  });
+
+  return (
+    <group position={[-8.05, 0.05, -12.72]} rotation={[0, 0.2, 0]}>
+      <group position={[0, -0.16, 0.52]} ref={sheet}>
+        {[-0.24, -0.08, 0.08, 0.24].map((x, i) => (
+          <mesh key={i} position={[x, 0, i % 2 === 0 ? 0.015 : -0.015]} rotation={[0.03, 0, (i - 1.5) * 0.018]}>
+            <planeGeometry args={[0.24, 0.92, 1, 8]} />
+            <meshBasicMaterial color={i % 2 === 0 ? '#d8fbff' : '#8eeaff'} transparent opacity={0.36} side={THREE.DoubleSide} depthWrite={false} />
+          </mesh>
+        ))}
+      </group>
+      <mesh position={[0, -0.22, 0.64]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.28, 1.18, 32]} />
+        <meshBasicMaterial color="#d9fbff" transparent opacity={0.42} depthWrite={false} />
+      </mesh>
+      <points ref={foam} position={[0, 0.28, 0.7]}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[droplets, 3]} />
+        </bufferGeometry>
+        <pointsMaterial size={0.075} color="#efffff" transparent opacity={0.82} depthWrite={false} />
+      </points>
+      <pointLight color="#bff6ff" intensity={1.7} distance={7} position={[0, 0.26, 1.05]} />
+    </group>
+  );
+}
+
+function PondSparkles() {
+  const ref = useRef<THREE.Points>(null);
+  const positions = useMemo(() => {
+    const arr = new Float32Array(90 * 3);
+    for (let i = 0; i < 90; i++) {
+      const lane = i % 3;
+      arr[i * 3] = (Math.random() - 0.5) * 22 + (lane - 1) * 1.4;
+      arr[i * 3 + 1] = -0.25 + Math.random() * 0.2;
+      arr[i * 3 + 2] = -15 + Math.random() * 32;
+    }
+    return arr;
+  }, []);
+
+  useFrame((state) => {
+    if (!ref.current) return;
+    const t = state.clock.elapsedTime;
+    ref.current.rotation.y = Math.sin(t * 0.12) * 0.04;
+    const material = ref.current.material as THREE.PointsMaterial;
+    material.opacity = 0.35 + Math.sin(t * 2.8) * 0.16;
+  });
+
+  return (
+    <points ref={ref}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+      </bufferGeometry>
+      <pointsMaterial size={0.09} color="#fff7b0" transparent opacity={0.45} depthWrite={false} />
+    </points>
+  );
+}
+
+function OasisPavilion() {
+  const quality = getQuality();
+  const domeMat = (
+    <meshStandardMaterial
+      color="#7dc7b4"
+      emissive="#3c9f91"
+      emissiveIntensity={0.18}
+      roughness={0.55}
+      metalness={0.12}
+      flatShading
+    />
+  );
+
+  return (
+    <group position={[-8.05, 2.82, -13.55]} rotation={[0, 0.18, 0]} scale={0.96}>
+      <mesh position={[0, -0.04, 0]} castShadow={quality.shadows} receiveShadow={quality.shadows}>
+        <cylinderGeometry args={[1.45, 1.65, 0.32, 10]} />
+        <meshStandardMaterial color="#e7d5b0" roughness={0.9} flatShading />
+      </mesh>
+      {[0, 1, 2, 3].map((i) => {
+        const a = Math.PI / 4 + (i * Math.PI) / 2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 1.05, 0.72, Math.sin(a) * 0.78]} castShadow={quality.shadows}>
+            <cylinderGeometry args={[0.09, 0.12, 1.48, 8]} />
+            <meshStandardMaterial color="#d7be8e" roughness={0.86} flatShading />
+          </mesh>
+        );
+      })}
+      <mesh position={[0, 1.48, 0]} castShadow={quality.shadows}>
+        <cylinderGeometry args={[1.18, 1.38, 0.26, 10]} />
+        <meshStandardMaterial color="#f0dfbc" roughness={0.82} flatShading />
+      </mesh>
+      <mesh position={[0, 1.72, 0]} scale={[1.15, 0.52, 1.15]} castShadow={quality.shadows}>
+        <sphereGeometry args={[1, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        {domeMat}
+      </mesh>
+      <mesh position={[0, 2.28, 0]} castShadow={quality.shadows}>
+        <sphereGeometry args={[0.16, 10, 8]} />
+        <meshStandardMaterial color="#f1c65b" emissive="#f6b93b" emissiveIntensity={0.6} roughness={0.42} />
+      </mesh>
+      <pointLight color="#fff1c0" intensity={0.9} distance={7} position={[0, 1.7, 0]} />
+    </group>
+  );
+}
+
+function OasisDecor() {
+  const cattailFallback = (
+    <group>
+      {[0, 1, 2].map((i) => (
+        <mesh key={i} position={[i * 0.25 - 0.25, 0.35, 0]} rotation={[0.12, 0, (i - 1) * 0.1]}>
+          <cylinderGeometry args={[0.035, 0.045, 1.1, 6]} />
+          <meshStandardMaterial color="#1f6f4d" roughness={0.9} flatShading />
+        </mesh>
+      ))}
+    </group>
+  );
+
+  return (
+    <>
+      <DecorModel
+        url={FROGGY_LANTERN_B_URL}
+        size={3.35}
+        position={[-8.05, 0.86, -13.2]}
+        rotation={[0, 0.2, 0]}
+      />
+      <Waterfall />
+      <PondSparkles />
+      <DecorModel url={FROGGY_LEAF_SIGN_URL} size={3.6} position={[8.2, 1.05, -8.8]} rotation={[0, -0.72, 0]} />
+      <DecorModel url={FROGGY_LANTERN_A_URL} size={1.65} position={[-6.7, 0.1, -7.5]} rotation={[0, 0.38, 0]} />
+      {[
+        [-5.6, -0.2, -4.5, 0.4, 1.4],
+        [4.8, -0.2, -6.2, -0.2, 1.25],
+        [-7.0, -0.22, 4.8, 0.7, 1.5],
+        [7.2, -0.22, 5.6, -0.7, 1.4],
+        [-2.9, -0.24, -11.5, 0.1, 1.15],
+        [2.9, -0.24, -11.8, -0.2, 1.15],
+      ].map(([x, y, z, r, s], i) => (
+        <DecorModel
+          key={`cattail-${i}`}
+          url={FROGGY_CATTAIL_URL}
+          size={s}
+          position={[x, y, z]}
+          rotation={[0, r, 0]}
+          fallback={cattailFallback}
+        />
+      ))}
+      {[
+        [-4.5, -0.18, 1.6, 0.4],
+        [5.0, -0.16, 1.0, -0.3],
+        [-6.2, -0.15, 9.0, 0.8],
+        [6.4, -0.14, 8.7, -0.6],
+      ].map(([x, y, z, r], i) => (
+        <DecorModel
+          key={`lotus-${i}`}
+          url={FROGGY_LOTUS_URL}
+          size={1.25}
+          position={[x, y, z]}
+          rotation={[0, r, 0]}
+        />
+      ))}
+    </>
+  );
+}
+
+function FroggyModel({ quality, url }: { quality: ReturnType<typeof getQuality>; url: string }) {
+  const { scene } = useGLTF(url, false, true);
+  const model = useMemo(() => scene.clone(true), [scene]);
+  const fit = useMemo(() => {
+    const box = new THREE.Box3().setFromObject(model);
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+
+    const footprint = Math.max(size.x, size.z, 0.001);
+    const scale = 0.92 / footprint;
+    return {
+      scale,
+      position: [-center.x * scale, -box.min.y * scale + 0.11, -center.z * scale] as [
+        number,
+        number,
+        number,
+      ],
+    };
+  }, [model]);
+
+  useMemo(() => {
+    model.traverse((node) => {
+      if (node instanceof THREE.Mesh) {
+        node.castShadow = quality.shadows;
+        node.receiveShadow = quality.shadows;
+      }
+    });
+  }, [model, quality.shadows]);
+
+  return (
+    <group position={fit.position} scale={fit.scale} rotation={[0, Math.PI, 0]}>
+      <primitive object={model} />
+    </group>
+  );
+}
+
+class FrogModelBoundary extends Component<
+  { children: ReactNode; fallback: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error: unknown) {
+    // eslint-disable-next-line no-console
+    console.error('[Brightoria] Froggy model gagal dimuat, fallback prosedural dipakai:', error);
+  }
+
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
 
 /**
  * Katak pemain, bergaya blocky agar selaras dengan karakter di Ekspedisi.
@@ -800,6 +1202,12 @@ function Frog({
   return (
     <group ref={group} position={[toPos[0], toPos[1] + 0.22, toPos[2]]}>
       <group ref={body}>
+        <FrogModelBoundary key={jumping ? FROGGY_JUMP_MODEL_URL : FROGGY_MODEL_URL} fallback={<ProceduralFrogBody quality={quality} />}>
+          <Suspense fallback={<ProceduralFrogBody quality={quality} />}>
+            <FroggyModel quality={quality} url={jumping ? FROGGY_JUMP_MODEL_URL : FROGGY_MODEL_URL} />
+          </Suspense>
+        </FrogModelBoundary>
+        <group visible={false}>
         {/* Badan */}
         <mesh castShadow={quality.shadows}>
           <boxGeometry args={[0.58, 0.38, 0.66]} />
@@ -857,10 +1265,20 @@ function Frog({
             <meshStandardMaterial color="#43a047" roughness={0.7} flatShading />
           </mesh>
         ))}
+        </group>
       </group>
     </group>
   );
 }
+
+useGLTF.preload(FROGGY_MODEL_URL);
+useGLTF.preload(FROGGY_JUMP_MODEL_URL);
+useGLTF.preload(FROGGY_LILY_PAD_URL);
+useGLTF.preload(FROGGY_LOTUS_URL);
+useGLTF.preload(FROGGY_CATTAIL_URL);
+useGLTF.preload(FROGGY_LANTERN_A_URL);
+useGLTF.preload(FROGGY_LANTERN_B_URL);
+useGLTF.preload(FROGGY_LEAF_SIGN_URL);
 
 // ---------------------------------------------------------------------------
 // SUASANA KOLAM
@@ -978,17 +1396,17 @@ function PondAmbience() {
  */
 function FollowCamera({ target }: { target: [number, number, number] }) {
   const camera = useThree((s) => s.camera);
-  const current = useRef(new THREE.Vector3(0, 3.4, 7.5));
+  const current = useRef(new THREE.Vector3(0, 3.9, 7.0));
   const look = useRef(new THREE.Vector3(0, 0, 0));
 
   useFrame((_state, delta) => {
     try {
       const dt = Math.min(delta, 0.05);
-      const desired = new THREE.Vector3(target[0] * 0.55, target[1] + 3.5, target[2] + 7.6);
-      current.current.lerp(desired, Math.min(1, dt * 2.8));
+      const desired = new THREE.Vector3(target[0] * 0.46, target[1] + 3.85, target[2] + 6.65);
+      current.current.lerp(desired, Math.min(1, dt * 3.1));
       camera.position.copy(current.current);
 
-      const lookTarget = new THREE.Vector3(target[0] * 0.4, target[1] + 0.6, target[2] - 5);
+      const lookTarget = new THREE.Vector3(target[0] * 0.32, target[1] + 0.82, target[2] - 5.7);
       look.current.lerp(lookTarget, Math.min(1, dt * 3.2));
       camera.lookAt(look.current);
     } catch {
@@ -1087,14 +1505,14 @@ function FroggyScene({
 
   return (
     <>
-      <CinematicRig exposure={1.04} />
-      <ProceduralEnv intensity={0.9} />
-      <color attach="background" args={['#bfe8dd']} />
-      <fog attach="fog" args={['#cdeee4', 22, 70]} />
-      <ThreePointLights intensity={1} shadowRadius={16} />
+      <CinematicRig exposure={1.12} />
+      <ProceduralEnv intensity={1.05} />
+      <fog attach="fog" args={['#d8f6ef', 36, 96]} />
+      <ThreePointLights intensity={1.12} shadowRadius={16} />
 
       <Water />
       <PondAmbience />
+      <OasisDecor />
 
       <FollowCamera target={frogTo} />
 
@@ -1137,7 +1555,7 @@ function FroggyScene({
         <Ripple key={r.id} position={r.position} seed={r.id} />
       ))}
 
-      {quality.postfx && <Postfx intensity={0.3} threshold={0.88} vignette={0.32} />}
+      {quality.postfx && <Postfx intensity={0.3} threshold={0.88} vignette={0.32} preserveAlpha />}
     </>
   );
 }
@@ -1383,8 +1801,11 @@ export default function FroggyGame({
           shadows={quality.shadows}
           dpr={quality.dpr}
           camera={{ position: [0, 3.4, 7.5], fov: 52, near: 0.1, far: 160 }}
-          gl={{ antialias: quality.antialias, powerPreference: 'high-performance', stencil: false }}
-          onCreated={({ clock }) => {
+          style={{ background: 'transparent' }}
+          gl={{ antialias: quality.antialias, alpha: true, powerPreference: 'high-performance', stencil: false }}
+          onCreated={({ clock, gl }) => {
+            gl.setClearColor(0x000000, 0);
+            gl.setClearAlpha(0);
             // Jam dibaca terus agar waktu mulai lompatan tepat.
             const tick = () => {
               clockRef.current = clock.elapsedTime;

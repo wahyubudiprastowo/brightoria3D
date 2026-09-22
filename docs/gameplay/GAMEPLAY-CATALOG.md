@@ -35,7 +35,7 @@
 |---|---|---|---|---|
 | Pulau Numeria | `math` | ✅ Game sungguhan, 3D (5 level) | Draft, selaras Kurikulum Merdeka | `03_pulau_numeria.webp` |
 | Benteng Digital | `digital` | ✅ Game sungguhan, kartu situasi | Draft, prinsip literasi digital umum | `06_benteng_digital.webp` |
-| Oasis Bahasa Arab | `arabic` | ✅ Game sungguhan, ekspedisi (72 kartu) | Draft, BELUM disahkan akademik | `pulau-arabic.glb` + fallback `04_oasis_bahasa_arab.webp` |
+| Oasis Bahasa Arab | `arabic` | ✅ Game sungguhan, ekspedisi (72 kartu) + Pasar Kata Arab | Draft, BELUM disahkan akademik | `pulau-arabic.glb` + fallback `04_oasis_bahasa_arab.webp` |
 | Taman Al-Qur'an | `quran` | ✅ Game sungguhan (mesin kuis bersama) | Draft, BELUM disahkan tim tahsin/tahfidz | `pulau-quran.glb` dari `meshy-pulauquran2.glb` + fallback `01_taman_alquran.webp` |
 | Kampung Adab | `adab` | ✅ Game sungguhan (mesin kuis bersama) | Draft, BELUM disahkan tim karakter | `02_kampung_adab.webp` |
 | English Harbor | `english` | ✅ Game sungguhan (mesin kuis bersama) | Draft, selaras CEFR Pre-A1/A1 | `05_english_harbor.webp` |
@@ -103,7 +103,7 @@ direview tim literasi digital/keamanan anak Bright Academy.
 
 ---
 
-## 3. Oasis Bahasa Arab — Safari Kata Arab (mekanik SELESAI)
+## 3. Oasis Bahasa Arab — Safari Kata Arab + Pasar Kata (mekanik SELESAI)
 
 ### Sumber materi dan status akademik
 
@@ -129,6 +129,18 @@ Mesin evidence menyimpan jawaban benar, percobaan, penggunaan petunjuk, dan
 mastery di localStorage. Kartu yang belum selesai diprioritaskan tiap sesi
 baru. Audio native speaker dan latihan susun huruf **belum tersedia** —
 jangan mengklaim fitur tersebut sudah ada.
+
+### Mini-game tambahan: "Pasar Kata Arab"
+
+Pemain melayani pesanan pembeli di pasar kecil. Pembeli menampilkan kata Arab
+dan, jika Web Speech API tersedia, kata tersebut dapat didengarkan. Anak memilih
+barang yang artinya sesuai dari rak pilihan. Jawaban benar masuk ke koleksi
+ransel dan memberi XP ringan tanpa mengubah kontrak mastery utama Safari Kata.
+
+Mini-game ini memperkuat kosakata dalam konteks penggunaan, terutama makanan,
+minuman, buah, dan benda sehari-hari dari data kurikulum Arabic yang sudah ada.
+Status konten tetap membutuhkan review guru Bahasa Arab sebelum dipakai sebagai
+materi resmi.
 
 ### Juice Patch 10
 Confetti di layar ringkasan ekspedisi (medali trofi mendapat animasi

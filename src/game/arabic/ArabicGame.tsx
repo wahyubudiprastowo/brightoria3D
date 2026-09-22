@@ -5,6 +5,7 @@ import {
   Lightbulb,
   Lock,
   RotateCcw,
+  Store,
   Star,
   Volume2,
   X,
@@ -23,6 +24,7 @@ import { isArabicTtsAvailable, speakArabic } from './arabicTts';
 import { Confetti, StreakBadge, usePunch, useStreak } from '../juice';
 import ModelPreview from '../../components/world3d/ModelPreview';
 import { modelUrls } from '../../components/world3d/LocalModel';
+import ArabicMarketGame from './ArabicMarketGame';
 
 /**
  * ArabicGame.tsx — Patch 25 (URUTAN ALUR DIPERBAIKI + tema per-pos untuk
@@ -115,6 +117,21 @@ const OASIS_CSS = `
 .oasis-companion-img { width: 72px !important; height: 72px !important; object-fit: contain; flex-shrink: 0; animation: oasis-bob 3.4s ease-in-out infinite; filter: drop-shadow(0 6px 10px #17856f2e); }
 .oasis-companion-bubble { font-size: 13px; color: #17403a; line-height: 1.5; }
 .oasis-companion-bubble b { color: #0f5c4c; }
+
+.oasis-market-entry {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
+  border: 1px solid #e2c477; border-radius: 18px; padding: 14px 16px; cursor: pointer;
+  background: linear-gradient(135deg,#fff7dc,#e4f6ee); color: #17403a; text-align: left;
+  box-shadow: 0 8px 18px #c9922f1f; transition: transform .14s ease, box-shadow .14s ease;
+}
+.oasis-market-entry:hover { transform: translateY(-2px); box-shadow: 0 12px 24px #c9922f2e; }
+.oasis-market-entry-icon {
+  width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center;
+  background: #fff; color: #b27818; box-shadow: inset 0 0 0 1px #f0d48b;
+}
+.oasis-market-entry b { display: block; color: #7a5410; font-size: 14px; }
+.oasis-market-entry span { display: block; color: #4c6b62; font-size: 12px; line-height: 1.4; margin-top: 2px; }
+.oasis-market-entry-arrow { color: #b27818; font-weight: 900; }
 
 .oasis-mastery-bar { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #4c6b62; }
 .oasis-mastery-track { height: 11px; background: #e3ede9; border-radius: 20px; overflow: hidden; }
@@ -245,6 +262,8 @@ const OASIS_CSS = `
   .oasis-options.grid2 { grid-template-columns: 1fr; }
   .oasis-match-grid { grid-template-columns: repeat(3, 1fr); }
   .oasis-companion { flex-direction: column; text-align: center; }
+  .oasis-market-entry { grid-template-columns: auto 1fr; }
+  .oasis-market-entry-arrow { display: none; }
 }
 `;
 
@@ -290,7 +309,7 @@ function shuffleArr<T>(arr: T[]): T[] {
   return copy;
 }
 
-type View = 'map' | 'intro' | 'learn' | 'match' | 'session' | 'result' | 'collection';
+type View = 'map' | 'intro' | 'learn' | 'match' | 'session' | 'result' | 'collection' | 'market';
 
 interface LearnCard {
   emoji: string;
@@ -626,11 +645,12 @@ export default function ArabicGame({
                 {view === 'session' && activeLesson?.title}
                 {view === 'result' && 'Hasil Perjalanan'}
                 {view === 'collection' && 'Buku Koleksi Kosakata'}
+                {view === 'market' && 'Pasar Kata Arab'}
               </h2>
             </div>
           </div>
           <div className="oasis-head-actions">
-            {(view === 'session' || view === 'intro' || view === 'learn' || view === 'match') && (
+            {(view === 'session' || view === 'intro' || view === 'learn' || view === 'match' || view === 'market') && (
               <button className="oasis-ghost-small" onClick={backToMap}>
                 Peta
               </button>
@@ -661,6 +681,17 @@ export default function ArabicGame({
                 {companionText}
               </div>
             </div>
+
+            <button className="oasis-market-entry" onClick={() => { arabicSfx.click(); setView('market'); }}>
+              <span className="oasis-market-entry-icon">
+                <Store size={24} />
+              </span>
+              <span>
+                <b>Pasar Kata Arab</b>
+                <span>Layani pembeli, dengarkan kata Arab, lalu pilih barang yang benar.</span>
+              </span>
+              <span className="oasis-market-entry-arrow">›</span>
+            </button>
 
             <div className="oasis-mastery-bar">
               <div className="oasis-mastery-track">
@@ -699,6 +730,18 @@ export default function ArabicGame({
               })}
             </div>
           </div>
+        )}
+
+        {view === 'market' && (
+          <ArabicMarketGame
+            evidence={evidence}
+            setEvidence={setEvidence}
+            ttsAvailable={ttsAvailable}
+            onBack={backToMap}
+            onXpEarned={onXpEarned}
+            onSpeak={handleSpeak}
+            onConfetti={() => setConfettiTick((n) => n + 1)}
+          />
         )}
 
         {view === 'intro' && activeLesson && (

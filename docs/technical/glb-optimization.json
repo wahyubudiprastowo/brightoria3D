@@ -70,5 +70,93 @@
     "afterBytes": 503992,
     "beforeTriangles": 550114,
     "afterTriangles": 13982
+  },
+  {
+    "input": "assets-source/models/meshy-froggy.glb",
+    "output": "public/assets/models/froggy.glb",
+    "beforeBytes": 10408480,
+    "afterBytes": 218440,
+    "beforeTriangles": 166228,
+    "afterTriangles": 11998
+  },
+  {
+    "input": "assets-source/models/meshy-pastel-cloud-drift.glb",
+    "output": "public/assets/models/cloud-pastel-drift.glb",
+    "beforeBytes": 9544496,
+    "afterBytes": 153904,
+    "beforeTriangles": 108668,
+    "afterTriangles": 12000
+  },
+  {
+    "input": "assets-source/models/meshy-starbound-wanderer.glb",
+    "output": "public/assets/models/starbound-wanderer.glb",
+    "beforeBytes": 13398316,
+    "afterBytes": 298864,
+    "beforeTriangles": 241650,
+    "afterTriangles": 14000
+  },
+  {
+    "input": "assets-source/models/meshy-white-cat-red-scarf.glb",
+    "output": "public/assets/models/white-cat-red-scarf.glb",
+    "beforeBytes": 11111716,
+    "afterBytes": 191380,
+    "beforeTriangles": 192972,
+    "afterTriangles": 9000
+  },
+  {
+    "input": "assets-source/models/meshy-froggy-jump.glb",
+    "output": "public/assets/models/froggy-jump.glb",
+    "beforeBytes": 9400220,
+    "afterBytes": 249408,
+    "beforeTriangles": 115060,
+    "afterTriangles": 12000
+  },
+  {
+    "input": "assets-source/models/meshy-froggy-lily-pad.glb",
+    "output": "public/assets/models/froggy-lily-pad.glb",
+    "beforeBytes": 7191348,
+    "afterBytes": 136504,
+    "beforeTriangles": 63770,
+    "afterTriangles": 9000
+  },
+  {
+    "input": "assets-source/models/meshy-froggy-low-poly-lotus.glb",
+    "output": "public/assets/models/froggy-lotus.glb",
+    "beforeBytes": 12876908,
+    "afterBytes": 233964,
+    "beforeTriangles": 244580,
+    "afterTriangles": 8998
+  },
+  {
+    "input": "assets-source/models/meshy-froggy-cattail-grove.glb",
+    "output": "public/assets/models/froggy-cattail-grove.glb",
+    "beforeBytes": 10446800,
+    "afterBytes": 204292,
+    "beforeTriangles": 158132,
+    "afterTriangles": 8000
+  },
+  {
+    "input": "assets-source/models/meshy-froggy-lantern-oasis-a.glb",
+    "output": "public/assets/models/froggy-lantern-oasis-a.glb",
+    "beforeBytes": 16876288,
+    "afterBytes": 278144,
+    "beforeTriangles": 339944,
+    "afterTriangles": 8988
+  },
+  {
+    "input": "assets-source/models/meshy-froggy-lantern-oasis-b.glb",
+    "output": "public/assets/models/froggy-lantern-oasis-b.glb",
+    "beforeBytes": 19636988,
+    "afterBytes": 347956,
+    "beforeTriangles": 418262,
+    "afterTriangles": 8992
+  },
+  {
+    "input": "assets-source/models/meshy-froggy-lotus-leaf-sign.glb",
+    "output": "public/assets/models/froggy-lotus-leaf-sign.glb",
+    "beforeBytes": 14112928,
+    "afterBytes": 305760,
+    "beforeTriangles": 237802,
+    "afterTriangles": 8986
   }
 ]

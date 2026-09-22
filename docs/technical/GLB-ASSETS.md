@@ -19,8 +19,22 @@ TypeScript awal lolos; tidak ditemukan crash JavaScript pada startup Chromium de
 | `pulau-digital.glb` | 49.93 MB | 517.3 KB | 1,792,726 ? 13,998 | Pulau Digital + Cyber Safety Sorter |
 | `menara.glb` | 93.73 MB | 709.5 KB | 3,390,098 ? 18,000 | Pintu Menara Latihan pada peta |
 | `bri.glb` | 5.24 MB | 26.5 KB | 291,108 ? 7,000 | Maskot Bri pada peta |
+| `froggy.glb` | 10.41 MB | 218.4 KB | 166,228 ? 11,998 | Model idle pemain game Lompat Katak |
+| `froggy-jump.glb` | 9.40 MB | 249.4 KB | 115,060 ? 12,000 | Model pose lompat pemain game Lompat Katak |
+| `froggy-lily-pad.glb` | 6.86 MB | 136.5 KB | 63,770 ? 9,000 | Daun teratai GLB untuk arena Lompat Katak |
+| `froggy-lotus.glb` | 12.28 MB | 234.0 KB | 244,580 ? 8,998 | Bunga teratai dekoratif arena Lompat Katak |
+| `froggy-cattail-grove.glb` | 9.96 MB | 204.3 KB | 158,132 ? 8,000 | Rumpun cattail/reed dekoratif arena Lompat Katak |
+| `froggy-lantern-oasis-a.glb` | 16.09 MB | 278.1 KB | 339,944 ? 8,988 | Lentera oasis dekoratif arena Lompat Katak |
+| `froggy-lantern-oasis-b.glb` | 18.73 MB | 348.0 KB | 418,262 ? 8,992 | Variasi lentera oasis dekoratif arena Lompat Katak |
+| `froggy-lotus-leaf-sign.glb` | 13.46 MB | 305.8 KB | 237,802 ? 8,986 | Papan daun/oasis dekoratif arena Lompat Katak |
+| `cloud-pastel-drift.glb` | 9.54 MB | 153.9 KB | 108,668 ? 12,000 | Gugus awan pastel 3D peta dunia |
+| `starbound-wanderer.glb` | 13.40 MB | 298.9 KB | 241,650 ? 14,000 | Karakter dekoratif foreground peta |
+| `white-cat-red-scarf.glb` | 11.11 MB | 191.4 KB | 192,972 ? 9,000 | Kucing pendamping foreground peta |
 
-Total enam sumber unik: 214,81 MB menjadi 2,57 MB (98,80% lebih kecil).
+Total aset GLB runtime di `public/assets/models/` kini sekitar 7,05 MB. Model kodok idle
+memakai pose lama agar tetap duduk di daun; model kodok berdiri terbaru hanya dipakai
+saat fase lompat dan dioptimalkan dari source 9,40 MB menjadi 249,4 KB (97,35% lebih kecil);
+model awan pastel baru menjadi 153,9 KB dari source 9,54 MB.
 Angka adalah byte berkas, bukan konsumsi RAM/GPU atau ukuran download gzip.
 Tidak ada model khusus Numeria/Adab/English dalam berkas yang diberikan;
 visual dan mekanik dunia tersebut dipertahankan. Menara tetap membuka Latihan,
@@ -30,6 +44,15 @@ bukan mata pelajaran ketujuh. Pesawat SkyRun mempertahankan efek tembakan.
 
 Sumber Meshy asli tetap di root; Bri asli dicadangkan di `assets-source/models/bri.glb`.
 Sumber Quran baru dari Downloads disalin ke `assets-source/models/meshy-pulauquran2.glb`.
+Sumber kodok idle disalin ke `assets-source/models/meshy-froggy.glb`; sumber pose lompat
+disalin ke `assets-source/models/meshy-froggy-jump.glb`.
+Sumber dekor Lompat Katak disalin ke `assets-source/models/meshy-froggy-lily-pad.glb`,
+`meshy-froggy-low-poly-lotus.glb`, `meshy-froggy-cattail-grove.glb`,
+`meshy-froggy-lantern-oasis-a.glb`, `meshy-froggy-lantern-oasis-b.glb`, dan
+`meshy-froggy-lotus-leaf-sign.glb`.
+Sumber awan Meshy aktif disalin ke `assets-source/models/meshy-pastel-cloud-drift.glb`.
+Sumber karakter foreground disalin ke `assets-source/models/meshy-starbound-wanderer.glb`
+dan `assets-source/models/meshy-white-cat-red-scarf.glb`.
 Hanya hasil di `public/assets/models/` dikirim ke aplikasi. `dist/` adalah keluaran build;
 aset Android diperbarui dengan `npx cap copy android`, bukan dioptimalkan ulang.
 Jangan menimpa sumber dengan hasil kompresi karena simplifikasi berulang mengurangi kualitas.
@@ -63,6 +86,18 @@ kini juga dibungkus boundary di luar Canvas agar kegagalan pembuatan WebGL terta
 - Enam game terpisah di App; Quran drag-line, Adab branching story, English letter-builder.
 - Numeria kini memiliki mode misi dan endless; ada SkyRun, Froggy, Ekspedisi, Latihan,
   profil karakter, dan modul pendamping tambahan. Deskripsi Patch 10 bukan status terkini.
+- Froggy memakai `public/assets/models/froggy.glb` saat idle/berdiri di daun dan
+  `public/assets/models/froggy-jump.glb` saat fase lompat, dengan kodok prosedural
+  lama sebagai fallback Suspense/error boundary lokal.
+- Arena Froggy kini memakai GLB daun teratai, bunga lotus, cattail, lentera, dan
+  papan daun oasis sebagai dekor runtime kecil. Air terjun dan percikan air dibuat
+  prosedural/animatif di scene agar tidak menambah aset video atau musik.
+- Peta dunia memakai `cloud-pastel-drift.glb` untuk ring awan 3D. Layer awan
+  prosedural global dan siluet gunung segitiga tidak dirender lagi; awan prosedural
+  ring tetap menjadi fallback jika aset GLB gagal dimuat.
+- Peta dunia menambahkan vignette foreground kecil berupa platform batu prosedural,
+  `starbound-wanderer.glb`, dan `white-cat-red-scarf.glb`. PNG referensi UI/asset sheet
+  dari user dipakai sebagai arahan komposisi, bukan ditempel mentah ke runtime.
 - Peta tetap R3F + OrbitControls; posisi `worlds.ts` tetap cincin Z -1,9 sampai +1,9.
 - `main.tsx` tetap membungkus App dengan AppErrorBoundary.
 - Tidak ada perubahan kontrak evidence/mastery/XP atau penambahan musik.

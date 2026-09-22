@@ -86,9 +86,11 @@ const COMPOSITE_FRAG = /* glsl */ `
   uniform sampler2D tBloom;
   uniform float uIntensity;
   uniform float uVignette;
+  uniform float uPreserveAlpha;
   varying vec2 vUv;
   void main() {
-    vec3 scene = texture2D(tScene, vUv).rgb;
+    vec4 sceneTexel = texture2D(tScene, vUv);
+    vec3 scene = sceneTexel.rgb;
     vec3 bloom = texture2D(tBloom, vUv).rgb;
     vec3 color = scene + bloom * uIntensity;
 
@@ -99,7 +101,7 @@ const COMPOSITE_FRAG = /* glsl */ `
     float vig = smoothstep(0.85, 0.35, dist);
     color *= mix(1.0, vig, uVignette);
 
-    gl_FragColor = vec4(color, 1.0);
+    gl_FragColor = vec4(color, mix(1.0, sceneTexel.a, uPreserveAlpha));
   }
 `;
 
@@ -120,6 +122,7 @@ export default function Postfx({
   threshold = 0.82,
   vignette = 0.35,
   enabled,
+  preserveAlpha = false,
 }: {
   /** Kekuatan bloom. Sengaja rendah secara default. */
   intensity?: number;
@@ -128,6 +131,8 @@ export default function Postfx({
   /** 0 = tanpa vignette, 1 = sudut sangat gelap. */
   vignette?: number;
   enabled?: boolean;
+  /** Pertahankan transparansi scene agar background HTML tetap terlihat. */
+  preserveAlpha?: boolean;
 }) {
   const { gl, scene, camera, size } = useThree();
   const quality = getQuality();
@@ -181,6 +186,7 @@ export default function Postfx({
         tBloom: { value: null },
         uIntensity: { value: intensity },
         uVignette: { value: vignette },
+        uPreserveAlpha: { value: preserveAlpha ? 1 : 0 },
       },
       depthTest: false,
       depthWrite: false,
@@ -197,7 +203,8 @@ export default function Postfx({
     materials.bright.uniforms.uThreshold.value = threshold;
     materials.composite.uniforms.uIntensity.value = intensity;
     materials.composite.uniforms.uVignette.value = vignette;
-  }, [materials, threshold, intensity, vignette]);
+    materials.composite.uniforms.uPreserveAlpha.value = preserveAlpha ? 1 : 0;
+  }, [materials, threshold, intensity, vignette, preserveAlpha]);
 
   useEffect(() => {
     if (!active) return;
@@ -231,7 +238,11 @@ export default function Postfx({
     if (!active || failed.current) return;
     try {
       const previousAutoClear = gl.autoClear;
+      const previousClearAlpha = gl.getClearAlpha();
+      const previousClearColor = new THREE.Color();
+      gl.getClearColor(previousClearColor);
       gl.autoClear = true;
+      if (preserveAlpha) gl.setClearColor(0x000000, 0);
 
       // 1) Scene penuh -> render target.
       gl.setRenderTarget(targets.scene);
@@ -270,6 +281,7 @@ export default function Postfx({
       gl.clear();
       gl.render(quad, orthoCamera);
 
+      if (preserveAlpha) gl.setClearColor(previousClearColor, previousClearAlpha);
       gl.autoClear = previousAutoClear;
     } catch (err) {
       // Sekali gagal -> matikan permanen dan kembalikan render normal.

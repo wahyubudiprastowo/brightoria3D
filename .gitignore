@@ -6,6 +6,7 @@ android/app/build
 !.env.example
 
 .local-node/
+.tools/
 
 node_modules/
 dist/

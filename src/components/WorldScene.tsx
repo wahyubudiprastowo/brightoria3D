@@ -11,7 +11,6 @@ import {
   Birds,
   IslandAura,
   Ocean,
-  ProceduralClouds,
   SelectionGlow,
   WorldSkyRays,
   useSafeFrame,
@@ -366,7 +365,6 @@ function Scene({
         <Suspense fallback={<SkyDome />}><SkyArtwork /></Suspense>
       </AssetBoundary>
       <WorldSkyRays />
-      <ProceduralClouds />
       <Birds />
 
       <Suspense fallback={null}>

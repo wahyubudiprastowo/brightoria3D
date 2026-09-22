@@ -1,3 +1,39 @@
+## 2026-09-21 ? Peta foreground adventure
+
+- Model `Meshy_AI_Starbound_Wanderer_0921084739_texture.glb` dan `Meshy_AI_White_Cat_with_Red_Sc_0921091412_texture.glb` dari Downloads disalin ke `assets-source/models/`.
+- Pipeline optimasi menghasilkan `public/assets/models/starbound-wanderer.glb` 298,9 KB dari 13,40 MB dan `public/assets/models/white-cat-red-scarf.glb` 191,4 KB dari 11,11 MB.
+- `src/components/world3d/LocalModel.tsx` menambahkan URL model `wanderer` dan `cat`.
+- `src/components/world3d/MapDecor.tsx` menambahkan vignette foreground kecil: platform batu/rumput prosedural, karakter petualang, dan kucing pendamping. Penempatan dibuat rendah di foreground kiri-depan agar tidak menutup pulau, label, atau panel detail.
+- PNG mockup/asset sheet yang dikirim user dipakai sebagai arahan komposisi visual. Tidak ditempel langsung ke runtime karena berupa layout/sheet gabungan, bukan aset terpisah yang siap ditempatkan.
+- Peta tetap R3F/Three.js interaktif dengan `OrbitControls`; posisi cincin dunia di `worlds.ts` tidak disentuh.
+
+## 2026-09-21 ? Awan 3D peta dunia
+
+- Model `Meshy_AI_Soft_Sky_Drifts_0921072026_texture.glb` dan `Meshy_AI_White_Cloud_0921072246_texture.glb` dari Downloads disalin ke `assets-source/models/`.
+- Pipeline optimasi menghasilkan `public/assets/models/cloud-soft-drifts.glb` 98,1 KB dari 4,79 MB dan `public/assets/models/cloud-white.glb` 93,0 KB dari 2,24 MB, masing-masing 9.000 segitiga.
+- `src/components/world3d/MapDecor.tsx` memperbarui `CloudRing` agar memakai model GLB baru. Untuk mengatasi bentuk Meshy yang cenderung gepeng, setiap awan dirender sebagai cluster 2-3 layer dengan rotasi, offset, dan skala berbeda sehingga terbaca lebih bervolume saat peta diputar.
+- Awan prosedural lama tetap dipakai sebagai fallback Suspense/error boundary. Peta tetap 3D interaktif dengan `OrbitControls`; posisi dunia di `worlds.ts` tidak disentuh.
+- Revisi berikutnya mengganti seluruh awan aktif ke `Meshy_AI_Pastel_Cloud_Drift_0921073932_texture.glb`, dioptimalkan sebagai `cloud-pastel-drift.glb` 153,9 KB dari 9,54 MB dengan 12.000 segitiga.
+- `WorldScene.tsx` tidak lagi merender `ProceduralClouds`, dan `MapDecor.tsx` tidak lagi merender `DistantPeaks`, sehingga awan lama dan bentuk segitiga transparan di dekat awan hilang dari peta.
+
+## 2026-09-21 ? Kontrol Ekspedisi
+
+- Arah hadap karakter Ekspedisi sekarang mengikuti arah input terakhir secara langsung, bukan menunggu velocity. Menekan `S` atau menarik joystick ke bawah membuat karakter segera balik badan.
+- Kamera Ekspedisi mendapat `yawOffset`, `pitchOffset`, dan `distanceOffset` terpisah. Drag klik kanan/middle kini menggeser pandangan kiri-kanan serta atas-bawah, sementara scroll wheel mengatur jarak kamera dengan batas aman.
+- Context menu browser dimatikan di area canvas Ekspedisi agar klik kanan tidak memunculkan menu "save image"; shortcut WASD/arrow/space juga dicegah dari perilaku scroll halaman.
+- Tidak ada perubahan quest, reward, evidence, XP, atau interaksi peta 3D.
+
+## 2026-09-21 ? Froggy model GLB baru
+
+- Model `Meshy_AI_Low_Poly_Frog_0921033043_texture.glb` dari Downloads disalin ke `assets-source/models/meshy-froggy.glb`.
+- `froggy.glb` dihasilkan ke `public/assets/models/froggy.glb` lewat pipeline optimasi GLB proyek: 10,41 MB menjadi 218,4 KB; 166.228 segitiga menjadi 11.998 segitiga.
+- `src/game/froggy/FroggyGame.tsx` diperbarui agar katak pemain memakai GLB baru melalui `useGLTF`, dibungkus `Suspense` dan boundary lokal. Kodok prosedural lama tetap tersedia sebagai fallback loading/error.
+- Transform model Froggy dihitung dari bounding box Three.js agar pijakan model selalu berada sedikit di atas daun teratai dan tidak tenggelam saat idle maupun squash/stretch lompatan.
+- `scripts/optimize-models.mjs`, `docs/technical/glb-optimization.json`, dan `docs/technical/GLB-ASSETS.md` diperbarui untuk memasukkan aset Froggy.
+- Tidak ada perubahan kontrak soal, evidence, XP, mastery, musik, atau interaksi 3D peta.
+- Revisi berikutnya mengganti source Froggy ke `Meshy_AI_Low_Poly_Frog_0921095558_texture.glb`. Runtime `public/assets/models/froggy.glb` kini 249,4 KB dari 9,40 MB, 115.060 segitiga menjadi 12.000 segitiga.
+- Revisi lanjutan memisahkan pose: `froggy.glb` kembali memakai pose lama untuk idle/berdiri di daun, sementara pose berdiri terbaru dipindah ke `froggy-jump.glb` dan hanya dipakai saat `jumping === true`.
+
 ## 2026-09-20 ? Quran 2 dan pulau Arabic GLB
 
 - `meshy-pulauquran2.glb` dari Downloads disalin ke `assets-source/models/meshy-pulauquran2.glb`.
