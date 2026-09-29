@@ -32,6 +32,16 @@ const models = [
  ['assets-source/models/meshy-numeria-boxhead-backpacker.glb', 'numeria-boxhead-backpacker.glb', 12000, 1024],
  ['assets-source/models/meshy-numeria-blue-banner-outpost.glb', 'numeria-blue-banner-outpost.glb', 12000, 1024],
  ['assets-source/models/meshy-numeria-mooncrest-outpost.glb', 'numeria-mooncrest-outpost.glb', 12000, 1024],
+ ['public/assets/adab-village/bazaar-cottage.glb', 'adab-village/bazaar-cottage.glb', 14000, 1024],
+ ['public/assets/adab-village/oasis-mosque.glb', 'adab-village/oasis-mosque.glb', 14000, 1024],
+ ['public/assets/adab-village/market-stall.glb', 'adab-village/market-stall.glb', 12000, 1024],
+ ['public/assets/adab-village/knowledge-statue.glb', 'adab-village/knowledge-statue.glb', 9000, 768],
+ ['public/assets/adab-village/adab-mosque-sign.glb', 'adab-village/adab-mosque-sign.glb', 9000, 768],
+ ['public/assets/adab-village/mother-helper.glb', 'adab-village/mother-helper.glb', 9000, 768],
+ ['public/assets/adab-village/boy-friend.glb', 'adab-village/boy-friend.glb', 9000, 768],
+ ['public/assets/adab-village/hijab-girl.glb', 'adab-village/hijab-girl.glb', 9000, 768],
+ ['public/assets/adab-village/wise-imam.glb', 'adab-village/wise-imam.glb', 9000, 768],
+ ['public/assets/adab-village/hooded-wanderer.glb', 'adab-village/hooded-wanderer.glb', 9000, 768],
  ['meshypesawat.glb', 'pesawat.glb', 7500, 512],
  ['assets-source/models/meshy-pulauquran2.glb', 'pulau-quran.glb', 14000, 1024],
  ['meshy-pulauquran.glb', 'pulau-arabic.glb', 14000, 1024],
@@ -48,7 +58,7 @@ for (const [input, name, budget, size] of models) {
  await doc.transform(dedup(),prune(),weld(),simplify({simplifier:MeshoptSimplifier,ratio:budget/before,error:0.01}),textureCompress({encoder:sharp,targetFormat:'webp',resize:[size,size],quality:80}),prune());
  const after=triangles(doc);
  await doc.transform(meshopt({encoder:MeshoptEncoder,level:'high'}));
- const output='public/assets/models/'+name;
+ const output=name.includes('/') ? 'public/assets/'+name : 'public/assets/models/'+name;
  await io.write(output,doc);
  const record={input,output,beforeBytes:(await fs.stat(input)).size,afterBytes:(await fs.stat(output)).size,beforeTriangles:before,afterTriangles:after};
  const existing = report.findIndex(item => item.output === output);

@@ -182,5 +182,85 @@
     "afterBytes": 323916,
     "beforeTriangles": 152980,
     "afterTriangles": 11998
+  },
+  {
+    "input": "public/assets/adab-village/bazaar-cottage.glb",
+    "output": "public/assets/adab-village/bazaar-cottage.glb",
+    "beforeBytes": 627956,
+    "afterBytes": 627956,
+    "beforeTriangles": 713320,
+    "afterTriangles": 21858
+  },
+  {
+    "input": "public/assets/adab-village/oasis-mosque.glb",
+    "output": "public/assets/adab-village/oasis-mosque.glb",
+    "beforeBytes": 486560,
+    "afterBytes": 486560,
+    "beforeTriangles": 743322,
+    "afterTriangles": 14000
+  },
+  {
+    "input": "public/assets/adab-village/market-stall.glb",
+    "output": "public/assets/adab-village/market-stall.glb",
+    "beforeBytes": 586192,
+    "afterBytes": 586192,
+    "beforeTriangles": 897382,
+    "afterTriangles": 23188
+  },
+  {
+    "input": "public/assets/adab-village/knowledge-statue.glb",
+    "output": "public/assets/adab-village/knowledge-statue.glb",
+    "beforeBytes": 239448,
+    "afterBytes": 239448,
+    "beforeTriangles": 191950,
+    "afterTriangles": 9000
+  },
+  {
+    "input": "public/assets/adab-village/adab-mosque-sign.glb",
+    "output": "public/assets/adab-village/adab-mosque-sign.glb",
+    "beforeBytes": 235512,
+    "afterBytes": 235512,
+    "beforeTriangles": 154986,
+    "afterTriangles": 9000
+  },
+  {
+    "input": "public/assets/adab-village/mother-helper.glb",
+    "output": "public/assets/adab-village/mother-helper.glb",
+    "beforeBytes": 207840,
+    "afterBytes": 207840,
+    "beforeTriangles": 170930,
+    "afterTriangles": 9000
+  },
+  {
+    "input": "public/assets/adab-village/boy-friend.glb",
+    "output": "public/assets/adab-village/boy-friend.glb",
+    "beforeBytes": 209848,
+    "afterBytes": 209848,
+    "beforeTriangles": 126682,
+    "afterTriangles": 8998
+  },
+  {
+    "input": "public/assets/adab-village/hijab-girl.glb",
+    "output": "public/assets/adab-village/hijab-girl.glb",
+    "beforeBytes": 187052,
+    "afterBytes": 187052,
+    "beforeTriangles": 122970,
+    "afterTriangles": 9000
+  },
+  {
+    "input": "public/assets/adab-village/wise-imam.glb",
+    "output": "public/assets/adab-village/wise-imam.glb",
+    "beforeBytes": 202120,
+    "afterBytes": 202120,
+    "beforeTriangles": 113182,
+    "afterTriangles": 9000
+  },
+  {
+    "input": "public/assets/adab-village/hooded-wanderer.glb",
+    "output": "public/assets/adab-village/hooded-wanderer.glb",
+    "beforeBytes": 165052,
+    "afterBytes": 165052,
+    "beforeTriangles": 107704,
+    "afterTriangles": 9000
   }
 ]
