@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import WorldScene from './components/WorldScene';
+import OnboardingTour from './components/OnboardingTour';
 import { worlds, type World } from './data/worlds';
 import { initialProgress, loadProgress, addXp, type Progress } from './game/progress';
 
@@ -79,6 +80,8 @@ const objectiveText: Record<string, string> = {
   digital: 'Nilai situasi online: aman atau tidak aman.',
 };
 
+const TOUR_KEY = 'brightoria.onboarding.v1';
+
 export default function App() {
   const [worldList, setWorldList] = useState<World[]>(worlds);
   const [selected, setSelected] = useState<World>(worlds[0]);
@@ -86,10 +89,17 @@ export default function App() {
   const [panel, setPanel] = useState(false);
   const [game, setGame] = useState<string | null>(null);
   const [progress, setProgress] = useState<Progress>(initialProgress);
+  const [tourStep, setTourStep] = useState(0);
+  const [showTour, setShowTour] = useState(false);
 
   useEffect(() => {
     setProgress(loadProgress());
     setWorldList(withDynamicMastery(worlds));
+    try {
+      setShowTour(localStorage.getItem(TOUR_KEY) !== 'done');
+    } catch {
+      setShowTour(true);
+    }
   }, []);
 
   function refreshMastery() {
@@ -108,6 +118,22 @@ export default function App() {
 
   function handleXpEarned(amount: number) {
     setProgress(addXp(amount));
+  }
+
+  function closeTour() {
+    setShowTour(false);
+    try {
+      localStorage.setItem(TOUR_KEY, 'done');
+    } catch {
+      /* localStorage can be unavailable in embedded previews. */
+    }
+  }
+
+  function selectRecommendedWorld() {
+    const recommended = worldList.find((w) => w.id === 'adab') ?? worlds.find((w) => w.id === 'adab');
+    if (!recommended) return;
+    setSelected(recommended);
+    setPanel(true);
   }
 
   return (
@@ -223,6 +249,15 @@ export default function App() {
           {game === 'adab' && <AdabGame onExit={exitGame} onXpEarned={handleXpEarned} />}
           {game === 'arabic' && <ArabicGame onExit={exitGame} onXpEarned={handleXpEarned} />}
           {game === 'english' && <EnglishGame onExit={exitGame} onXpEarned={handleXpEarned} />}
+          {showTour && !game && (
+            <OnboardingTour
+              step={tourStep}
+              selected={selected}
+              onStep={setTourStep}
+              onClose={closeTour}
+              onSelectRecommended={selectRecommendedWorld}
+            />
+          )}
         </>
       ) : (
         <Parent

@@ -1,7 +1,7 @@
 import CanvasBoundary from '../../components/CanvasBoundary';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, useGLTF, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import CinematicRig, { ThreePointLights } from '../../render/CinematicRig';
 import Postfx from '../../render/Postfx';
@@ -87,10 +87,22 @@ const STYLE_ID = 'brightoria-numeria-styles-v2';
 
 /** Jarak antar papan di sumbu X. */
 const PLANK_GAP = 0.66;
+const NUMERIA_BACKPACKER_URL = '/assets/models/numeria-boxhead-backpacker.glb';
+const NUMERIA_OUTPOST_LEFT_URL = '/assets/models/numeria-blue-banner-outpost.glb';
+const NUMERIA_OUTPOST_RIGHT_URL = '/assets/models/numeria-mooncrest-outpost.glb';
+const NUMERIA_WOOD_PLANK_URL = '/assets/numeria/wood-plank.png';
+const NUMERIA_BLUE_PLANK_URL = '/assets/numeria/blue-plank.png';
 
 const NUMERIA_CSS = `
-.nmr-overlay { position: fixed; inset: 0; z-index: 92; background: #04231d; display: flex; flex-direction: column; }
+.nmr-overlay {
+  position: fixed; inset: 0; z-index: 92; display: flex; flex-direction: column;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(0,54,72,0.22)),
+    url('/assets/numeria/bridge-oasis-background.png') center center / cover no-repeat,
+    #56b9e9;
+}
 .nmr-canvas { position: absolute; inset: 0; }
+.nmr-canvas canvas { background: transparent !important; }
 
 /* ---------- Panel tantangan ---------- */
 .nmr-quest {
@@ -260,6 +272,80 @@ function useInjectStyles() {
   }, []);
 }
 
+function FittedModel({
+  url,
+  size,
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  fallback = null,
+  ground = true,
+}: {
+  url: string;
+  size: number;
+  position?: [number, number, number];
+  rotation?: [number, number, number];
+  fallback?: React.ReactNode;
+  ground?: boolean;
+}) {
+  const quality = getQuality();
+  const { scene } = useGLTF(url, false, true);
+  const model = useMemo(() => {
+    const clone = scene.clone(true);
+    const box = new THREE.Box3().setFromObject(clone);
+    const dimensions = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    const wrapper = new THREE.Group();
+    clone.position.x -= center.x;
+    clone.position.z -= center.z;
+    clone.position.y -= ground ? box.min.y : center.y;
+    wrapper.add(clone);
+    wrapper.scale.setScalar(size / (Math.max(dimensions.x, dimensions.y, dimensions.z) || 1));
+    clone.traverse((node) => {
+      if (node instanceof THREE.Mesh) {
+        node.castShadow = quality.shadows;
+        node.receiveShadow = quality.shadows;
+      }
+    });
+    return wrapper;
+  }, [ground, quality.shadows, scene, size]);
+
+  return (
+    <group position={position} rotation={rotation}>
+      <primitive object={model} dispose={null} />
+    </group>
+  );
+}
+
+class ModelBoundary extends React.Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { failed: boolean }
+> {
+  constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
+    super(props);
+    this.state = { failed: false };
+  }
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(error: unknown) {
+    // eslint-disable-next-line no-console
+    console.error('[Brightoria] Numeria model fallback dipakai:', error);
+  }
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
+function NumeriaModel(props: Parameters<typeof FittedModel>[0]) {
+  return (
+    <ModelBoundary fallback={props.fallback ?? null}>
+      <Suspense fallback={props.fallback ?? null}>
+        <FittedModel {...props} />
+      </Suspense>
+    </ModelBoundary>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // PAPAN JEMBATAN
 // ---------------------------------------------------------------------------
@@ -289,6 +375,16 @@ function Plank({
   const group = useRef<THREE.Group>(null);
   const quality = getQuality();
   const [hovered, setHovered] = useState(false);
+  const woodTexture = useTexture(NUMERIA_WOOD_PLANK_URL);
+  const blueTexture = useTexture(NUMERIA_BLUE_PLANK_URL);
+
+  useEffect(() => {
+    [woodTexture, blueTexture].forEach((texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = 8;
+      texture.needsUpdate = true;
+    });
+  }, [blueTexture, woodTexture]);
 
   const x = index * PLANK_GAP - ((total - 1) * PLANK_GAP) / 2;
   const isUp = state !== 'empty';
@@ -329,6 +425,7 @@ function Plank({
             : hovered && interactive
               ? '#7c97ae'
               : '#5a7691';
+  const plankTexture = state === 'preset' || state === 'placed' || state === 'correct' ? woodTexture : blueTexture;
 
   return (
     <group ref={group} position={[x, isUp ? 0 : -0.46, 0]}>
@@ -356,22 +453,34 @@ function Plank({
           document.body.style.cursor = 'auto';
         }}
       >
-        <boxGeometry args={[0.54, 0.17, 0.62]} />
+        <boxGeometry args={[0.58, 0.18, 0.72]} />
         {/* metalness & roughness di sini BARU BERFUNGSI karena
             ProceduralEnv memasang environment map — lihat catatan
             di kepala berkas. */}
         <meshStandardMaterial
           color={color}
+          map={plankTexture}
           roughness={state === 'empty' ? 0.85 : 0.32}
-          metalness={state === 'empty' ? 0.05 : 0.45}
+          metalness={state === 'empty' ? 0.02 : 0.18}
           flatShading
         />
       </mesh>
 
       {/* Guratan kayu, memecah permukaan agar tidak terbaca balok polos */}
       <mesh position={[0, 0.088, 0]}>
-        <boxGeometry args={[0.5, 0.012, 0.09]} />
-        <meshStandardMaterial color="#03201a" roughness={0.95} transparent opacity={0.35} />
+        <boxGeometry args={[0.52, 0.014, 0.08]} />
+        <meshStandardMaterial color="#2f5c84" roughness={0.95} transparent opacity={0.24} />
+      </mesh>
+
+      <mesh position={[0, 0.096, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[0.74, 0.58]} />
+        <meshBasicMaterial
+          map={plankTexture}
+          transparent
+          opacity={state === 'empty' ? 0.28 : 0.36}
+          depthWrite={false}
+          toneMapped={false}
+        />
       </mesh>
 
       {isUp && (
@@ -385,9 +494,9 @@ function Plank({
 // TIANG & LATAR
 // ---------------------------------------------------------------------------
 
-function Pillar({ x }: { x: number }) {
+function Pillar({ x, side }: { x: number; side: 'left' | 'right' }) {
   const quality = getQuality();
-  return (
+  const fallback = (
     <group position={[x, -0.62, 0]}>
       <mesh castShadow={quality.shadows} receiveShadow={quality.shadows}>
         <boxGeometry args={[0.42, 1.1, 0.82]} />
@@ -398,6 +507,16 @@ function Pillar({ x }: { x: number }) {
         <meshStandardMaterial color={NAVY.mid} roughness={0.6} metalness={0.3} flatShading />
       </mesh>
     </group>
+  );
+
+  return (
+    <NumeriaModel
+      url={side === 'left' ? NUMERIA_OUTPOST_LEFT_URL : NUMERIA_OUTPOST_RIGHT_URL}
+      size={1.9}
+      position={[x, -0.68, 0]}
+      rotation={[0, side === 'left' ? Math.PI * 0.5 : -Math.PI * 0.5, 0]}
+      fallback={fallback}
+    />
   );
 }
 
@@ -488,31 +607,47 @@ function Walker({ crossing, span }: { crossing: boolean; span: number }) {
   return (
     <group ref={group} position={[-span / 2 - 0.75, 0.28, 0]}>
       <group ref={body}>
-        <mesh castShadow={quality.shadows}>
-          <boxGeometry args={[0.24, 0.3, 0.2]} />
-          <meshStandardMaterial color={NAVY.deep} roughness={0.6} metalness={0.2} flatShading />
-        </mesh>
-        <mesh position={[0, 0.26, 0]} castShadow={quality.shadows}>
-          <boxGeometry args={[0.26, 0.24, 0.24]} />
-          <meshStandardMaterial color="#f2c391" roughness={0.82} flatShading />
-        </mesh>
-        {[-0.07, 0.07].map((x) => (
-          <mesh key={x} position={[x, 0.3, 0.13]}>
-            <boxGeometry args={[0.045, 0.06, 0.02]} />
-            <meshBasicMaterial color="#17110e" />
-          </mesh>
-        ))}
-        {[-1, 1].map((s2) => (
-          <mesh key={s2} position={[s2 * 0.16, 0.02, 0]} castShadow={quality.shadows}>
-            <boxGeometry args={[0.07, 0.22, 0.09]} />
-            <meshStandardMaterial color={SKY.base} roughness={0.55} metalness={0.3} flatShading />
-          </mesh>
-        ))}
+        <NumeriaModel
+          url={NUMERIA_BACKPACKER_URL}
+          size={0.85}
+          position={[0, 0.05, 0]}
+          rotation={[0, Math.PI * 0.5, 0]}
+          fallback={
+            <>
+              <mesh castShadow={quality.shadows}>
+                <boxGeometry args={[0.24, 0.3, 0.2]} />
+                <meshStandardMaterial color={NAVY.deep} roughness={0.6} metalness={0.2} flatShading />
+              </mesh>
+              <mesh position={[0, 0.26, 0]} castShadow={quality.shadows}>
+                <boxGeometry args={[0.26, 0.24, 0.24]} />
+                <meshStandardMaterial color="#f2c391" roughness={0.82} flatShading />
+              </mesh>
+              {[-0.07, 0.07].map((x) => (
+                <mesh key={x} position={[x, 0.3, 0.13]}>
+                  <boxGeometry args={[0.045, 0.06, 0.02]} />
+                  <meshBasicMaterial color="#17110e" />
+                </mesh>
+              ))}
+              {[-1, 1].map((s2) => (
+                <mesh key={s2} position={[s2 * 0.16, 0.02, 0]} castShadow={quality.shadows}>
+                  <boxGeometry args={[0.07, 0.22, 0.09]} />
+                  <meshStandardMaterial color={SKY.base} roughness={0.55} metalness={0.3} flatShading />
+                </mesh>
+              ))}
+            </>
+          }
+        />
       </group>
       <pointLight color={SKY.base} intensity={1.3} distance={2.4} position={[0, 0.3, 0]} />
     </group>
   );
 }
+
+useGLTF.preload(NUMERIA_BACKPACKER_URL);
+useGLTF.preload(NUMERIA_OUTPOST_LEFT_URL);
+useGLTF.preload(NUMERIA_OUTPOST_RIGHT_URL);
+useTexture.preload(NUMERIA_WOOD_PLANK_URL);
+useTexture.preload(NUMERIA_BLUE_PLANK_URL);
 
 // ---------------------------------------------------------------------------
 // SCENE
@@ -539,14 +674,13 @@ function BridgeScene({
     <>
       <CinematicRig exposure={1.05} />
       <ProceduralEnv intensity={0.9} />
-      <color attach="background" args={['#0d6b57']} />
       <fog attach="fog" args={['#12806a', 9, 26]} />
       <ThreePointLights intensity={1} shadowRadius={10} />
 
       <Chasm />
 
-      <Pillar x={-span / 2 - 0.62} />
-      <Pillar x={span / 2 + 0.62} />
+      <Pillar x={-span / 2 - 0.62} side="left" />
+      <Pillar x={span / 2 + 0.62} side="right" />
 
       {Array.from({ length: denominator }).map((_, i) => (
         <Plank
@@ -575,7 +709,7 @@ function BridgeScene({
 
       <PerspectiveFit z={camZ} />
 
-      {quality.postfx && <Postfx intensity={0.32} threshold={0.86} vignette={0.32} />}
+      {quality.postfx && <Postfx intensity={0.32} threshold={0.86} vignette={0.32} preserveAlpha />}
     </>
   );
 }
@@ -926,7 +1060,12 @@ export default function NumeriaGame({
             shadows={quality.shadows}
             dpr={quality.dpr}
             camera={{ position: [0, 2.1, 6.2], fov: 48, near: 0.1, far: 90 }}
-            gl={{ antialias: quality.antialias, powerPreference: 'high-performance', stencil: false }}
+            style={{ background: 'transparent' }}
+            gl={{ antialias: quality.antialias, alpha: true, powerPreference: 'high-performance', stencil: false }}
+            onCreated={({ gl }) => {
+              gl.setClearColor(0x000000, 0);
+              gl.setClearAlpha(0);
+            }}
           >
             <SceneBoundary onError={() => setSceneFailed(true)}>
               {showScene && active && (

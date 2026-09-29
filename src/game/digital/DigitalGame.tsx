@@ -1,19 +1,19 @@
 import ModelPreview from '../../components/world3d/ModelPreview';
 import { modelUrls } from '../../components/world3d/LocalModel';
 import { useEffect, useState } from 'react';
-import { Check, ChevronRight, Lightbulb, RotateCcw, ShieldCheck, X } from 'lucide-react';
+import { Check, ChevronRight, Lightbulb, RotateCcw, ShieldAlert, ShieldCheck, X } from 'lucide-react';
 import { digitalLevels } from './levels';
 import { computeMastery, loadEvidence, saveEvidence, type DigitalEvidence } from './evidence';
 import { sfx } from '../sound';
 import { Confetti, StreakBadge, usePunch, useStreak } from '../juice';
 
 /**
- * Benteng Digital — "Cyber Safety Sorter" (Patch 05).
+ * Benteng Digital — "Benteng Amanah Digital".
  *
  * Game berbasis DOM/CSS murni (tidak butuh WebGL), mengikuti pola
  * arsitektur wajib dunia lain: `levels.ts` / `evidence.ts` / `XxxGame.tsx`.
  * Pemain menilai setiap situasi online sebagai "Aman" atau "Tidak aman",
- * lalu mendapat penjelasan — tarif belajar yang menenangkan, bukan
+ * lalu mendapat penjelasan adab digital Islami yang menenangkan, bukan
  * menakut-nakuti.
  */
 export default function DigitalGame({
@@ -38,6 +38,8 @@ export default function DigitalGame({
   const level = digitalLevels[levelIndex];
   const totalLevels = digitalLevels.length;
   const rightLabel = level.isSafe ? 'Aman' : 'Tidak aman';
+  const progress = Math.round(((levelIndex + 1) / totalLevels) * 100);
+  const principle = getDigitalPrinciple(level.id);
 
   useEffect(() => {
     setRevealed(false);
@@ -126,7 +128,7 @@ export default function DigitalGame({
           <span className="portal juice-portal-win">
             <ShieldCheck size={40} />
           </span>
-          <span className="chip">Benteng Digital selesai</span>
+          <span className="chip">Benteng Amanah Digital selesai</span>
           <h2>Mastery kamu sekarang {mastery}%</h2>
           <p>
             {evidence.completed.length} dari {totalLevels} kartu berhasil dinilai dengan tepat.
@@ -146,7 +148,7 @@ export default function DigitalGame({
         <header className="digital-head">
           <div>
             <span className="chip">
-              Benteng Digital &bull; Kartu {levelIndex + 1} dari {totalLevels}
+              Benteng Amanah Digital &bull; Kartu {levelIndex + 1} dari {totalLevels}
             </span>
             <StreakBadge streak={streak} />
             <h2>{level.title}</h2>
@@ -156,21 +158,56 @@ export default function DigitalGame({
           </button>
         </header>
 
-        <ModelPreview url={modelUrls.digital} image="/assets/worlds/06_benteng_digital.webp" label="Pulau Digital 3D" />
+        <section className="digital-mission">
+          <div className="digital-fortress" aria-hidden="true">
+            <div className="digital-packet packet-one">{level.isSafe ? 'Ilmu' : 'Link?'}</div>
+            <div className="digital-packet packet-two">{principle.icon}</div>
+            <div className="digital-packet packet-three">{level.isSafe ? 'Adab' : 'Cek'}</div>
+            <div className="digital-tower left" />
+            <div className={'digital-gate ' + (revealed ? (wasCorrect ? 'open' : 'alert') : '')}>
+              <span>{principle.icon}</span>
+            </div>
+            <div className="digital-tower right" />
+          </div>
+          <div className="digital-mission-copy">
+            <span className={'digital-principle ' + (level.isSafe ? 'calm' : 'watch')}>
+              {level.isSafe ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />} {principle.label}
+            </span>
+            <h3>{principle.prompt}</h3>
+            <p>{principle.description}</p>
+            <div className="digital-scanner">
+              <span>Mode: {level.isSafe ? 'Buka dengan adab' : 'Periksa dulu'}</span>
+              <span>Prinsip: {principle.label}</span>
+            </div>
+            <div className="digital-progress">
+              <span style={{ width: `${progress}%` }} />
+            </div>
+            <small>{progress}% patroli benteng selesai</small>
+          </div>
+        </section>
+
+        <div className="digital-preview-row">
+          <ModelPreview url={modelUrls.digital} image="/assets/worlds/06_benteng_digital.webp" label="Pulau Digital 3D" />
+          <div className="digital-rule-card">
+            <b>{principle.ruleTitle}</b>
+            <span>{principle.rule}</span>
+          </div>
+        </div>
+
         <div className="digital-scenario">
           <span className="shield">
-            <ShieldCheck size={28} />
+            {level.isSafe ? <ShieldCheck size={28} /> : <ShieldAlert size={28} />}
           </span>
           <p>{level.scenario}</p>
-          <small>Bagaimana pendapatmu? Pilih salah satu di bawah.</small>
+          <small>Apakah sikap ini aman dan sesuai adab digital? Pilih salah satu.</small>
         </div>
 
         <div className="digital-choices">
           <button className="digital-choice safe" onClick={() => choose(true)} disabled={revealed}>
-            <Check size={18} /> Aman
+            <Check size={18} /> Jaga Gerbang
           </button>
           <button className="digital-choice danger" onClick={() => choose(false)} disabled={revealed}>
-            <X size={18} /> Tidak aman
+            <X size={18} /> Tahan Dulu
           </button>
         </div>
 
@@ -207,4 +244,85 @@ export default function DigitalGame({
       </div>
     </div>
   );
+}
+
+function getDigitalPrinciple(id: string) {
+  if (id.includes('password')) {
+    return {
+      icon: '🔐',
+      label: 'Amanah Rahasia',
+      prompt: 'Jaga kunci benteng akunmu',
+      description: 'Password, OTP, dan akun pribadi tidak dibagikan sembarangan.',
+      ruleTitle: 'Prinsip amanah',
+      rule: 'Rahasia yang dipercayakan harus dijaga, termasuk rahasia digital.',
+    };
+  }
+  if (id.includes('tabayyun')) {
+    return {
+      icon: '🔎',
+      label: 'Tabayyun',
+      prompt: 'Cek kabar sebelum lewat gerbang',
+      description: 'Kabar cepat belum tentu benar. Penjaga benteng perlu memeriksa sumbernya.',
+      ruleTitle: 'Prinsip tabayyun',
+      rule: 'Berhenti sebentar, cek sumber, lalu tanya orang dewasa jika ragu.',
+    };
+  }
+  if (id.includes('comment') || id.includes('group')) {
+    return {
+      icon: '💬',
+      label: 'Lisan Digital',
+      prompt: 'Pilih kata yang menenangkan',
+      description: 'Komentar dan chat tetap bagian dari lisan yang perlu dijaga.',
+      ruleTitle: 'Prinsip berkata baik',
+      rule: 'Kalau belum bisa membuat orang lebih baik, jangan kirim kata yang menyakiti.',
+    };
+  }
+  if (id.includes('aib')) {
+    return {
+      icon: '🛡️',
+      label: 'Menjaga Kehormatan',
+      prompt: 'Lindungi teman dari rasa malu',
+      description: 'Foto dan cerita memalukan tidak boleh dijadikan bahan tertawaan.',
+      ruleTitle: 'Prinsip menjaga aib',
+      rule: 'Teman yang terjaga kehormatannya akan merasa aman bersama kita.',
+    };
+  }
+  if (id.includes('permission') || id.includes('buy')) {
+    return {
+      icon: '👨‍👩‍👧',
+      label: 'Izin Orang Tua',
+      prompt: 'Minta izin sebelum membuka gerbang penting',
+      description: 'Akses data dan pembelian digital harus ditemani orang tua.',
+      ruleTitle: 'Prinsip izin',
+      rule: 'Bertanya dulu adalah tanda anak yang amanah dan bisa dipercaya.',
+    };
+  }
+  if (id.includes('time')) {
+    return {
+      icon: '⏰',
+      label: 'Waktu Berkah',
+      prompt: 'Atur waktu agar hati tetap lapang',
+      description: 'Game dan video tidak boleh mengalahkan ibadah, belajar, dan istirahat.',
+      ruleTitle: 'Prinsip seimbang',
+      rule: 'Teknologi membantu kebaikan saat dipakai pada waktunya.',
+    };
+  }
+  if (id.includes('chat')) {
+    return {
+      icon: '🚪',
+      label: 'Batas Aman',
+      prompt: 'Jangan bukakan gerbang untuk orang asing',
+      description: 'Data pribadi tidak diberikan kepada orang yang tidak dikenal.',
+      ruleTitle: 'Prinsip menjaga diri',
+      rule: 'Kalau ada chat mencurigakan, tutup dan laporkan ke orang tua.',
+    };
+  }
+  return {
+    icon: '🌟',
+    label: 'Konten Bermanfaat',
+    prompt: 'Pilih cahaya ilmu',
+    description: 'Dunia digital bisa menjadi jalan ilmu jika dipilih dengan bijak.',
+    ruleTitle: 'Prinsip manfaat',
+    rule: 'Gunakan layar untuk hal yang menambah ilmu, akhlak, dan kebaikan.',
+  };
 }

@@ -480,26 +480,50 @@ function makeSignTexture(text: string, isArabic: boolean): THREE.CanvasTexture {
  * peta lingkungan yang dipasang ProceduralEnv. Tanpa IBL, permukaan
  * seperti ini akan terlihat seperti plastik gelap.
  */
-function Water() {
+function Water({ centerZ }: { centerZ: number }) {
   const ref = useRef<THREE.Mesh>(null);
   const quality = getQuality();
+  const alphaMap = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, 'rgba(0,0,0,0)');
+      gradient.addColorStop(0.2, 'rgba(255,255,255,0.25)');
+      gradient.addColorStop(0.54, 'rgba(255,255,255,0.72)');
+      gradient.addColorStop(0.86, 'rgba(255,255,255,0.48)');
+      gradient.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+  }, []);
+
+  useEffect(() => () => alphaMap.dispose(), [alphaMap]);
 
   useFrame((state) => {
     if (!ref.current || !quality.motion) return;
     // Naik-turun sangat halus — cukup untuk terasa hidup, tidak sampai
     // membuat daun terlihat melayang.
-    ref.current.position.y = -0.42 + Math.sin(state.clock.elapsedTime * 0.6) * 0.018;
+    ref.current.position.y = -1.08 + Math.sin(state.clock.elapsedTime * 0.55) * 0.012;
+    ref.current.position.z = THREE.MathUtils.lerp(ref.current.position.z, centerZ - 18, 0.045);
   });
 
   return (
-    <mesh ref={ref} position={[0, -0.42, -60]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[120, 220]} />
+    <mesh ref={ref} position={[0, -1.08, centerZ - 18]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[42, 74, 1, 1]} />
       <meshStandardMaterial
-        color="#2aa8a7"
-        roughness={0.035}
-        metalness={0.7}
+        color="#1f8f9d"
+        roughness={0.24}
+        metalness={0.04}
         transparent
-        opacity={0.9}
+        opacity={0.32}
+        alphaMap={alphaMap}
+        depthWrite={false}
       />
     </mesh>
   );
@@ -1510,7 +1534,7 @@ function FroggyScene({
       <fog attach="fog" args={['#d8f6ef', 36, 96]} />
       <ThreePointLights intensity={1.12} shadowRadius={16} />
 
-      <Water />
+      <Water centerZ={frogTo[2]} />
       <PondAmbience />
       <OasisDecor />
 

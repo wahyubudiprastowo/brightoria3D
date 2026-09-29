@@ -12,6 +12,7 @@ import {
 } from './evidence';
 import { isArabicTtsAvailable, speakArabic } from './quranTts';
 import { Confetti } from '../juice';
+import { sfx } from '../sound';
 
 /**
  * QuranGame.tsx — Patch 30 (PERBAIKAN UX BESAR atas Patch 28/29).
@@ -67,6 +68,7 @@ const OLD_STYLE_IDS = ['brightoria-hijaiyah-styles-v1', 'brightoria-hijaiyah-sty
 const HIJAIYAH_CSS = `
 .hijaiyah-overlay { position: fixed; inset: 0; z-index: 75; background: linear-gradient(160deg,#0f2e3aee,#1a3d2eee); backdrop-filter: blur(10px); display: grid; place-items: center; padding: 16px; }
 .hijaiyah-shell { position: relative; width: min(760px,96vw); max-height: 92vh; overflow-y: auto; background: #fffaf3; border-radius: 26px; padding: 26px; box-shadow: 0 25px 80px #0007; display: flex; flex-direction: column; gap: 16px; border-top: 6px solid #17856f; background-image: radial-gradient(circle at 100% 0%, #d7f3ec 0%, transparent 55%), radial-gradient(circle at 0% 100%, #fff3d6 0%, transparent 55%); }
+.hijaiyah-shell.garden { width: min(1060px, 97vw); }
 .hijaiyah-arabic { font-family: 'Noto Naskh Arabic','Amiri',serif; direction: rtl; }
 .hijaiyah-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
 .hijaiyah-head h2 { margin: 6px 0 0; color: #17403a; }
@@ -126,12 +128,72 @@ const HIJAIYAH_CSS = `
 .hijaiyah-word-emoji { font-size: 22px; }
 .hijaiyah-word-card b { font-size: 14px; color: #17403a; }
 .hijaiyah-word-card span { font-size: 10px; color: #4c8a78; }
+.quran-garden-cta { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; margin: 0 0 14px; padding: 14px; border: 2px solid #bfe0d6; border-radius: 18px; background: linear-gradient(135deg,#f8fff9,#fff3d6); color: #17403a; }
+.quran-garden-cta h3 { margin: 0 0 4px; font-size: 18px; }
+.quran-garden-cta p { margin: 0; font-size: 12px; color: #4c6b62; }
+.quran-garden-shell { display: grid; gap: 12px; }
+.quran-garden-hud { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; color: #17403a; font-size: 12px; font-weight: 800; }
+.quran-pixel-map { position: relative; height: min(58vh, 470px); min-height: 360px; overflow: hidden; border: 4px solid #285c35; border-radius: 14px; background:
+  linear-gradient(90deg, #0000 31px, #3d8f4b55 32px),
+  linear-gradient(#0000 31px, #3d8f4b55 32px),
+  radial-gradient(circle at 18% 24%, #afe27a 0 7%, #0000 7.5%),
+  radial-gradient(circle at 78% 16%, #99d76b 0 6%, #0000 6.5%),
+  radial-gradient(circle at 68% 78%, #a8dc75 0 9%, #0000 9.5%),
+  linear-gradient(135deg,#74c857,#42a85f 48%,#2c8b63);
+  background-size: 32px 32px, 32px 32px, auto, auto, auto, auto;
+  image-rendering: pixelated;
+  box-shadow: inset 0 0 0 6px #ffffff44, 0 16px 40px #17403a30;
+}
+.quran-pixel-path { position: absolute; left: 7%; right: 7%; top: 48%; height: 40px; background: repeating-linear-gradient(90deg,#c89555 0 28px,#b77d44 28px 32px); border: 4px solid #7d532f; border-radius: 6px; transform: translateY(-50%); box-shadow: 0 8px 0 #6a4729; }
+.quran-pixel-stream { position: absolute; left: -3%; right: -3%; bottom: -18px; height: 132px; background-image: url('/assets/quran-pixel/water-tile.png'); background-size: 220px 220px; background-repeat: repeat; border-top: 5px solid #c7f8ff; opacity: .9; animation: quran-water-drift 7s linear infinite; }
+.quran-pixel-stream::before { content: ""; position: absolute; inset: 14px 0 auto; height: 14px; background: repeating-linear-gradient(90deg,#ffffff99 0 32px,#0000 32px 86px); opacity: .75; }
+@keyframes quran-water-drift { from { background-position: 0 0; } to { background-position: 220px 0; } }
+.quran-pixel-tree { position: absolute; width: 38px; height: 58px; background: linear-gradient(#7b4a25,#5a351f); border: 3px solid #3b2718; }
+.quran-pixel-tree::before { content: ""; position: absolute; left: -22px; top: -38px; width: 82px; height: 52px; background: #2f8b3b; border: 4px solid #1f6331; box-shadow: 12px -10px 0 #54ad47, -10px 11px 0 #3f9c40; }
+.quran-pixel-flower { position: absolute; width: 18px; height: 18px; background: #ffe8f0; border: 3px solid #e56d9e; box-shadow: 18px 10px 0 #ffd84a, 34px -2px 0 #fff1f7; }
+.quran-map-asset { position: absolute; object-fit: contain; image-rendering: pixelated; pointer-events: none; user-select: none; filter: drop-shadow(0 8px 0 #17403a40); }
+.quran-map-asset.tree { width: 132px; }
+.quran-map-asset.bush { width: 98px; }
+.quran-map-asset.cottage { width: 180px; }
+.quran-map-asset.platform { width: 180px; filter: drop-shadow(0 10px 0 #17403a35); }
+.quran-map-asset.bridge { width: 210px; }
+.quran-map-asset.fence { width: 160px; }
+.quran-map-asset.animal { width: 70px; filter: drop-shadow(0 6px 0 #17403a35); }
+.quran-map-asset.cow { width: 110px; }
+.quran-surah-station { position: absolute; width: 92px; height: 78px; border: 0; background: transparent; transform: translate(-50%, -50%); cursor: pointer; color: #17403a; font-weight: 900; image-rendering: pixelated; }
+.quran-surah-station.locked { opacity: .45; filter: grayscale(.5); }
+.quran-surah-station.near .quran-station-sign { transform: translateY(-5px) scale(1.06); filter: drop-shadow(0 0 10px #fff7a8) drop-shadow(0 8px 0 #6a472955); }
+.quran-station-roof { display: none; }
+.quran-station-sign { width: 118px; height: 92px; padding: 28px 16px 10px; margin-left: -13px; background: url('/assets/quran-pixel/wood-sign.png') center/contain no-repeat; border: 0; border-radius: 0; font-size: 9px; text-shadow: 0 1px 0 #fff5cf; transition: transform .15s ease, filter .15s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05; }
+.quran-station-sign b { display: block; font-size: 11px; }
+.quran-player { position: absolute; width: 56px; height: 72px; transform: translate(-50%, -72%); transition: left .08s linear, top .08s linear; image-rendering: pixelated; background: url('/assets/english-run/runner-hero.png') center/contain no-repeat; filter: drop-shadow(0 8px 0 #17403a44); }
+.quran-garden-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center; }
+.quran-dpad { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 38px); gap: 5px; justify-content: start; }
+.quran-dpad button, .quran-read-btn { border: 0; border-radius: 10px; background: #fffaf3; color: #17403a; font-weight: 900; box-shadow: inset 0 -3px 0 #cdeadf; touch-action: manipulation; cursor: pointer; }
+.quran-dpad button:active, .quran-read-btn:active { transform: translateY(2px); box-shadow: inset 0 -1px 0 #cdeadf; }
+.quran-dpad .up { grid-column: 2; }
+.quran-dpad .left { grid-column: 1; grid-row: 2; }
+.quran-dpad .right { grid-column: 3; grid-row: 2; }
+.quran-dpad .down { grid-column: 2; grid-row: 3; }
+.quran-read-btn { justify-self: end; min-height: 52px; padding: 0 18px; background: linear-gradient(135deg,#198576,#f3c861); color: #fff; box-shadow: 0 8px 0 #126153; }
+.quran-read-btn:disabled { opacity: .55; filter: grayscale(.3); }
+.quran-reading-card { position: fixed; inset: auto 50% 22px auto; transform: translateX(50%); z-index: 78; width: min(620px, calc(100vw - 24px)); max-height: 72vh; overflow-y: auto; background: #fffaf3; border: 4px solid #8b5b2e; border-radius: 14px; padding: 18px; box-shadow: 0 22px 60px #0008; color: #17403a; }
+.quran-reading-card h3 { margin: 0 0 2px; }
+.quran-reading-meta { margin: 0 0 12px; color: #4c6b62; font-size: 12px; }
+.quran-ayah { padding: 10px 0; border-top: 1px solid #eadfc8; }
+.quran-ayah-ar { font-size: 24px; line-height: 1.8; text-align: right; }
+.quran-ayah-latin { color: #4c6b62; font-size: 12px; }
+.quran-reading-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 @media (max-width: 700px) {
   .hijaiyah-shell { padding: 18px; }
   .hijaiyah-match-columns { gap: 8%; }
   .hijaiyah-match-col { width: 46%; }
   .hijaiyah-match-item { min-height: 72px; font-size: 28px; }
   .hijaiyah-match-item.word { font-size: 16px; }
+  .quran-garden-cta { grid-template-columns: 1fr; }
+  .quran-pixel-map { min-height: 430px; height: 58vh; }
+  .quran-garden-controls { grid-template-columns: 1fr; }
+  .quran-read-btn { justify-self: stretch; }
 }
 `;
 
@@ -175,7 +237,7 @@ function isLetterUnlocked(index: number, evidence: HijaiyahEvidence): boolean {
   return !!evidence.letters[prev.id]?.completed;
 }
 
-type View = 'map' | 'intro' | 'match' | 'result' | 'collection';
+type View = 'map' | 'intro' | 'match' | 'result' | 'collection' | 'garden';
 
 interface Point {
   x: number;
@@ -187,6 +249,130 @@ interface LineSeg {
   y1: number;
   x2: number;
   y2: number;
+}
+
+interface GardenSurah {
+  id: string;
+  name: string;
+  meaning: string;
+  garden: string;
+  position: Point;
+  ayat: { arabic: string; latin: string }[];
+}
+
+const GARDEN_KEY = 'brightoria.quran.garden.v1';
+
+const gardenSurahs: GardenSurah[] = [
+  {
+    id: 'al-ikhlas',
+    name: 'Al-Ikhlas',
+    meaning: 'Keikhlasan',
+    garden: 'Taman Tauhid',
+    position: { x: 17, y: 28 },
+    ayat: [
+      { arabic: 'قُلْ هُوَ اللّٰهُ اَحَدٌ', latin: 'Qul huwallahu ahad' },
+      { arabic: 'اَللّٰهُ الصَّمَدُ', latin: 'Allahus-samad' },
+      { arabic: 'لَمْ يَلِدْ وَلَمْ يُوْلَدْ', latin: 'Lam yalid wa lam yulad' },
+      { arabic: 'وَلَمْ يَكُنْ لَّهٗ كُفُوًا اَحَدٌ', latin: 'Wa lam yakun lahu kufuwan ahad' },
+    ],
+  },
+  {
+    id: 'al-falaq',
+    name: 'Al-Falaq',
+    meaning: 'Waktu Subuh',
+    garden: 'Kebun Cahaya',
+    position: { x: 34, y: 47 },
+    ayat: [
+      { arabic: 'قُلْ اَعُوْذُ بِرَبِّ الْفَلَقِ', latin: 'Qul a\'udzu birabbil-falaq' },
+      { arabic: 'مِنْ شَرِّ مَا خَلَقَ', latin: 'Min sharri ma khalaq' },
+      { arabic: 'وَمِنْ شَرِّ غَاسِقٍ اِذَا وَقَبَ', latin: 'Wa min sharri ghasiqin idza waqab' },
+      { arabic: 'وَمِنْ شَرِّ النَّفّٰثٰتِ فِى الْعُقَدِ', latin: 'Wa min sharrin-naffatsati fil-uqad' },
+      { arabic: 'وَمِنْ شَرِّ حَاسِدٍ اِذَا حَسَدَ', latin: 'Wa min sharri hasidin idza hasad' },
+    ],
+  },
+  {
+    id: 'an-nas',
+    name: 'An-Nas',
+    meaning: 'Manusia',
+    garden: 'Taman Perlindungan',
+    position: { x: 52, y: 31 },
+    ayat: [
+      { arabic: 'قُلْ اَعُوْذُ بِرَبِّ النَّاسِ', latin: 'Qul a\'udzu birabbin-nas' },
+      { arabic: 'مَلِكِ النَّاسِ', latin: 'Malikin-nas' },
+      { arabic: 'اِلٰهِ النَّاسِ', latin: 'Ilahin-nas' },
+      { arabic: 'مِنْ شَرِّ الْوَسْوَاسِ الْخَنَّاسِ', latin: 'Min sharril-waswasil-khannas' },
+      { arabic: 'الَّذِيْ يُوَسْوِسُ فِيْ صُدُوْرِ النَّاسِ', latin: 'Alladzi yuwaswisu fi sudurin-nas' },
+      { arabic: 'مِنَ الْجِنَّةِ وَالنَّاسِ', latin: 'Minal-jinnati wan-nas' },
+    ],
+  },
+  {
+    id: 'al-kawthar',
+    name: 'Al-Kawthar',
+    meaning: 'Nikmat Banyak',
+    garden: 'Kolam Syukur',
+    position: { x: 72, y: 44 },
+    ayat: [
+      { arabic: 'اِنَّآ اَعْطَيْنٰكَ الْكَوْثَرَ', latin: 'Inna a\'thainakal-kawthar' },
+      { arabic: 'فَصَلِّ لِرَبِّكَ وَانْحَرْ', latin: 'Fa salli lirabbika wanhar' },
+      { arabic: 'اِنَّ شَانِئَكَ هُوَ الْاَبْتَرُ', latin: 'Inna syani-aka huwal-abtar' },
+    ],
+  },
+  {
+    id: 'al-asr',
+    name: 'Al-Asr',
+    meaning: 'Waktu',
+    garden: 'Taman Waktu',
+    position: { x: 22, y: 70 },
+    ayat: [
+      { arabic: 'وَالْعَصْرِ', latin: 'Wal-asr' },
+      { arabic: 'اِنَّ الْاِنْسَانَ لَفِيْ خُسْرٍ', latin: 'Innal-insana lafi khusr' },
+      { arabic: 'اِلَّا الَّذِيْنَ اٰمَنُوْا وَعَمِلُوا الصّٰلِحٰتِ', latin: 'Illalladzina amanu wa amilus-salihat' },
+    ],
+  },
+  {
+    id: 'quraysh',
+    name: 'Quraisy',
+    meaning: 'Suku Quraisy',
+    garden: 'Pasar Amanah',
+    position: { x: 49, y: 72 },
+    ayat: [
+      { arabic: 'لِاِيْلٰفِ قُرَيْشٍ', latin: 'Li ilafi quraysh' },
+      { arabic: 'اٖلٰفِهِمْ رِحْلَةَ الشِّتَاۤءِ وَالصَّيْفِ', latin: 'Ilafihim rihlatas-syita-i was-saif' },
+      { arabic: 'فَلْيَعْبُدُوْا رَبَّ هٰذَا الْبَيْتِ', latin: 'Falya\'budu rabba hadzal-bait' },
+      { arabic: 'الَّذِيْٓ اَطْعَمَهُمْ مِّنْ جُوْعٍ وَّاٰمَنَهُمْ مِّنْ خَوْفٍ', latin: 'Alladzi ath\'amahum min ju\'in wa amanahum min khauf' },
+    ],
+  },
+  {
+    id: 'al-fil',
+    name: 'Al-Fil',
+    meaning: 'Gajah',
+    garden: 'Bukit Kisah',
+    position: { x: 82, y: 68 },
+    ayat: [
+      { arabic: 'اَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِاَصْحٰبِ الْفِيْلِ', latin: 'Alam tara kaifa fa\'ala rabbuka bi-ashabil-fil' },
+      { arabic: 'اَلَمْ يَجْعَلْ كَيْدَهُمْ فِيْ تَضْلِيْلٍ', latin: 'Alam yaj\'al kaidahum fi tadlil' },
+      { arabic: 'وَاَرْسَلَ عَلَيْهِمْ طَيْرًا اَبَابِيْلَ', latin: 'Wa arsala alaihim thairan ababil' },
+      { arabic: 'تَرْمِيْهِمْ بِحِجَارَةٍ مِّنْ سِجِّيْلٍ', latin: 'Tarmihim bihijaratim min sijjil' },
+      { arabic: 'فَجَعَلَهُمْ كَعَصْفٍ مَّأْكُوْلٍ', latin: 'Fa ja\'alahum ka\'asfim ma\'kul' },
+    ],
+  },
+];
+
+function loadGardenProgress(): string[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(GARDEN_KEY) ?? '[]');
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveGardenProgress(doneIds: string[]) {
+  try {
+    localStorage.setItem(GARDEN_KEY, JSON.stringify(doneIds));
+  } catch {
+    /* localStorage may be unavailable in embedded previews. */
+  }
 }
 
 /**
@@ -470,6 +656,230 @@ function MatchStage({
   );
 }
 
+function QuranGardenAdventure({
+  ttsAvailable,
+  onBack,
+  onCompleteGarden,
+}: {
+  ttsAvailable: boolean;
+  onBack: () => void;
+  onCompleteGarden: () => void;
+}) {
+  const [doneIds, setDoneIds] = useState<string[]>(() => loadGardenProgress());
+  const [player, setPlayer] = useState<Point>({ x: 12, y: 52 });
+  const [readingId, setReadingId] = useState<string | null>(null);
+  const [pressed, setPressed] = useState<Partial<Record<'up' | 'down' | 'left' | 'right', boolean>>>({});
+
+  const doneSet = useMemo(() => new Set(doneIds), [doneIds]);
+  const nearSurah = useMemo(() => {
+    return gardenSurahs.find((surah, index) => {
+      const unlocked = index === 0 || doneSet.has(gardenSurahs[index - 1].id);
+      if (!unlocked) return false;
+      const dx = player.x - surah.position.x;
+      const dy = player.y - surah.position.y;
+      return Math.hypot(dx, dy) <= 10;
+    });
+  }, [doneSet, player]);
+  const readingSurah = gardenSurahs.find((surah) => surah.id === readingId) ?? null;
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const map: Record<string, 'up' | 'down' | 'left' | 'right'> = {
+        ArrowUp: 'up',
+        w: 'up',
+        W: 'up',
+        ArrowDown: 'down',
+        s: 'down',
+        S: 'down',
+        ArrowLeft: 'left',
+        a: 'left',
+        A: 'left',
+        ArrowRight: 'right',
+        d: 'right',
+        D: 'right',
+      };
+      const dir = map[e.key];
+      if (!dir) return;
+      e.preventDefault();
+      setPressed((prev) => ({ ...prev, [dir]: true }));
+    }
+    function onKeyUp(e: KeyboardEvent) {
+      const map: Record<string, 'up' | 'down' | 'left' | 'right'> = {
+        ArrowUp: 'up',
+        w: 'up',
+        W: 'up',
+        ArrowDown: 'down',
+        s: 'down',
+        S: 'down',
+        ArrowLeft: 'left',
+        a: 'left',
+        A: 'left',
+        ArrowRight: 'right',
+        d: 'right',
+        D: 'right',
+      };
+      const dir = map[e.key];
+      if (!dir) return;
+      setPressed((prev) => ({ ...prev, [dir]: false }));
+    }
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+  }, []);
+
+  useEffect(() => {
+    const tick = window.setInterval(() => {
+      setPlayer((prev) => {
+        const dx = (pressed.right ? 1 : 0) - (pressed.left ? 1 : 0);
+        const dy = (pressed.down ? 1 : 0) - (pressed.up ? 1 : 0);
+        if (!dx && !dy) return prev;
+        const speed = dx && dy ? 1.45 : 2;
+        return {
+          x: Math.max(6, Math.min(94, prev.x + dx * speed)),
+          y: Math.max(15, Math.min(84, prev.y + dy * speed)),
+        };
+      });
+    }, 45);
+    return () => window.clearInterval(tick);
+  }, [pressed]);
+
+  function setDirection(dir: 'up' | 'down' | 'left' | 'right', isDown: boolean) {
+    setPressed((prev) => ({ ...prev, [dir]: isDown }));
+  }
+
+  function openNearest() {
+    if (!nearSurah) return;
+    sfx.click();
+    setReadingId(nearSurah.id);
+  }
+
+  function completeReading(surah: GardenSurah) {
+    const alreadyDone = doneSet.has(surah.id);
+    const nextDone = alreadyDone ? doneIds : [...doneIds, surah.id];
+    setDoneIds(nextDone);
+    saveGardenProgress(nextDone);
+    setReadingId(null);
+    if (!alreadyDone) {
+      sfx.correct();
+      onCompleteGarden();
+    }
+  }
+
+  function speakSurah(surah: GardenSurah) {
+    speakArabic(surah.ayat.map((ayah) => ayah.arabic).join(' '));
+  }
+
+  return (
+    <div className="quran-garden-shell">
+      <div className="quran-garden-hud">
+        <span>Taman Juz 30: {doneIds.length}/{gardenSurahs.length} surat dibaca</span>
+        <span>Dekati papan, lalu tekan Baca</span>
+      </div>
+
+      <div className="quran-pixel-map" aria-label="Peta pixel Taman Juz 30">
+        <div className="quran-pixel-stream" />
+        <div className="quran-pixel-path" />
+        <img className="quran-map-asset platform" src="/assets/quran-pixel/grass-platform.png" alt="" style={{ left: '2%', top: '3%' }} />
+        <img className="quran-map-asset platform" src="/assets/quran-pixel/grass-platform.png" alt="" style={{ right: '2%', top: '6%', transform: 'scaleX(-1)' }} />
+        <img className="quran-map-asset platform" src="/assets/quran-pixel/grass-platform.png" alt="" style={{ left: '4%', bottom: '18%' }} />
+        <img className="quran-map-asset platform" src="/assets/quran-pixel/grass-platform.png" alt="" style={{ right: '6%', bottom: '20%' }} />
+        <img className="quran-map-asset cottage" src="/assets/quran-pixel/cottage.png" alt="" style={{ left: '40%', top: '4%' }} />
+        <img className="quran-map-asset tree" src="/assets/quran-pixel/tree.png" alt="" style={{ left: '8%', top: '12%' }} />
+        <img className="quran-map-asset tree" src="/assets/quran-pixel/tree.png" alt="" style={{ right: '8%', top: '9%', transform: 'scaleX(-1)' }} />
+        <img className="quran-map-asset tree" src="/assets/quran-pixel/tree.png" alt="" style={{ left: '15%', bottom: '12%' }} />
+        <img className="quran-map-asset tree" src="/assets/quran-pixel/tree.png" alt="" style={{ right: '13%', bottom: '9%', transform: 'scaleX(-1)' }} />
+        <img className="quran-map-asset bush" src="/assets/quran-pixel/bush.png" alt="" style={{ left: '28%', top: '18%' }} />
+        <img className="quran-map-asset bush" src="/assets/quran-pixel/bush.png" alt="" style={{ right: '29%', top: '21%' }} />
+        <img className="quran-map-asset bush" src="/assets/quran-pixel/bush.png" alt="" style={{ left: '34%', bottom: '13%' }} />
+        <img className="quran-map-asset bush" src="/assets/quran-pixel/bush.png" alt="" style={{ right: '32%', bottom: '12%' }} />
+        <img className="quran-map-asset fence" src="/assets/quran-pixel/fence-rail.png" alt="" style={{ left: '4%', top: '40%' }} />
+        <img className="quran-map-asset fence" src="/assets/quran-pixel/fence-rail.png" alt="" style={{ right: '4%', top: '40%' }} />
+        <img className="quran-map-asset bridge" src="/assets/quran-pixel/wood-bridge.png" alt="" style={{ left: '39%', bottom: '15%' }} />
+        <img className="quran-map-asset animal cow" src="/assets/quran-pixel/cow.png" alt="" style={{ left: '19%', top: '34%' }} />
+        <img className="quran-map-asset animal" src="/assets/quran-pixel/chicken.png" alt="" style={{ left: '70%', top: '34%' }} />
+        <img className="quran-map-asset animal" src="/assets/quran-pixel/chicken.png" alt="" style={{ left: '63%', bottom: '22%', transform: 'scaleX(-1)' }} />
+        <div className="quran-pixel-flower" style={{ left: '25%', top: '22%' }} />
+        <div className="quran-pixel-flower" style={{ left: '61%', top: '20%' }} />
+        <div className="quran-pixel-flower" style={{ left: '38%', top: '77%' }} />
+
+        {gardenSurahs.map((surah, index) => {
+          const unlocked = index === 0 || doneSet.has(gardenSurahs[index - 1].id);
+          const near = nearSurah?.id === surah.id;
+          return (
+            <button
+              key={surah.id}
+              className={'quran-surah-station' + (unlocked ? '' : ' locked') + (near ? ' near' : '')}
+              style={{ left: `${surah.position.x}%`, top: `${surah.position.y}%` }}
+              onClick={() => {
+                if (unlocked) {
+                  sfx.click();
+                  setReadingId(surah.id);
+                }
+              }}
+              disabled={!unlocked}
+            >
+              <div className="quran-station-roof" />
+              <div className="quran-station-sign">
+                <b>{doneSet.has(surah.id) ? 'Selesai' : surah.name}</b>
+                {surah.garden}
+              </div>
+            </button>
+          );
+        })}
+
+        <div className="quran-player" style={{ left: `${player.x}%`, top: `${player.y}%` }} />
+      </div>
+
+      <div className="quran-garden-controls">
+        <div className="quran-dpad" aria-label="Kontrol jalan">
+          <button className="up" onPointerDown={() => setDirection('up', true)} onPointerUp={() => setDirection('up', false)} onPointerLeave={() => setDirection('up', false)}>▲</button>
+          <button className="left" onPointerDown={() => setDirection('left', true)} onPointerUp={() => setDirection('left', false)} onPointerLeave={() => setDirection('left', false)}>◀</button>
+          <button className="right" onPointerDown={() => setDirection('right', true)} onPointerUp={() => setDirection('right', false)} onPointerLeave={() => setDirection('right', false)}>▶</button>
+          <button className="down" onPointerDown={() => setDirection('down', true)} onPointerUp={() => setDirection('down', false)} onPointerLeave={() => setDirection('down', false)}>▼</button>
+        </div>
+        <button className="quran-read-btn" onClick={openNearest} disabled={!nearSurah}>
+          {nearSurah ? `Baca ${nearSurah.name}` : 'Dekati papan surat'}
+        </button>
+      </div>
+
+      <button className="hijaiyah-ghost-btn" onClick={onBack}>
+        Kembali ke Huruf Hijaiyah
+      </button>
+
+      {readingSurah && (
+        <div className="quran-reading-card">
+          <h3>{readingSurah.name}</h3>
+          <p className="quran-reading-meta">
+            {readingSurah.meaning} &bull; {readingSurah.garden}
+          </p>
+          {readingSurah.ayat.map((ayah, index) => (
+            <div className="quran-ayah" key={`${readingSurah.id}-${index}`}>
+              <div className="quran-ayah-ar hijaiyah-arabic">{ayah.arabic}</div>
+              <div className="quran-ayah-latin">{ayah.latin}</div>
+            </div>
+          ))}
+          <div className="quran-reading-actions">
+            {ttsAvailable && (
+              <button className="hijaiyah-ghost-btn" onClick={() => speakSurah(readingSurah)}>
+                <Volume2 size={16} /> Dengarkan
+              </button>
+            )}
+            <button className="hijaiyah-ghost-btn" onClick={() => setReadingId(null)}>
+              Tutup
+            </button>
+            <button className="hijaiyah-primary-btn" style={{ maxWidth: 'none' }} onClick={() => completeReading(readingSurah)}>
+              Tandai sudah dibaca <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function QuranGame({
   onExit,
   onXpEarned,
@@ -538,7 +948,7 @@ export default function QuranGame({
 
   return (
     <div className="hijaiyah-overlay">
-      <div className="hijaiyah-shell">
+      <div className={'hijaiyah-shell' + (view === 'garden' ? ' garden' : '')}>
         <Confetti trigger={confettiTick} />
 
         <header className="hijaiyah-head">
@@ -548,10 +958,11 @@ export default function QuranGame({
               {view === 'map' && 'Petualangan Huruf Hijaiyah'}
               {(view === 'intro' || view === 'match' || view === 'result') && `Huruf ${activeLetter?.name}`}
               {view === 'collection' && 'Koleksi Kosakata'}
+              {view === 'garden' && 'Taman Pixel Juz 30'}
             </h2>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {(view === 'intro' || view === 'match') && (
+            {(view === 'intro' || view === 'match' || view === 'garden') && (
               <button className="hijaiyah-ghost-small" onClick={backToMap}>
                 Peta
               </button>
@@ -575,6 +986,15 @@ export default function QuranGame({
         {view === 'map' && (
           <div>
         <ModelPreview url={modelUrls.quran} image="/assets/worlds/01_taman_alquran.webp" label="Pulau Quran 3D" />
+            <div className="quran-garden-cta">
+              <div>
+                <h3>Taman Pixel Juz 30</h3>
+                <p>Jelajahi taman islami, temukan papan surat pendek, lalu baca pelan-pelan.</p>
+              </div>
+              <button className="hijaiyah-primary-btn" style={{ maxWidth: 210 }} onClick={() => setView('garden')}>
+                Jelajah taman <ChevronRight size={16} />
+              </button>
+            </div>
             <div className="hijaiyah-mastery-bar" style={{ marginBottom: 12 }}>
               <div className="hijaiyah-mastery-track">
                 <span className="hijaiyah-mastery-fill" style={{ width: `${overallMastery}%` }} />
@@ -605,6 +1025,17 @@ export default function QuranGame({
               })}
             </div>
           </div>
+        )}
+
+        {view === 'garden' && (
+          <QuranGardenAdventure
+            ttsAvailable={ttsAvailable}
+            onBack={backToMap}
+            onCompleteGarden={() => {
+              onXpEarned(20);
+              setConfettiTick((n) => n + 1);
+            }}
+          />
         )}
 
         {view === 'intro' && activeLetter && (

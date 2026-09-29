@@ -158,5 +158,29 @@
     "afterBytes": 305760,
     "beforeTriangles": 237802,
     "afterTriangles": 8986
+  },
+  {
+    "input": "assets-source/models/meshy-numeria-boxhead-backpacker.glb",
+    "output": "public/assets/models/numeria-boxhead-backpacker.glb",
+    "beforeBytes": 6925796,
+    "afterBytes": 237892,
+    "beforeTriangles": 88152,
+    "afterTriangles": 12000
+  },
+  {
+    "input": "assets-source/models/meshy-numeria-blue-banner-outpost.glb",
+    "output": "public/assets/models/numeria-blue-banner-outpost.glb",
+    "beforeBytes": 12177036,
+    "afterBytes": 292508,
+    "beforeTriangles": 212276,
+    "afterTriangles": 12000
+  },
+  {
+    "input": "assets-source/models/meshy-numeria-mooncrest-outpost.glb",
+    "output": "public/assets/models/numeria-mooncrest-outpost.glb",
+    "beforeBytes": 11553908,
+    "afterBytes": 323916,
+    "beforeTriangles": 152980,
+    "afterTriangles": 11998
   }
 ]

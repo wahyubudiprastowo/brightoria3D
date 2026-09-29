@@ -30,11 +30,15 @@ TypeScript awal lolos; tidak ditemukan crash JavaScript pada startup Chromium de
 | `cloud-pastel-drift.glb` | 9.54 MB | 153.9 KB | 108,668 ? 12,000 | Gugus awan pastel 3D peta dunia |
 | `starbound-wanderer.glb` | 13.40 MB | 298.9 KB | 241,650 ? 14,000 | Karakter dekoratif foreground peta |
 | `white-cat-red-scarf.glb` | 11.11 MB | 191.4 KB | 192,972 ? 9,000 | Kucing pendamping foreground peta |
+| `numeria-boxhead-backpacker.glb` | 6.93 MB | 237.9 KB | 88,152 ? 12,000 | Karakter penyeberang game Numeria |
+| `numeria-blue-banner-outpost.glb` | 12.18 MB | 292.5 KB | 212,276 ? 12,000 | Outpost kiri game Numeria |
+| `numeria-mooncrest-outpost.glb` | 11.55 MB | 323.9 KB | 152,980 ? 11,998 | Outpost kanan game Numeria |
 
-Total aset GLB runtime di `public/assets/models/` kini sekitar 7,05 MB. Model kodok idle
+Total aset GLB runtime di `public/assets/models/` kini sekitar 7,90 MB. Model kodok idle
 memakai pose lama agar tetap duduk di daun; model kodok berdiri terbaru hanya dipakai
 saat fase lompat dan dioptimalkan dari source 9,40 MB menjadi 249,4 KB (97,35% lebih kecil);
-model awan pastel baru menjadi 153,9 KB dari source 9,54 MB.
+model awan pastel baru menjadi 153,9 KB dari source 9,54 MB. Tiga model Numeria baru
+dioptimalkan dari total 30,66 MB sumber menjadi 854,3 KB runtime.
 Angka adalah byte berkas, bukan konsumsi RAM/GPU atau ukuran download gzip.
 Tidak ada model khusus Numeria/Adab/English dalam berkas yang diberikan;
 visual dan mekanik dunia tersebut dipertahankan. Menara tetap membuka Latihan,
@@ -53,6 +57,9 @@ Sumber dekor Lompat Katak disalin ke `assets-source/models/meshy-froggy-lily-pad
 Sumber awan Meshy aktif disalin ke `assets-source/models/meshy-pastel-cloud-drift.glb`.
 Sumber karakter foreground disalin ke `assets-source/models/meshy-starbound-wanderer.glb`
 dan `assets-source/models/meshy-white-cat-red-scarf.glb`.
+Sumber Numeria baru disalin ke `assets-source/models/meshy-numeria-boxhead-backpacker.glb`,
+`meshy-numeria-blue-banner-outpost.glb`, dan `meshy-numeria-mooncrest-outpost.glb`.
+Background dan tekstur papan Numeria disimpan sebagai PNG lokal di `public/assets/numeria/`.
 Hanya hasil di `public/assets/models/` dikirim ke aplikasi. `dist/` adalah keluaran build;
 aset Android diperbarui dengan `npx cap copy android`, bukan dioptimalkan ulang.
 Jangan menimpa sumber dengan hasil kompresi karena simplifikasi berulang mengurangi kualitas.
@@ -89,6 +96,9 @@ kini juga dibungkus boundary di luar Canvas agar kegagalan pembuatan WebGL terta
 - Froggy memakai `public/assets/models/froggy.glb` saat idle/berdiri di daun dan
   `public/assets/models/froggy-jump.glb` saat fase lompat, dengan kodok prosedural
   lama sebagai fallback Suspense/error boundary lokal.
+- Numeria memakai background oasis PNG lokal, tekstur papan PNG lokal, serta tiga GLB
+  baru untuk backpacker dan outpost ujung jembatan. Canvas Numeria dibuat transparan
+  dan post-processing menjaga alpha agar background tidak tertutup hitam.
 - Arena Froggy kini memakai GLB daun teratai, bunga lotus, cattail, lentera, dan
   papan daun oasis sebagai dekor runtime kecil. Air terjun dan percikan air dibuat
   prosedural/animatif di scene agar tidak menambah aset video atau musik.

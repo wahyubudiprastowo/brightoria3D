@@ -1,3 +1,74 @@
+## 2026-09-25 - Benteng Amanah Digital
+
+- Merombak materi Benteng Digital menjadi 10 kartu adab digital Islami.
+- Tema baru mencakup amanah password, tabayyun berita, komentar baik, menjaga aib teman, izin orang tua, waktu berkah, chat orang asing, belanja digital dengan izin, grup tanpa ghibah, dan konten bermanfaat.
+- Teks UI diganti menjadi `Benteng Amanah Digital` agar arah pulau terasa lebih islami.
+- Visual gameplay dipoles menjadi misi menjaga benteng: ada gerbang/tower, badge prinsip adab digital, progress patroli, rule-card, dan tombol aksi tematik `Jaga Gerbang` / `Tahan Dulu`.
+- Revisi visual lanjutan: menambahkan packet data animatif dan panel scanner prinsip agar misi menjaga benteng terasa lebih hidup tanpa asset/dependency baru.
+- Mekanik, evidence key, XP, SFX pendek, dan kebijakan tanpa musik latar tetap dipertahankan.
+- Konten materi masih draft dan perlu validasi tim akademik/literasi digital Bright Academy.
+
+## 2026-09-25 - Kampung Adab Daily Life Simulator
+
+- Menambahkan mode baru `Adab Daily Life Simulator` di Kampung Adab.
+- Anak bisa masuk ke peta kampung kecil dan memilih lokasi rumah, sekolah, masjid, taman, atau warung amanah.
+- Setiap lokasi punya skenario pilihan sikap dengan feedback benar/baik/perlu diperbaiki, sehingga gameplay Adab tidak hanya berupa cerita bercabang.
+- Progress simulator disimpan di `localStorage` key `brightoria.adab.dailySimulator.v1` dan memberi XP ringan saat misi lokasi pertama kali selesai.
+- Mode story lama, Buku Kisah, evidence/mastery, dan kebijakan tanpa musik latar tetap dipertahankan.
+- Konten adab masih draft dan perlu validasi tim karakter/akademik Bright Academy sebelum rilis final.
+- Revisi lanjutan: mode simulator diganti menjadi eksplorasi `Kampung Adab 3D Kindness Quest` yang memakai Canvas Three.js, kontrol jalan keyboard/tombol layar, deteksi dekat NPC/lokasi, dan tombol `Bantu`.
+- Memasang 10 aset GLB lokal dari user untuk cottage, masjid, warung, sign/patung ilmu, serta NPC ibu/imam/teman/anak/wanderer.
+- Materi misi diperluas menjadi mini quest adab yang lebih hidup: membantu orang tua, adab belajar, menjaga masjid, berbagi/berdamai di taman, dan amanah saat membeli.
+- Fix kontrol 3D: layar simulator diperbesar, kamera bisa digeser dengan drag/wheel, tersedia tombol `Shift Lock`, keyboard WASD/arrow lebih stabil, dan tombol arah layar diganti joystick analog seperti mode Ekspedisi.
+- Revisi materi: 5 misi Kampung Adab diganti menjadi situasi kampung yang lebih naratif dan variatif: menyambut tamu/tetangga, adab majelis ilmu, merapikan sandal masjid, mendamaikan teman di taman, dan amanah di warung.
+
+## 2026-09-24 - Froggy water depth fix
+
+- Memperbaiki bidang air Froggy yang sebelumnya terlalu tinggi dan terlalu opaque sehingga terlihat seperti dinding air menutup background oasis sampai area langit.
+- Permukaan air diturunkan, opacity dikurangi, ukuran plane dirapikan, material dibuat lebih natural, dan `depthWrite` dimatikan agar background HD tetap terlihat menyatu.
+- Gameplay, soal, XP, evidence, dan kebijakan tanpa musik tidak berubah.
+
+## 2026-09-24 - Bri onboarding tour
+
+- Menambahkan tutorial awal saat anak pertama kali membuka Brightoria.
+- Bri menyapa dengan salam, menjelaskan bahwa ia akan memandu anak, dan memberi rekomendasi pulau pertama.
+- Tur memiliki 3 langkah, tombol `Mulai Tur`, `Lewati`, `Nanti Saja`, serta opsi memilih Kampung Adab sebagai rekomendasi pertama.
+- Aset karakter Bri dari PNG user diproses menjadi aset lokal transparan di `public/assets/onboarding/bri-guide.png`.
+- Revisi aset: Bri onboarding diganti memakai PNG remove-bg terbaru dan di-upscale menjadi 690x690 agar lebih tajam saat tampil besar.
+- Tutorial hanya muncul sekali dan menyimpan status di `localStorage`; tidak ada musik latar.
+
+## 2026-09-23 - Taman Al-Qur'an pixel Juz 30
+
+- Menambahkan mode baru `Taman Pixel Juz 30` di Taman Al-Qur'an.
+- Anak bisa menjelajah peta pixel-style dengan keyboard atau tombol arah layar, mendekati papan taman, lalu membaca surat pendek.
+- Mode awal berisi 7 pos surat: Al-Ikhlas, Al-Falaq, An-Nas, Al-Kawthar, Al-Asr, Quraisy, dan Al-Fil.
+- Progress bacaan disimpan terpisah dari evidence Hijaiyah agar koleksi huruf lama tetap aman.
+- Menambahkan TTS Arab untuk membaca surat dan SFX pendek saat membuka/menyelesaikan pos; tetap tanpa musik latar.
+- Revisi visual: memasang aset pixel PNG user untuk rumah, platform rumput, tile air animatif, jembatan, pagar, papan kayu, pohon, semak, ayam, dan sapi agar peta tidak polos.
+- Konten surat/latin masih draft dan perlu validasi akademik/tahsin Bright Academy sebelum rilis final.
+
+## 2026-09-23 - Numeria visual refresh
+
+- Arena Jembatan Numeria kini memakai background oasis/sungai dari aset PNG user sebagai layer belakang canvas 3D transparan.
+- Papan jembatan mendapat tekstur visual dari aset papan kayu/biru yang dikirim user, menggantikan balok polos lama.
+- Karakter penyeberang diganti ke model GLB `numeria-boxhead-backpacker.glb`.
+- Pilar ujung jembatan diganti ke model GLB outpost/banner Numeria baru.
+- Post-processing Numeria mempertahankan alpha canvas agar background HD tidak tertutup hitam.
+- Gameplay, evidence/mastery, XP, dan kebijakan tanpa musik tidak berubah.
+
+## 2026-09-23 - English Harbor platformer mode
+
+- Menambahkan mode baru `Word Harbor Run` di English Harbor.
+- Anak bisa menggerakkan karakter side-scroller dengan keyboard atau tombol layar untuk mencari kartu kata Inggris yang diminta.
+- Hasil run memakai kontrak evidence English Harbor yang sudah ada, sehingga kata yang berhasil ditemukan tersimpan di peti dan memberi XP ringan.
+- Revisi: runner kini memakai background, karakter, dan batu pijakan PNG dari aset user.
+- Revisi materi: runner tidak lagi hanya mencari kata; setiap batu/kartu jawaban kini terhubung ke quiz random Bahasa Inggris seperti vocabulary, category, clue reading, dan simple sentence.
+- Fix input quiz runner: jawaban hanya diproses saat karakter melompat dan mendarat dari atas platform jawaban; sentuhan samping atau overlap biasa tidak lagi memicu jawaban.
+- Revisi lanjutan: mekanik landing-answer diganti total menjadi papan quiz. Ada 7 papan sepanjang jalur; anak membuka quiz di papan lalu menjawab pilihan ganda dengan tap/klik.
+- Menambahkan aset papan kayu quiz, SFX benar/salah untuk pilihan jawaban, dan SFX lompat untuk kontrol runner.
+- Fix runner quiz: saat papan quiz aktif, karakter dikunci di posisi papan dan physics ditahan agar kaki lebih napak serta tidak jatuh setelah jawaban benar.
+- Tidak ada dependency baru dan tidak ada musik latar.
+
 ## 2026-09-22 - Froggy oasis arena
 
 - Menambahkan aset GLB baru untuk game Lompat Katak: lily pad, lotus, cattail grove, dua variasi lantern oasis, dan lotus leaf sign.

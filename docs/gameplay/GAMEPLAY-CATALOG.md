@@ -77,20 +77,29 @@ LO3: Anak mengalami (bukan dihafalkan) bahwa dua pecahan berbeda notasi
 Balok jembatan "melompat" ringan (scale + posisi Y) saat jawaban benar,
 confetti di scene 3D dan di layar ringkasan, kartu feedback punch singkat.
 
+### Visual Patch 2026-09-23
+Arena Numeria memakai background oasis/sungai lokal, papan bertekstur dari
+aset PNG user, karakter backpacker GLB, dan outpost GLB di kedua ujung
+jembatan. Perubahan ini visual saja; bukti mastery, XP, dan alur jawaban
+tetap sama.
+
 ---
 
-## 2. Benteng Digital — Aman dan Bijak Online (mekanik SELESAI)
+## 2. Benteng Digital — Amanah dan Bijak Online (mekanik SELESAI)
 
-### Game: Cyber Safety Sorter
+### Game: Benteng Amanah Digital
 Pemain menilai kartu situasi online sebagai "Aman" atau "Tidak aman", lalu
-menerima penjelasan. Tanpa visual menakutkan, tanpa representasi predator —
-umpan balik menjelaskan, bukan menghakimi.
+menerima penjelasan adab digital Islami. Tanpa visual menakutkan, tanpa
+representasi predator — umpan balik menjelaskan, bukan menghakimi.
+
+Visual gameplay memakai tema patroli benteng: gerbang, menara, packet data,
+scanner prinsip, progress patroli, dan kartu aturan ringkas.
 
 ```text
-LEVEL 1-5 (draft): permintaan kata sandi mencurigakan, tautan asing vs
-resmi (simulasi visual, tidak ada link sungguhan yang diklik), ajakan
-bertemu orang asing dari internet, membedakan info benar vs hoaks
-sederhana, level gabungan.
+LEVEL 1-10 (draft): amanah password, tabayyun sebelum menyebarkan kabar,
+komentar baik, menjaga aib teman, izin orang tua untuk akses aplikasi,
+waktu berkah, chat orang asing, pembelian digital dengan izin, grup tanpa
+ghibah, dan konten belajar yang bermanfaat.
 ```
 
 ### Juice Patch 10
@@ -155,6 +164,15 @@ bentuk juice tersendiri sejak Patch 09 — tidak diubah.
 - Mecanik drag-and-drop mencocokkan kartu gambar ke kartu kata hijaiyah.
 - Dilengkapi animasi tutorial demo otomatis untuk huruf baru, highlight target drop zone real-time, dan Web Speech API TTS Bahasa Arab.
 
+### Mode tambahan: Taman Pixel Juz 30 (Patch 2026-09-23)
+- Peta eksplorasi pixel-style bertema taman islami untuk membaca surat pendek.
+- Anak bergerak dengan keyboard atau tombol arah layar, mendekati papan taman, lalu membuka panel bacaan.
+- Versi awal berisi 7 pos surat: Al-Ikhlas, Al-Falaq, An-Nas, Al-Kawthar, Al-Asr, Quraisy, dan Al-Fil.
+- Progress bacaan disimpan terpisah dari evidence Hijaiyah supaya mastery huruf tidak berubah.
+- TTS Arab dan SFX pendek tersedia; tidak ada musik latar.
+- Visual map memakai aset pixel PNG lokal dari user: rumah, platform rumput, air, jembatan, pagar, papan kayu, pohon, semak, ayam, dan sapi.
+- Teks Arab/latin/urutan materi tetap draft sampai divalidasi tim akademik/tahsin Bright Academy.
+
 ---
 
 ## 5. Kampung Adab — Karakter dan Kebiasaan Baik (`AdabGame.tsx`)
@@ -162,6 +180,16 @@ bentuk juice tersendiri sejak Patch 09 — tidak diubah.
 ### Game: Branching Story "Kisah Pilihan" (Patch 26)
 - 8 bab skenario adab sehari-hari dengan 24 pilihan tindakan bercabang.
 - Penilaian 1-3 bintang tanpa vonis salah/hukuman, serta koleksi "Buku Kisah" untuk replay value.
+
+### Mode tambahan: Kampung Adab 3D Kindness Quest (Patch 2026-09-25)
+- Anak menjelajahi kampung 3D dengan kontrol keyboard atau tombol arah layar, mendekati warga/lokasi, lalu menekan `Bantu` untuk membuka misi.
+- Kamera mengikuti pola Ekspedisi: drag/wheel untuk lihat sekitar, tombol `Shift Lock`, dan joystick analog layar untuk perangkat sentuh.
+- Lima lokasi memakai aset GLB lokal dari user: rumah/cottage, majelis ilmu, masjid, taman/sign, dan warung amanah.
+- NPC 3D sementara memakai aset ibu, imam/guru, teman anak, anak berhijab, dan wanderer agar interaksi terasa seperti mini ekspedisi, bukan panel kuis.
+- Materi dibuat sebagai mini quest adab sehari-hari: membantu orang tua, adab majelis ilmu, menjaga masjid, meminta maaf/berbagi, dan amanah saat membeli.
+- Progress simulator disimpan terpisah di `brightoria.adab.dailySimulator.v1` agar koleksi kisah lama tetap aman.
+- Reward XP ringan diberikan saat misi lokasi pertama kali selesai; tidak ada musik latar.
+- Konten skenario tetap draft dan perlu validasi tim karakter/akademik Bright Academy sebelum rilis final.
 
 ---
 
@@ -172,6 +200,18 @@ bentuk juice tersendiri sejak Patch 09 — tidak diubah.
 - Menyusun ejaan kata target, animasi kapal berlayar ⛵, peti harta karun, dan Web Speech API TTS Bahasa Inggris.
 
 ---
+
+### Mode tambahan: Word Harbor Run (Patch 2026-09-23)
+- Side-scroller ringan di English Harbor: anak bergerak kiri/kanan, lompat,
+  lalu membuka 7 papan quiz kayu di sepanjang jalur.
+- Jawaban dipilih lewat tombol pilihan ganda di papan, bukan dari collision platform,
+  sehingga berjalan/menyentuh batu tidak memicu jawaban.
+- Saat papan quiz terbuka, runner diparkir di posisi papan dan physics ditahan
+  agar anak tidak jatuh setelah menjawab.
+- Materi runner mencakup vocabulary, kategori kata, reading clue, action word,
+  dan simple sentence.
+- Runner memakai background, karakter, batu pijakan, dan papan quiz PNG lokal dari aset user.
+- Mode ini memakai evidence English Harbor yang sama dan tidak menambah musik latar.
 
 ## Pola arsitektur wajib untuk SEMUA game baru
 

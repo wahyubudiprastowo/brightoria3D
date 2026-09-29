@@ -91,6 +91,10 @@ export const sfx = {
     tone(783.99, 0.09, 0.16, 'sine', 0.12);
   },
   /** Jawaban kurang tepat — dua nada rendah pelan (tidak mengejutkan). */
+  jump() {
+    tone(392, 0, 0.08, 'triangle', 0.09);
+    tone(587.33, 0.055, 0.11, 'triangle', 0.08);
+  },
   wrong() {
     tone(220, 0, 0.16, 'sine', 0.09);
     tone(174.61, 0.13, 0.2, 'sine', 0.08);

@@ -15,6 +15,7 @@ import {
 import { isEnglishTtsAvailable, speakEnglish } from './englishTts';
 import { HarborSky, SkyRays, SeaBubbles, WaterPlane } from './harborScene';
 import { Confetti, usePunch } from '../juice';
+import { sfx } from '../sound';
 
 /**
  * EnglishGame.tsx — Patch 32. "Pelabuhan Kata" dengan ATMOSFER 3D
@@ -105,10 +106,54 @@ const HARBOR_CSS = `
 .harbor-word-emoji { font-size: 22px; }
 .harbor-word-card b { font-size: 14px; color: #123a4d; }
 .harbor-word-card span { font-size: 10px; color: #3d6b80; }
+.harbor-run-card {
+  margin-bottom: 12px; border: 0; width: 100%; text-align: left; cursor: pointer;
+  border-radius: 20px; padding: 15px 16px; display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg,#f7d98d,#6dc8ee 58%,#5a79d8);
+  color: #123a4d; box-shadow: 0 12px 28px rgba(47,143,201,0.28);
+}
+.harbor-run-card-icon { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; background: rgba(255,255,255,0.82); font-size: 25px; flex-shrink: 0; }
+.harbor-run-card b { display: block; font-size: 16px; color: #123a4d; }
+.harbor-run-card span { display: block; font-size: 12px; color: #214e68; margin-top: 2px; line-height: 1.35; }
+.harbor-runner { position: relative; height: min(520px, calc(100vh - 180px)); min-height: 390px; border-radius: 24px; overflow: hidden; background: url('/assets/english-run/runner-background.png') center center / cover no-repeat, linear-gradient(#65c8f1 0%, #bfeefe 42%, #6cc07d 43%, #31884e 100%); box-shadow: inset 0 2px 18px rgba(18,58,77,0.18); touch-action: none; }
+.harbor-runner::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(15,82,65,0.16));
+  pointer-events: none;
+}
+.harbor-run-stage { position: absolute; inset: 0; transform-origin: 0 0; }
+.harbor-run-platform { position: absolute; height: 92px; background: url('/assets/english-run/stone-platform.png') center top / 100% 100% no-repeat; filter: drop-shadow(0 14px 12px rgba(0,0,0,0.24)); }
+.harbor-run-word { position: absolute; border: 3px solid #fff3c0; background: linear-gradient(180deg,#ffffff,#fff2cc); color: #123a4d; border-radius: 16px; padding: 8px 12px; min-width: 84px; text-align: center; font-weight: 900; box-shadow: 0 8px 18px rgba(18,58,77,0.25); }
+.harbor-run-word.good { background: linear-gradient(180deg,#e4fff2,#b6efd4); border-color: #3fbf7f; }
+.harbor-run-word.bad { background: linear-gradient(180deg,#fff1ec,#ffd2c6); border-color: #d9684d; }
+.harbor-run-player { position: absolute; width: 76px; height: 92px; transform: translate(-50%, -92%); background: url('/assets/english-run/runner-hero.png') center bottom / contain no-repeat; filter: drop-shadow(0 8px 8px rgba(0,0,0,0.24)); }
+.harbor-run-sign { position: absolute; width: 106px; height: 118px; transform: translate(-50%, -100%); background: url('/assets/english-run/quiz-sign.png') center bottom / contain no-repeat; filter: drop-shadow(0 8px 10px rgba(0,0,0,0.25)); display: grid; place-items: center; padding-top: 16px; color: #6b3b18; font-weight: 900; font-size: 16px; }
+.harbor-run-sign.done { opacity: 0.68; filter: grayscale(0.1) drop-shadow(0 8px 10px rgba(0,0,0,0.18)); }
+.harbor-run-hud { position: absolute; z-index: 3; left: 14px; right: 14px; top: 12px; display: flex; justify-content: space-between; gap: 8px; pointer-events: none; }
+.harbor-run-pill { background: rgba(255,255,255,0.92); border: 2px solid #b8ddf0; border-radius: 999px; padding: 7px 12px; font-size: 12px; font-weight: 900; color: #123a4d; box-shadow: 0 5px 14px rgba(18,58,77,0.2); }
+.harbor-run-prompt { position: absolute; z-index: 3; left: 50%; top: 52px; transform: translateX(-50%); width: min(520px, calc(100% - 24px)); background: rgba(255,255,255,0.94); border-radius: 18px; padding: 10px 18px; text-align: center; color: #123a4d; font-weight: 900; box-shadow: 0 8px 20px rgba(18,58,77,0.2); }
+.harbor-run-prompt span { display: block; font-size: 11px; color: #3d6b80; font-weight: 800; margin-top: 2px; }
+.harbor-run-controls { position: absolute; z-index: 4; left: 15px; right: 15px; bottom: 14px; display: flex; justify-content: space-between; pointer-events: none; }
+.harbor-run-pad { display: flex; gap: 10px; pointer-events: auto; }
+.harbor-run-button { width: 56px; height: 56px; border: 0; border-radius: 50%; background: rgba(255,255,255,0.82); color: #2f8fc9; font-size: 24px; font-weight: 900; box-shadow: 0 8px 18px rgba(18,58,77,0.25); }
+.harbor-run-button.jump { width: 70px; border-radius: 999px; }
+.harbor-run-complete { position: absolute; z-index: 5; inset: 0; display: grid; place-items: center; background: rgba(18,58,77,0.32); backdrop-filter: blur(3px); }
+.harbor-run-complete-card { width: min(360px, calc(100% - 34px)); background: #fffaf3; border-radius: 24px; padding: 22px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.28); }
+.harbor-run-complete-card h3 { margin: 8px 0 4px; color: #123a4d; }
+.harbor-run-complete-card p { margin: 0 0 14px; color: #3d6b80; font-size: 13px; }
+.harbor-run-quiz { position: absolute; z-index: 6; inset: 0; display: grid; place-items: center; background: rgba(18,58,77,0.22); backdrop-filter: blur(2px); }
+.harbor-run-quiz-board { width: min(520px, calc(100% - 28px)); min-height: 300px; background: url('/assets/english-run/quiz-sign.png') center center / 100% 100% no-repeat; padding: 58px 54px 46px; text-align: center; color: #4b2710; filter: drop-shadow(0 18px 30px rgba(0,0,0,0.32)); }
+.harbor-run-quiz-board h3 { margin: 0 0 8px; font-size: 18px; line-height: 1.25; color: #4b2710; }
+.harbor-run-quiz-board p { margin: 0 0 12px; font-size: 12px; font-weight: 900; color: #7a4a20; }
+.harbor-run-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.harbor-run-option { border: 2px solid rgba(101,57,22,0.4); background: rgba(255,249,221,0.92); color: #4b2710; border-radius: 13px; padding: 10px 8px; font-weight: 900; font-family: inherit; cursor: pointer; box-shadow: 0 5px 0 rgba(101,57,22,0.18); }
+.harbor-run-option.correct { background: #dff7d9; border-color: #3fbf7f; }
+.harbor-run-option.wrong { background: #ffd6c8; border-color: #d9684d; }
 @media (max-width: 700px) {
   .harbor-shell { padding: 18px; }
   .harbor-canvas-wrap { height: 280px; }
   .harbor-puzzle-blanks { font-size: 26px; }
+  .harbor-runner { min-height: 360px; }
 }
 `;
 
@@ -307,7 +352,572 @@ function PuzzleScene({
   );
 }
 
-type View = 'map' | 'intro' | 'puzzle' | 'result' | 'collection';
+const RUNNER_LEVEL = {
+  width: 1380,
+  height: 440,
+  start: { x: 84, y: 318 },
+  platforms: [
+    { x: 0, y: 372, w: 260 },
+    { x: 300, y: 330, w: 190 },
+    { x: 545, y: 292, w: 190 },
+    { x: 790, y: 334, w: 190 },
+    { x: 1035, y: 292, w: 190 },
+    { x: 1240, y: 350, w: 200 },
+  ],
+};
+
+type RunnerQuestion = {
+  id: string;
+  prompt: string;
+  helper: string;
+  answer: string;
+  options: string[];
+  rewardWordId: string;
+};
+
+const RUNNER_QUIZ_BANK: RunnerQuestion[] = [
+  { id: 'meaning-cat', prompt: 'Which word means "kucing"?', helper: 'Vocabulary', answer: 'CAT', options: ['CAT', 'SUN', 'BOOK'], rewardWordId: 'e1' },
+  { id: 'meaning-sun', prompt: 'Which word means "matahari"?', helper: 'Vocabulary', answer: 'SUN', options: ['MOON', 'SUN', 'SHIP'], rewardWordId: 'e2' },
+  { id: 'meaning-book', prompt: 'Which word means "buku"?', helper: 'Vocabulary', answer: 'BOOK', options: ['BIRD', 'BOOK', 'FISH'], rewardWordId: 'e6' },
+  { id: 'animal-dog', prompt: 'Which one is an animal?', helper: 'Category', answer: 'DOG', options: ['DOG', 'KITE', 'MOON'], rewardWordId: 'e3' },
+  { id: 'animal-fish', prompt: 'Choose a sea animal.', helper: 'Category', answer: 'FISH', options: ['TREE', 'FISH', 'STAR'], rewardWordId: 'e5' },
+  { id: 'sky-moon', prompt: 'We can see it in the night sky.', helper: 'Reading clue', answer: 'MOON', options: ['MOON', 'DUCK', 'BOOK'], rewardWordId: 'e12' },
+  { id: 'sentence-cat', prompt: 'Complete: I see a ___.', helper: 'Simple sentence', answer: 'CAT', options: ['CAT', 'BLUE', 'RUN'], rewardWordId: 'e1' },
+  { id: 'sentence-ship', prompt: 'Complete: The ___ sails on water.', helper: 'Simple sentence', answer: 'SHIP', options: ['TREE', 'SHIP', 'BIRD'], rewardWordId: 'e4' },
+  { id: 'color-blue', prompt: 'Which word is a color?', helper: 'Basic words', answer: 'BLUE', options: ['BLUE', 'DOG', 'KITE'], rewardWordId: 'e2' },
+  { id: 'verb-run', prompt: 'Which word means "berlari"?', helper: 'Action word', answer: 'RUN', options: ['RUN', 'STAR', 'BOOK'], rewardWordId: 'e8' },
+];
+
+function EnglishRunner({
+  words,
+  onBack,
+  onFinish,
+}: {
+  words: typeof islands;
+  onBack: () => void;
+  onFinish: (wordId: string, mistakes: number) => void;
+}) {
+  const unlockedIds = useMemo(() => new Set(words.map((word) => word.id)), [words]);
+  const questions = useMemo(() => {
+    const available = RUNNER_QUIZ_BANK.filter((question) => unlockedIds.has(question.rewardWordId));
+    return shuffleArr(available.length ? available : RUNNER_QUIZ_BANK).slice(0, 4);
+  }, [unlockedIds]);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const target = questions[questionIndex] ?? RUNNER_QUIZ_BANK[0];
+  const cards = useMemo(
+    () =>
+      shuffleArr(target.options).map((option, i) => ({
+        id: `${target.id}-${option}`,
+        text: option,
+        correct: option === target.answer,
+        platformIndex: Math.min(i + 1, RUNNER_LEVEL.platforms.length - 1),
+        x: 350 + i * 250,
+        y: RUNNER_LEVEL.platforms[Math.min(i + 1, RUNNER_LEVEL.platforms.length - 1)].y - 24,
+      })),
+    [target],
+  );
+
+  const keys = useRef({ left: false, right: false, jump: false });
+  const hitLock = useRef(false);
+  const body = useRef({ x: RUNNER_LEVEL.start.x, y: RUNNER_LEVEL.start.y, vx: 0, vy: 0, grounded: false });
+  const [snap, setSnap] = useState(body.current);
+  const [cameraX, setCameraX] = useState(0);
+  const [answered, setAnswered] = useState<Set<string>>(new Set());
+  const [mistakes, setMistakes] = useState(0);
+  const [done, setDone] = useState(false);
+  const [flashId, setFlashId] = useState<string | null>(null);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [isGrounded, setIsGrounded] = useState(true);
+  const [isJumping, setIsJumping] = useState(false);
+  const [hasLeftGround, setHasLeftGround] = useState(false);
+  const [hasAnswered, setHasAnswered] = useState(false);
+  const landingState = useRef({
+    isGrounded: true,
+    isJumping: false,
+    hasLeftGround: false,
+    hasAnswered: false,
+  });
+
+  function setLandingState(next: Partial<typeof landingState.current>) {
+    const prev = landingState.current;
+    landingState.current = { ...prev, ...next };
+    if (next.isGrounded !== undefined && next.isGrounded !== prev.isGrounded) setIsGrounded(next.isGrounded);
+    if (next.isJumping !== undefined && next.isJumping !== prev.isJumping) setIsJumping(next.isJumping);
+    if (next.hasLeftGround !== undefined && next.hasLeftGround !== prev.hasLeftGround) setHasLeftGround(next.hasLeftGround);
+    if (next.hasAnswered !== undefined && next.hasAnswered !== prev.hasAnswered) setHasAnswered(next.hasAnswered);
+  }
+
+  function resetAnswerState() {
+    setLandingState({ hasAnswered: false, hasLeftGround: false, isJumping: false });
+  }
+
+  function processAnswer(card: (typeof cards)[number]) {
+    if (landingState.current.hasAnswered) return;
+    setLandingState({ hasAnswered: true });
+    hitLock.current = true;
+    setTimeout(() => {
+      hitLock.current = false;
+    }, 420);
+    setFlashId(card.id);
+    setTimeout(() => setFlashId(null), 320);
+    const goNext = () => {
+      if (questionIndex + 1 >= questions.length) {
+        setDone(true);
+      } else {
+        setQuestionIndex((i) => i + 1);
+        setAnswered(new Set());
+        resetAnswerState();
+        body.current.x = RUNNER_LEVEL.start.x;
+        body.current.y = RUNNER_LEVEL.start.y;
+        body.current.vx = 0;
+        body.current.vy = 0;
+        body.current.grounded = true;
+      }
+    };
+    if (card.correct) {
+      setAnswered((prev) => new Set(prev).add(card.id));
+      setCorrectCount((count) => count + 1);
+      setTimeout(goNext, 480);
+    } else {
+      setAnswered((prev) => new Set(prev).add(card.id));
+      setMistakes((m) => m + 1);
+      setTimeout(goNext, 650);
+    }
+  }
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const key = e.key.toLowerCase();
+      if (key === 'arrowleft' || key === 'a') keys.current.left = e.type === 'keydown';
+      if (key === 'arrowright' || key === 'd') keys.current.right = e.type === 'keydown';
+      if (key === ' ' || key === 'arrowup' || key === 'w') {
+        e.preventDefault();
+        keys.current.jump = e.type === 'keydown';
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('keyup', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('keyup', onKey);
+    };
+  }, []);
+
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      const p = body.current;
+      const move = (keys.current.right ? 1 : 0) - (keys.current.left ? 1 : 0);
+      p.vx = move * 265;
+      if (keys.current.jump && p.grounded) {
+        p.vy = -520;
+        p.grounded = false;
+        setLandingState({ isGrounded: false, isJumping: true, hasLeftGround: true });
+      }
+      p.vy += 1150 * dt;
+      p.x = THREE.MathUtils.clamp(p.x + p.vx * dt, 30, RUNNER_LEVEL.width - 30);
+      p.y += p.vy * dt;
+
+      p.grounded = false;
+      let landedThisFrame = false;
+      for (let platformIndex = 0; platformIndex < RUNNER_LEVEL.platforms.length; platformIndex++) {
+        const platform = RUNNER_LEVEL.platforms[platformIndex];
+        const prevBottom = p.y - p.vy * dt;
+        const footInset = 18;
+        const withinX = p.x > platform.x + footInset && p.x < platform.x + platform.w - footInset;
+        const fallingOntoTop = prevBottom <= platform.y && p.y >= platform.y && p.vy >= 0;
+        if (withinX && fallingOntoTop) {
+          p.y = platform.y;
+          p.vy = 0;
+          p.grounded = true;
+          landedThisFrame = true;
+          setLandingState({ isGrounded: true, isJumping: false });
+          const answerCard = cards.find(
+            (card) =>
+              card.platformIndex === platformIndex &&
+              Math.abs(p.x - card.x) <= Math.max(34, platform.w * 0.36),
+          );
+          if (
+            answerCard &&
+            !hitLock.current &&
+            !answered.has(answerCard.id) &&
+            landingState.current.hasLeftGround &&
+            !landingState.current.hasAnswered
+          ) {
+            processAnswer(answerCard);
+          }
+          setLandingState({ hasLeftGround: false });
+          break;
+        }
+      }
+      if (!landedThisFrame) setLandingState({ isGrounded: false });
+      if (p.y > RUNNER_LEVEL.height + 80) {
+        p.x = RUNNER_LEVEL.start.x;
+        p.y = RUNNER_LEVEL.start.y;
+        p.vx = 0;
+        p.vy = 0;
+        p.grounded = false;
+        resetAnswerState();
+      }
+
+      setSnap({ ...p });
+      setCameraX(THREE.MathUtils.clamp(p.x - 260, 0, RUNNER_LEVEL.width - 720));
+      if (!done) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [answered, cards, done, questionIndex, questions.length]);
+
+  function press(name: 'left' | 'right' | 'jump', value: boolean) {
+    keys.current[name] = value;
+  }
+
+  return (
+    <div>
+      <div className="harbor-runner">
+        <div className="harbor-run-hud">
+          <span className="harbor-run-pill">🏃 Word Harbor Run</span>
+          <span className="harbor-run-pill">
+            {correctCount}/{questions.length} benar
+          </span>
+          <span className="harbor-run-pill">
+            {hasAnswered ? 'Terjawab' : isJumping || hasLeftGround ? 'Lompat' : isGrounded ? 'Mendarat' : 'Jatuh'}
+          </span>
+        </div>
+        <div className="harbor-run-prompt">
+          {target.prompt}
+          <span>
+            {target.helper} &bull; Salah: {mistakes}
+          </span>
+        </div>
+        <div className="harbor-run-stage" style={{ transform: `translateX(${-cameraX}px)` }}>
+          {RUNNER_LEVEL.platforms.map((p, i) => (
+            <div
+              key={i}
+              className="harbor-run-platform"
+              style={{ left: p.x, top: p.y, width: p.w }}
+            />
+          ))}
+          {cards.map((card) => (
+            <div
+              key={card.id}
+              className={
+                'harbor-run-word' +
+                (answered.has(card.id) ? ' good' : '') +
+                (flashId === card.id && !card.correct ? ' bad' : '')
+              }
+              style={{ left: card.x - 46, top: card.y - 75 }}
+            >
+              {card.text}
+            </div>
+          ))}
+          <div className="harbor-run-player" style={{ left: snap.x, top: snap.y }} />
+        </div>
+        <div className="harbor-run-controls">
+          <div className="harbor-run-pad">
+            <button
+              className="harbor-run-button"
+              onPointerDown={() => press('left', true)}
+              onPointerUp={() => press('left', false)}
+              onPointerLeave={() => press('left', false)}
+            >
+              ‹
+            </button>
+            <button
+              className="harbor-run-button"
+              onPointerDown={() => press('right', true)}
+              onPointerUp={() => press('right', false)}
+              onPointerLeave={() => press('right', false)}
+            >
+              ›
+            </button>
+          </div>
+          <button
+            className="harbor-run-button jump"
+            onPointerDown={() => press('jump', true)}
+            onPointerUp={() => press('jump', false)}
+            onPointerLeave={() => press('jump', false)}
+          >
+            ↑
+          </button>
+        </div>
+        {done && (
+          <div className="harbor-run-complete">
+            <div className="harbor-run-complete-card">
+              <div className="harbor-intro-emoji">🏆</div>
+              <h3>Quiz selesai!</h3>
+              <p>{mistakes === 0 ? 'Perfect run!' : `${questions.length} pertanyaan selesai dengan ${mistakes} salah.`}</p>
+              <button className="harbor-primary-btn" style={{ maxWidth: 'none' }} onClick={() => onFinish(target.rewardWordId, mistakes)}>
+                Simpan hasil <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      <button className="harbor-ghost-btn" style={{ marginTop: 12, width: '100%' }} onClick={onBack}>
+        Kembali ke English Harbor
+      </button>
+    </div>
+  );
+}
+
+type View = 'map' | 'intro' | 'puzzle' | 'result' | 'collection' | 'runner';
+
+const RUNNER_QUIZ_LEVEL = {
+  width: 2680,
+  height: 440,
+  start: { x: 84, y: 332 },
+  platforms: [
+    { x: 0, y: 372, w: 260 },
+    { x: 300, y: 346, w: 190 },
+    { x: 540, y: 302, w: 190 },
+    { x: 780, y: 346, w: 190 },
+    { x: 1020, y: 302, w: 190 },
+    { x: 1260, y: 346, w: 190 },
+    { x: 1500, y: 302, w: 190 },
+    { x: 1740, y: 346, w: 190 },
+    { x: 1980, y: 302, w: 190 },
+    { x: 2220, y: 346, w: 190 },
+    { x: 2460, y: 372, w: 220 },
+  ],
+};
+
+function EnglishRunnerQuiz({
+  onBack,
+  onFinish,
+}: {
+  onBack: () => void;
+  onFinish: (wordId: string, mistakes: number) => void;
+}) {
+  const questions = useMemo(() => shuffleArr(RUNNER_QUIZ_BANK).slice(0, 7), []);
+  const stations = useMemo(
+    () =>
+      questions.map((question, i) => {
+        const platformIndex = Math.min(2 + i, RUNNER_QUIZ_LEVEL.platforms.length - 1);
+        const platform = RUNNER_QUIZ_LEVEL.platforms[platformIndex];
+        return { question, x: platform.x + platform.w / 2, y: platform.y };
+      }),
+    [questions],
+  );
+  const keys = useRef({ left: false, right: false, jump: false });
+  const body = useRef({ x: RUNNER_QUIZ_LEVEL.start.x, y: RUNNER_QUIZ_LEVEL.start.y, vx: 0, vy: 0, grounded: false });
+  const [snap, setSnap] = useState(body.current);
+  const [cameraX, setCameraX] = useState(0);
+  const [answered, setAnswered] = useState<Record<string, 'correct' | 'wrong'>>({});
+  const [activeStation, setActiveStation] = useState<number | null>(null);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [mistakes, setMistakes] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const key = e.key.toLowerCase();
+      if (key === 'arrowleft' || key === 'a') keys.current.left = e.type === 'keydown';
+      if (key === 'arrowright' || key === 'd') keys.current.right = e.type === 'keydown';
+      if (key === ' ' || key === 'arrowup' || key === 'w') {
+        e.preventDefault();
+        keys.current.jump = e.type === 'keydown';
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('keyup', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('keyup', onKey);
+    };
+  }, []);
+
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      const p = body.current;
+      if (activeStation !== null) {
+        const station = stations[activeStation];
+        if (station) {
+          p.x = station.x;
+          p.y = station.y;
+          p.vx = 0;
+          p.vy = 0;
+          p.grounded = true;
+          keys.current.left = false;
+          keys.current.right = false;
+          keys.current.jump = false;
+          setSnap({ ...p });
+          setCameraX(THREE.MathUtils.clamp(p.x - 280, 0, RUNNER_QUIZ_LEVEL.width - 720));
+        }
+        if (!done) raf = requestAnimationFrame(tick);
+        return;
+      }
+
+      const move = (keys.current.right ? 1 : 0) - (keys.current.left ? 1 : 0);
+      p.vx = move * 270;
+      if (keys.current.jump && p.grounded) {
+        p.vy = -530;
+        p.grounded = false;
+        sfx.jump();
+      }
+      p.vy += 1160 * dt;
+      p.x = THREE.MathUtils.clamp(p.x + p.vx * dt, 30, RUNNER_QUIZ_LEVEL.width - 30);
+      p.y += p.vy * dt;
+
+      p.grounded = false;
+      for (const platform of RUNNER_QUIZ_LEVEL.platforms) {
+        const prevBottom = p.y - p.vy * dt;
+        const withinX = p.x > platform.x + 18 && p.x < platform.x + platform.w - 18;
+        const landed = withinX && prevBottom <= platform.y && p.y >= platform.y && p.vy >= 0;
+        if (landed) {
+          p.y = platform.y;
+          p.vy = 0;
+          p.grounded = true;
+          break;
+        }
+      }
+      if (p.y > RUNNER_QUIZ_LEVEL.height + 100) {
+        p.x = RUNNER_QUIZ_LEVEL.start.x;
+        p.y = RUNNER_QUIZ_LEVEL.start.y;
+        p.vx = 0;
+        p.vy = 0;
+      }
+
+      if (activeStation === null && p.grounded) {
+        const index = stations.findIndex(
+          (station) => !answered[station.question.id] && Math.abs(p.x - station.x) < 62 && Math.abs(p.y - station.y) < 34,
+        );
+        if (index >= 0) {
+          setActiveStation(index);
+          setSelectedOption(null);
+        }
+      }
+
+      setSnap({ ...p });
+      setCameraX(THREE.MathUtils.clamp(p.x - 280, 0, RUNNER_QUIZ_LEVEL.width - 720));
+      if (!done) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [activeStation, answered, done, stations]);
+
+  function pointerPress(e: React.PointerEvent<HTMLButtonElement>, name: 'left' | 'right' | 'jump', value: boolean) {
+    e.preventDefault();
+    if (value && !e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.setPointerCapture(e.pointerId);
+    if (!value && e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+    keys.current[name] = value;
+  }
+
+  function answer(option: string) {
+    if (activeStation === null || selectedOption !== null) return;
+    const station = stations[activeStation];
+    const question = station.question;
+    const correct = option === question.answer;
+    const p = body.current;
+    p.x = station.x;
+    p.y = station.y;
+    p.vx = 0;
+    p.vy = 0;
+    p.grounded = true;
+    setSnap({ ...p });
+    setSelectedOption(option);
+    setAnswered((prev) => ({ ...prev, [question.id]: correct ? 'correct' : 'wrong' }));
+    if (correct) {
+      sfx.correct();
+      setCorrectCount((count) => count + 1);
+    } else {
+      sfx.wrong();
+      setMistakes((count) => count + 1);
+    }
+    setTimeout(() => {
+      keys.current.left = false;
+      keys.current.right = false;
+      keys.current.jump = false;
+      setActiveStation(null);
+      setSelectedOption(null);
+      if (Object.keys(answered).length + 1 >= stations.length) setDone(true);
+    }, 720);
+  }
+
+  const activeQuestion = activeStation === null ? null : stations[activeStation].question;
+
+  return (
+    <div>
+      <div className="harbor-runner">
+        <div className="harbor-run-hud">
+          <span className="harbor-run-pill">Word Harbor Run</span>
+          <span className="harbor-run-pill">{correctCount}/{stations.length} benar</span>
+          <span className="harbor-run-pill">Salah: {mistakes}</span>
+        </div>
+        <div className="harbor-run-prompt">
+          Lompat dan berhenti di papan quiz.
+          <span>Jawab pilihan ganda di papan kayu. Tidak ada auto-answer saat lewat.</span>
+        </div>
+        <div className="harbor-run-stage" style={{ transform: `translateX(${-cameraX}px)` }}>
+          {RUNNER_QUIZ_LEVEL.platforms.map((p, i) => (
+            <div key={i} className="harbor-run-platform" style={{ left: p.x, top: p.y, width: p.w }} />
+          ))}
+          {stations.map((station, i) => (
+            <div
+              key={station.question.id}
+              className={'harbor-run-sign' + (answered[station.question.id] ? ' done' : '')}
+              style={{ left: station.x, top: station.y - 8 }}
+            >
+              {i + 1}
+            </div>
+          ))}
+          <div className="harbor-run-player" style={{ left: snap.x, top: snap.y }} />
+        </div>
+        <div className="harbor-run-controls">
+          <div className="harbor-run-pad">
+            <button type="button" className="harbor-run-button" onPointerDown={(e) => pointerPress(e, 'left', true)} onPointerUp={(e) => pointerPress(e, 'left', false)} onPointerCancel={(e) => pointerPress(e, 'left', false)} onPointerLeave={(e) => pointerPress(e, 'left', false)}>‹</button>
+            <button type="button" className="harbor-run-button" onPointerDown={(e) => pointerPress(e, 'right', true)} onPointerUp={(e) => pointerPress(e, 'right', false)} onPointerCancel={(e) => pointerPress(e, 'right', false)} onPointerLeave={(e) => pointerPress(e, 'right', false)}>›</button>
+          </div>
+          <button type="button" className="harbor-run-button jump" onPointerDown={(e) => pointerPress(e, 'jump', true)} onPointerUp={(e) => pointerPress(e, 'jump', false)} onPointerCancel={(e) => pointerPress(e, 'jump', false)} onPointerLeave={(e) => pointerPress(e, 'jump', false)}>↑</button>
+        </div>
+        {activeQuestion && (
+          <div className="harbor-run-quiz">
+            <div className="harbor-run-quiz-board">
+              <h3>{activeQuestion.prompt}</h3>
+              <p>{activeQuestion.helper}</p>
+              <div className="harbor-run-options">
+                {activeQuestion.options.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    className={'harbor-run-option' + (selectedOption === option ? (option === activeQuestion.answer ? ' correct' : ' wrong') : '')}
+                    onClick={() => answer(option)}
+                    disabled={selectedOption !== null}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        {done && (
+          <div className="harbor-run-complete">
+            <div className="harbor-run-complete-card">
+              <div className="harbor-intro-emoji">🏆</div>
+              <h3>Quiz selesai!</h3>
+              <p>{mistakes === 0 ? 'Perfect run!' : `${stations.length} papan quiz selesai dengan ${mistakes} salah.`}</p>
+              <button className="harbor-primary-btn" style={{ maxWidth: 'none' }} onClick={() => onFinish(stations[0]?.question.rewardWordId ?? 'e1', mistakes)}>
+                Simpan hasil <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      <button className="harbor-ghost-btn" style={{ marginTop: 12, width: '100%' }} onClick={onBack}>
+        Kembali ke English Harbor
+      </button>
+    </div>
+  );
+}
 
 export default function EnglishGame({
   onExit,
@@ -414,6 +1024,22 @@ export default function EnglishGame({
     setActiveIslandId(null);
   }
 
+  function startRunner() {
+    const firstOpen = islands.find((island, i) => isIslandUnlocked(i, evidence)) ?? islands[0];
+    setActiveIslandId(firstOpen.id);
+    setView('runner');
+  }
+
+  function finishRunner(wordId: string, runnerMistakes: number) {
+    const next = recordIslandResult(evidence, wordId, runnerMistakes, wordId);
+    setEvidence(next);
+    saveEvidence(next);
+    const stars = next.islands[wordId].stars;
+    onXpEarned(8 + stars * 8);
+    setConfettiTick((n) => n + 1);
+    setView('map');
+  }
+
   function handleSpeak(text: string, e?: React.MouseEvent) {
     e?.stopPropagation();
     speakEnglish(text);
@@ -437,11 +1063,17 @@ export default function EnglishGame({
             <h2>
               {view === 'map' && 'Pelabuhan Kata — 12 Pulau Petualangan'}
               {(view === 'intro' || view === 'puzzle' || view === 'result') && `Pulau ${activeIsland?.islandNumber}`}
+              {view === 'runner' && 'Word Harbor Run'}
               {view === 'collection' && 'Peti Harta Karun'}
             </h2>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             {(view === 'intro' || view === 'puzzle') && (
+              <button className="harbor-ghost-small" onClick={backToMap}>
+                Peta
+              </button>
+            )}
+            {view === 'runner' && (
               <button className="harbor-ghost-small" onClick={backToMap}>
                 Peta
               </button>
@@ -470,6 +1102,14 @@ export default function EnglishGame({
               </div>
               <span>{overallMastery}% mastery &bull; berlayar dari Pulau 1, susun kata demi kata!</span>
             </div>
+            <button className="harbor-run-card" onClick={startRunner}>
+              <span className="harbor-run-card-icon">🏃</span>
+              <span>
+                <b>Word Harbor Run</b>
+                <span>Lari, lompat, dan ambil kartu kata Inggris yang diminta.</span>
+              </span>
+              <ChevronRight size={20} />
+            </button>
             <div className="harbor-islands-grid">
               {islands.map((island, i) => {
                 const progress = evidence.islands[island.id];
@@ -590,6 +1230,13 @@ export default function EnglishGame({
               </button>
             </div>
           </div>
+        )}
+
+        {view === 'runner' && (
+          <EnglishRunnerQuiz
+            onBack={backToMap}
+            onFinish={finishRunner}
+          />
         )}
 
         {view === 'collection' && (
