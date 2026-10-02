@@ -451,6 +451,7 @@ function FractionBar({ fraction }: { fraction: Fraction }) {
 }
 
 function VisualRow({ visual }: { visual: MathVisual }) {
+  if (visual.fractions.length === 0) return null;
   return (
     <div className="skr-visual">
       {visual.fractions.map((f, i) => (
@@ -1350,7 +1351,7 @@ const setLane = useCallback(
                 <span className="skr-topic-body">
                   <span className="skr-topic-title">Angka</span>
                   <span className="skr-topic-desc">
-                    Pecahan dengan tingkat kesulitan yang menyesuaikan kemampuanmu
+                    Operasi hitung dengan tingkat kesulitan yang menyesuaikan kemampuanmu
                   </span>
                   <span className="skr-topic-tag level">Tidak pernah habis</span>
                 </span>

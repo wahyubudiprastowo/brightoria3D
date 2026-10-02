@@ -29,7 +29,7 @@ import FroggyGame from './froggy/FroggyGame';
  *      kerja itu.
  *
  *   2. Sumber materinya SAMA PERSIS — kata-kata yang sudah dikuasai
- *      anak, plus soal pecahan yang dihasilkan prosedural. Secara
+ *      anak, plus soal operasi hitung yang dihasilkan prosedural. Secara
  *      arsitektur ketiganya memang bersaudara.
  *
  * ====================================================================
@@ -391,7 +391,7 @@ function ModeChooser({
 
         {poolSize > 0 && (
           <div className="bdp-disclaimer">
-            Ketiganya memakai {poolSize} kata yang sudah kamu kuasai, ditambah soal pecahan yang
+            Ketiganya memakai {poolSize} kata yang sudah kamu kuasai, ditambah soal operasi hitung yang
             dihasilkan otomatis. Latihan Tenang mengatur jadwal pengulangan; dua mode 3D murni
             latihan tambahan.
           </div>

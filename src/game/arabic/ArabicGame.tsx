@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import {
   BookOpen,
   ChevronRight,
   Lightbulb,
   Lock,
   RotateCcw,
-  Store,
   Star,
   Volume2,
   X,
@@ -25,9 +24,10 @@ import { Confetti, StreakBadge, usePunch, useStreak } from '../juice';
 import ModelPreview from '../../components/world3d/ModelPreview';
 import { modelUrls } from '../../components/world3d/LocalModel';
 import ArabicMarketGame from './ArabicMarketGame';
+import ArabicHandNumbersGame from './ArabicHandNumbersGame';
 
 /**
- * ArabicGame.tsx — Patch 25 (URUTAN ALUR DIPERBAIKI + tema per-pos untuk
+ * ArabicGame.tsx â€” Patch 25 (URUTAN ALUR DIPERBAIKI + tema per-pos untuk
  * mode Cocokkan Kartu).
  *
  * ====================================================================
@@ -35,34 +35,34 @@ import ArabicMarketGame from './ArabicMarketGame';
  * ====================================================================
  *
  * 1. "Di semua peta ada main cocok-cocokan gak dibeda-bedain per tiap
- *    level?" — BENAR, Patch 24 memakai ikon kartu belakang yang SAMA
- *    PERSIS (🌴 pohon palem hijau) untuk SEMUA 16 pos kosakata, tanpa
+ *    level?" â€” BENAR, Patch 24 memakai ikon kartu belakang yang SAMA
+ *    PERSIS (ðŸŒ´ pohon palem hijau) untuk SEMUA 16 pos kosakata, tanpa
  *    ada pembeda visual sama sekali antar kategori pelajaran.
  *
  *    PERBAIKAN: setiap pos sekarang memakai IKON PELAJARANNYA SENDIRI
- *    (mis. 📚 untuk Ruang Kelas, 🔢 untuk Angka, 👨‍👩‍👧‍👦 untuk Keluarga)
+ *    (mis. ðŸ“š untuk Ruang Kelas, ðŸ”¢ untuk Angka, ðŸ‘¨â€ðŸ‘©â€ðŸ‘§â€ðŸ‘¦ untuk Keluarga)
  *    sebagai sisi belakang kartu, DAN warna kartu memakai aksen warna
  *    kategori yang sama seperti di peta (siklus 5 warna: teal, coral,
- *    emas, plum, biru) — sehingga tiap pos terasa unik dan mudah
+ *    emas, plum, biru) â€” sehingga tiap pos terasa unik dan mudah
  *    dikenali, bukan lagi generik.
  *
  * 2. "Kayaknya main cocok-cocokan itu di last setelah pemahaman yang
- *    perkata yang pilihan" — user BENAR secara pedagogis. Patch 24
+ *    perkata yang pilihan" â€” user BENAR secara pedagogis. Patch 24
  *    menaruh Cocokkan Kartu SEBELUM kuis, padahal urutan yang tepat
  *    (dari beban kognitif RINGAN ke BERAT) seharusnya:
  *
- *      a. Kartu-flash (Learn)   — kenalan kata satu-per-satu, TANPA
+ *      a. Kartu-flash (Learn)   â€” kenalan kata satu-per-satu, TANPA
  *                                  tekanan, tanpa perlu mengingat.
- *      b. Kuis pilihan ganda    — uji ingatan, TAPI masih dibantu opsi
+ *      b. Kuis pilihan ganda    â€” uji ingatan, TAPI masih dibantu opsi
  *                                  jawaban (recall BERBANTUAN).
- *      c. Cocokkan kartu        — ujian akhir, harus mengingat MANDIRI
+ *      c. Cocokkan kartu        â€” ujian akhir, harus mengingat MANDIRI
  *                                  tanpa opsi bantuan sama sekali
  *                                  (recall MANDIRI, paling menantang).
  *
  *    PERBAIKAN: alur untuk 16 pos kosakata sekarang:
  *      Peta -> Intro -> Learn -> Kuis -> COCOKKAN (final) -> Hasil
  *    Pelajaran 1 (dialog salam) TETAP: Peta -> Intro -> Learn -> Kuis ->
- *    Hasil (TANPA fase cocokkan — kalimat dialog penuh tidak natural
+ *    Hasil (TANPA fase cocokkan â€” kalimat dialog penuh tidak natural
  *    dipotong jadi kartu pendek untuk dicocokkan).
  * ====================================================================
  */
@@ -75,7 +75,7 @@ const OLD_STYLE_IDS = [
 ];
 const FONT_LINK_ID = 'brightoria-oasis-arabic-font';
 
-/** Palet warna kategori — di-cycle per nomor pelajaran. Sekarang juga
+/** Palet warna kategori â€” di-cycle per nomor pelajaran. Sekarang juga
  *  dipakai untuk mewarnai kartu tertutup pada mode Cocokkan (Patch 25),
  *  sehingga tiap pos punya identitas visual sendiri, bukan generik. */
 const ACCENTS = [
@@ -126,9 +126,22 @@ const OASIS_CSS = `
 }
 .oasis-market-entry:hover { transform: translateY(-2px); box-shadow: 0 12px 24px #c9922f2e; }
 .oasis-market-entry-icon {
-  width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center;
-  background: #fff; color: #b27818; box-shadow: inset 0 0 0 1px #f0d48b;
+  width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center;
+  background: linear-gradient(145deg,#fff8df,#dff5ec); color: #b27818; box-shadow: inset 0 0 0 1px #f0d48b, 0 8px 18px #17856f1c;
+  overflow: hidden; position: relative; flex-shrink: 0;
 }
+.oasis-market-thumb { position: relative; width: 100%; height: 100%; display: grid; place-items: center; isolation: isolate; }
+.oasis-market-thumb::before { content: ''; position: absolute; inset: 7px; border-radius: 14px; background: #ffffffbd; z-index: -1; }
+.oasis-market-thumb.stall::after {
+  content: ''; position: absolute; left: 9px; right: 9px; top: 9px; height: 13px; border-radius: 8px 8px 3px 3px;
+  background: repeating-linear-gradient(90deg,#f87171 0 8px,#fef3c7 8px 16px,#34d399 16px 24px);
+  box-shadow: 0 17px 0 -6px #9a5b20, 0 24px 0 -8px #f3c861;
+}
+.oasis-market-thumb.stall span { position: absolute; bottom: 9px; font-size: 18px; line-height: 1; filter: drop-shadow(0 2px 2px #0002); }
+.oasis-market-thumb.hand { background: radial-gradient(circle at 70% 18%,#fef3c7 0 10%,transparent 11%), linear-gradient(145deg,#11243f,#164e63); color: #fef3c7; }
+.oasis-market-thumb.hand b { position: absolute; top: 9px; right: 9px; font: 900 17px Amiri, serif; color: #fde68a; }
+.oasis-market-thumb.hand span { position: absolute; left: 7px; bottom: 7px; width: 27px; height: 20px; border-radius: 7px; display: grid; place-items: center; background: #fef3c7; color: #0f766e; font: 900 14px Amiri, serif; box-shadow: 0 0 0 2px #38bdf866; }
+.oasis-market-thumb.hand i { position: absolute; right: 5px; bottom: 6px; font-style: normal; font-size: 24px; filter: drop-shadow(0 0 6px #38bdf8); }
 .oasis-market-entry b { display: block; color: #7a5410; font-size: 14px; }
 .oasis-market-entry span { display: block; color: #4c6b62; font-size: 12px; line-height: 1.4; margin-top: 2px; }
 .oasis-market-entry-arrow { color: #b27818; font-weight: 900; }
@@ -309,7 +322,7 @@ function shuffleArr<T>(arr: T[]): T[] {
   return copy;
 }
 
-type View = 'map' | 'intro' | 'learn' | 'match' | 'session' | 'result' | 'collection' | 'market';
+type View = 'map' | 'intro' | 'learn' | 'match' | 'session' | 'result' | 'collection' | 'market' | 'handNumbers';
 
 interface LearnCard {
   emoji: string;
@@ -323,12 +336,12 @@ interface LearnCard {
 function buildLearnCards(lesson: CurriculumLesson): LearnCard[] {
   if (lesson.kind === 'dialogue') {
     return (lesson.dialogues ?? []).map((d) => ({
-      emoji: '💬',
+      emoji: 'ðŸ’¬',
       arabic: d.answer.arabic,
       translit: d.answer.translit,
       meaning: d.answer.meaning,
       isDialogue: true,
-      questionMeaning: `${d.question.arabic}  —  ${d.question.meaning}`,
+      questionMeaning: `${d.question.arabic}  â€”  ${d.question.meaning}`,
     }));
   }
   return (lesson.words ?? []).map((w) => ({ emoji: w.emoji, arabic: w.arabic, translit: w.translit, meaning: w.meaning }));
@@ -380,7 +393,7 @@ export default function ArabicGame({
   const [cardFlipped, setCardFlipped] = useState(false);
   const [seenAll, setSeenAll] = useState(false);
 
-  // --- Cocokkan Kartu — Patch 25: sekarang dijalankan SETELAH kuis,
+  // --- Cocokkan Kartu â€” Patch 25: sekarang dijalankan SETELAH kuis,
   // sebagai ujian akhir (final mastery check), bukan lagi di awal. ---
   const [matchCards, setMatchCards] = useState<MatchCard[]>([]);
   const [flippedIds, setFlippedIds] = useState<string[]>([]);
@@ -561,7 +574,7 @@ export default function ArabicGame({
   }
 
   /**
-   * finishSession — Patch 25: TITIK KUNCI perubahan urutan alur.
+   * finishSession â€” Patch 25: TITIK KUNCI perubahan urutan alur.
    * Sebelumnya (Patch 24) selalu langsung setView('result') setelah kuis.
    * Sekarang: untuk pelajaran KOSAKATA (bukan dialog), alih-alih langsung
    * ke hasil, arahkan dulu ke fase Cocokkan Kartu sebagai UJIAN AKHIR.
@@ -638,7 +651,7 @@ export default function ArabicGame({
             <div>
               <span className="chip">Oasis Bahasa Arab</span>
               <h2>
-                {view === 'map' && 'Rihlah — Perjalanan 17 Pos'}
+                {view === 'map' && 'Rihlah â€” Perjalanan 17 Pos'}
                 {view === 'intro' && activeLesson?.title}
                 {view === 'learn' && `Belajar: ${activeLesson?.title}`}
                 {view === 'match' && `Ujian Akhir: ${activeLesson?.title}`}
@@ -646,11 +659,12 @@ export default function ArabicGame({
                 {view === 'result' && 'Hasil Perjalanan'}
                 {view === 'collection' && 'Buku Koleksi Kosakata'}
                 {view === 'market' && 'Pasar Kata Arab'}
+                {view === 'handNumbers' && 'AI Angka Arab'}
               </h2>
             </div>
           </div>
           <div className="oasis-head-actions">
-            {(view === 'session' || view === 'intro' || view === 'learn' || view === 'match' || view === 'market') && (
+            {(view === 'session' || view === 'intro' || view === 'learn' || view === 'match' || view === 'market' || view === 'handNumbers') && (
               <button className="oasis-ghost-small" onClick={backToMap}>
                 Peta
               </button>
@@ -684,13 +698,30 @@ export default function ArabicGame({
 
             <button className="oasis-market-entry" onClick={() => { arabicSfx.click(); setView('market'); }}>
               <span className="oasis-market-entry-icon">
-                <Store size={24} />
+                <span className="oasis-market-thumb stall" aria-hidden="true">
+                  <span>&#1587;&#1608;&#1602;</span>
+                </span>
               </span>
               <span>
                 <b>Pasar Kata Arab</b>
                 <span>Layani pembeli, dengarkan kata Arab, lalu pilih barang yang benar.</span>
               </span>
-              <span className="oasis-market-entry-arrow">›</span>
+              <span className="oasis-market-entry-arrow">&rsaquo;</span>
+            </button>
+
+            <button className="oasis-market-entry" onClick={() => { arabicSfx.click(); setView('handNumbers'); }}>
+              <span className="oasis-market-entry-icon">
+                <span className="oasis-market-thumb hand" aria-hidden="true">
+                  <b>&#1633;&#1632;</b>
+                  <span>&#1633;</span>
+                  <i>&#9995;</i>
+                </span>
+              </span>
+              <span>
+                <b>AI Angka Arab</b>
+                <span>Cubit kartu dengan kamera tangan, lalu cocokkan ke angka Arab &#1633; sampai &#1633;&#1632;.</span>
+              </span>
+              <span className="oasis-market-entry-arrow">&rsaquo;</span>
             </button>
 
             <div className="oasis-mastery-bar">
@@ -744,6 +775,14 @@ export default function ArabicGame({
           />
         )}
 
+        {view === 'handNumbers' && (
+          <ArabicHandNumbersGame
+            onBack={backToMap}
+            onXpEarned={onXpEarned}
+            onConfetti={() => setConfettiTick((n) => n + 1)}
+          />
+        )}
+
         {view === 'intro' && activeLesson && (
           <div className="oasis-intro">
             <img src="/assets/arabic/fox-explorer.webp" alt="Rubah penjelajah" className="oasis-mascot-big" />
@@ -760,14 +799,14 @@ export default function ArabicGame({
 
             {activeLesson.kind === 'vocab' ? (
               <div className="oasis-intro-steps">
-                <span className="oasis-intro-step-chip">1️⃣ Belajar kata</span>
-                <span className="oasis-intro-step-chip">2️⃣ Kuis pilihan</span>
-                <span className="oasis-intro-step-chip">3️⃣ Cocokkan (ujian akhir)</span>
+                <span className="oasis-intro-step-chip">1ï¸âƒ£ Belajar kata</span>
+                <span className="oasis-intro-step-chip">2ï¸âƒ£ Kuis pilihan</span>
+                <span className="oasis-intro-step-chip">3ï¸âƒ£ Cocokkan (ujian akhir)</span>
               </div>
             ) : (
               <div className="oasis-intro-steps">
-                <span className="oasis-intro-step-chip">1️⃣ Belajar dialog</span>
-                <span className="oasis-intro-step-chip">2️⃣ Kuis dialog</span>
+                <span className="oasis-intro-step-chip">1ï¸âƒ£ Belajar dialog</span>
+                <span className="oasis-intro-step-chip">2ï¸âƒ£ Kuis dialog</span>
               </div>
             )}
 
@@ -818,8 +857,8 @@ export default function ArabicGame({
             </div>
 
             <div className="oasis-learn-nav">
-              <button className="oasis-learn-nav-btn" onClick={prevCard} disabled={learnIndex === 0}>‹</button>
-              <button className="oasis-learn-nav-btn" onClick={nextCard} disabled={learnIndex + 1 >= learnCards.length}>›</button>
+              <button className="oasis-learn-nav-btn" onClick={prevCard} disabled={learnIndex === 0}>â€¹</button>
+              <button className="oasis-learn-nav-btn" onClick={nextCard} disabled={learnIndex + 1 >= learnCards.length}>â€º</button>
             </div>
 
             <div className="oasis-learn-actions">
@@ -834,7 +873,7 @@ export default function ArabicGame({
         {view === 'match' && !matchDone && (
           <div className="oasis-match">
             <div className="oasis-match-banner">
-              <b>Ujian akhir!</b> Kamu sudah belajar dan mengerjakan kuis — sekarang buktikan kamu benar-benar ingat dengan mencocokkan semua pasangan, tanpa bantuan pilihan jawaban.
+              <b>Ujian akhir!</b> Kamu sudah belajar dan mengerjakan kuis â€” sekarang buktikan kamu benar-benar ingat dengan mencocokkan semua pasangan, tanpa bantuan pilihan jawaban.
             </div>
             <div className="oasis-match-info">
               {matchedWordIds.size} dari {matchCards.length / 2} pasang &bull; {matchMoves} percobaan
@@ -852,7 +891,7 @@ export default function ArabicGame({
                     onClick={() => handleMatchCardClick(card)}
                     disabled={isMatched}
                   >
-                    <span className="oasis-match-back">{activeLesson?.icon ?? '🌴'}</span>
+                    <span className="oasis-match-back">{activeLesson?.icon ?? 'ðŸŒ´'}</span>
                     <span className="oasis-match-front">
                       {card.kind === 'emoji' ? (
                         <span className="oasis-match-front-emoji">{card.emoji}</span>
@@ -942,7 +981,7 @@ export default function ArabicGame({
             )}
 
             {showHint && !revealed && (
-              <div className="oasis-hint">Petunjuk: ingat-ingat kartu yang baru saja kamu pelajari — coba cocokkan huruf awalnya.</div>
+              <div className="oasis-hint">Petunjuk: ingat-ingat kartu yang baru saja kamu pelajari â€” coba cocokkan huruf awalnya.</div>
             )}
 
             <footer className="oasis-actions">
@@ -975,7 +1014,7 @@ export default function ArabicGame({
                 ? 'Sempurna! Kamu menguasai pelajaran ini dari belajar sampai ujian akhir.'
                 : lastResult.stars >= 1
                 ? 'Bagus! Ulangi kapan saja dari awal untuk mendapat bintang penuh.'
-                : 'Ayo ulangi dari awal — belajar, kuis, dan cocokkan lagi ya!'}
+                : 'Ayo ulangi dari awal â€” belajar, kuis, dan cocokkan lagi ya!'}
             </p>
             <div className="oasis-result-actions">
               <button className="oasis-ghost-btn" onClick={() => activeLessonId && startLearn(activeLessonId)}>

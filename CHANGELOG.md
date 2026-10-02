@@ -1,3 +1,22 @@
+## 2026-10-02 - Numeria operasi hitung kelas 3-6
+
+- Mengecek sumber materi matematika: pulau utama matematika adalah `Pulau Numeria`, sedangkan mode Latihan/SkyRun/Froggy memakai generator angka bersama.
+- Mengubah 5 misi utama Numeria dari pecahan menjadi operasi hitung dasar: penjumlahan, pengurangan, dan perkalian ringan yang cocok untuk kelas 3-6.
+- Mengganti generator angka bersama dari pecahan/persen menjadi operasi dasar: tambah, kurang, kali, bagi exact sederhana, dan operasi campuran ringan.
+- Memperbarui label UI dan dokumentasi agar tidak lagi mengklaim Numeria sebagai game pecahan.
+- Konten matematika tetap draft sampai divalidasi tim akademik Bright Academy.
+
+## 2026-10-02 - Oasis Bahasa Arab AI Angka Arab
+
+- Menambahkan mini-game baru `AI Angka Arab` di Pulau Oasis Bahasa Arab.
+- Game memakai kamera dan MediaPipe Hands dari CDN untuk deteksi tangan: jari terbuka sebagai mode siap, cubit/genggam untuk memegang kartu, lalu lepas di target angka Arab.
+- Materi awal mencakup angka ١ sampai ١٠ dengan kata Arab berharakat dan arti Indonesia/Melayu.
+- Menambahkan fallback mouse/touch supaya tetap bisa dimainkan jika kamera belum aktif atau izin kamera ditolak.
+- Menambahkan mode guru: durasi, kepekaan cubit, kecepatan kartu, skor benar, penalti salah, skeleton sensor, terjemahan, dan SFX.
+- Menambahkan leaderboard Top 10 berbasis `localStorage`, toast feedback, partikel celebrasi, dan SFX pendek via Web Audio API. Tidak ada musik latar.
+- Revisi lanjutan: mode AI Angka Arab dibuat full-screen dan koordinat kartu disamakan dengan koordinat sensor tangan/pointer agar kartu tepat berada di capit saat dipegang.
+- Konten angka Arab masih draft dan perlu validasi guru Bahasa Arab Bright Academy sebelum dipakai resmi.
+
 ## 2026-09-25 - Benteng Amanah Digital
 
 - Merombak materi Benteng Digital menjadi 10 kartu adab digital Islami.

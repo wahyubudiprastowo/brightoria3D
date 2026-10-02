@@ -23,7 +23,7 @@ Brightoria memiliki 6 mini-game interaktif independen yang masing-masing mengelo
 
 1. **Pulau Numeria (`src/game/numeria/NumeriaGame.tsx`)**:
    - Scene 3D Three.js + R3F (`BridgeScene`).
-   - Balok jembatan interaktif untuk fraksi/pecahan.
+   - Balok jembatan interaktif untuk operasi hitung dasar kelas 3-6.
    - Drei `<Sparkles>` + `ErrorBoundaryCanvas` (fallback non-3D otomatis).
 
 2. **Benteng Digital (`src/game/digital/DigitalGame.tsx`)**:
@@ -67,7 +67,7 @@ Brightoria memiliki 6 mini-game interaktif independen yang masing-masing mengelo
 
 ## Rendering & Persistence Layers
 
-1. **WebGL World Canvas & 3D Games**: World scene, Numeria fraction bridge, English letter puzzle.
+1. **WebGL World Canvas & 3D Games**: World scene, Numeria arithmetic bridge, English letter puzzle.
 2. **Accessible DOM Overlay**: HUD, dialog kuis/misi, parent dashboard, form modal, screen-reader live regions.
 3. **Local Persistence**: Keyed `localStorage`:
    - `brightoria.progress.v2`

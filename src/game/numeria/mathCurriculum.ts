@@ -1,5 +1,5 @@
-/**
- * mathCurriculum.ts — Materi matematika kelas 1-6 SD (Patch 60).
+﻿/**
+ * mathCurriculum.ts â€” Materi matematika kelas 1-6 SD (Patch 60).
  *
  * ====================================================================
  * MASALAH YANG DIPECAHKAN
@@ -8,7 +8,7 @@
  * pembelajaran matematika anak kelas 1-6 SD masih belum banyak, dan
  * terlihat monoton, keterangan kurang jelas."
  *
- * Semuanya benar. Sebelum patch ini Numeria HANYA mengajarkan pecahan —
+ * Semuanya benar. Sebelum patch ini Numeria HANYA mengajarkan pecahan â€”
  * topik kelas 4 ke atas. Anak kelas 1, 2, dan 3 tidak mendapat apa-apa
  * yang sesuai tingkatnya.
  *
@@ -30,7 +30,7 @@
  *   Kelas 6  Persen           "50% dari 10 papan"
  *
  * Anak MEMBANGUN jawabannya, bukan memilih dari daftar. Itu pedagogi
- * yang jauh lebih kaya daripada pilihan ganda — dan mekaniknya sudah
+ * yang jauh lebih kaya daripada pilihan ganda â€” dan mekaniknya sudah
  * ada, hanya materinya yang kurang.
  *
  * ====================================================================
@@ -44,7 +44,7 @@
  * seluruh aplikasi.
  *
  * ====================================================================
- * KETERANGAN YANG JELAS — BUKAN SEKADAR ANGKA
+ * KETERANGAN YANG JELAS â€” BUKAN SEKADAR ANGKA
  * ====================================================================
  * Keluhan "keterangan kurang jelas" ditangani lewat tiga medan
  * terpisah pada tiap soal:
@@ -53,7 +53,7 @@
  *   hint        cara memikirkannya         "Hitung dulu 3, lalu tambah 4"
  *   explanation kenapa jawabannya begitu   "3 + 4 = 7, jadi 7 papan"
  *
- * Penjelasan muncul SETELAH menjawab, benar maupun salah — sehingga
+ * Penjelasan muncul SETELAH menjawab, benar maupun salah â€” sehingga
  * tiap percobaan menjadi momen belajar, bukan sekadar benar-salah.
  * ====================================================================
  */
@@ -83,9 +83,9 @@ export interface BridgeTask {
   preset: number;
   /** Apa yang harus dilakukan anak. */
   prompt: string;
-  /** Cara memikirkannya — muncul saat menekan tombol Petunjuk. */
+  /** Cara memikirkannya â€” muncul saat menekan tombol Petunjuk. */
   hint: string;
-  /** Kenapa jawabannya begitu — muncul setelah menjawab. */
+  /** Kenapa jawabannya begitu â€” muncul setelah menjawab. */
   explanation: string;
   /** Nama topik untuk lencana di layar. */
   topicLabel: string;
@@ -110,6 +110,7 @@ function nextId(topic: MathTopic): string {
 }
 
 /** Nama topik yang dibaca anak. */
+/** Nama topik yang dibaca anak. */
 export const TOPIC_LABEL: Record<MathTopic, string> = {
   counting: 'Membilang',
   addition: 'Penjumlahan',
@@ -117,30 +118,30 @@ export const TOPIC_LABEL: Record<MathTopic, string> = {
   placeValue: 'Nilai Tempat',
   multiplication: 'Perkalian',
   division: 'Pembagian',
-  fraction: 'Pecahan',
-  equivalent: 'Pecahan Senilai',
-  percent: 'Persen',
+  fraction: 'Operasi Campuran',
+  equivalent: 'Perkalian Lanjut',
+  percent: 'Hitung Cepat',
 };
 
 /** Keterangan tiap kelas untuk layar pilih. */
 export const GRADE_INFO: Record<Grade, { label: string; topics: string; icon: string }> = {
   1: { label: 'Kelas 1', topics: 'Membilang & menjumlah sampai 10', icon: '🌱' },
   2: { label: 'Kelas 2', topics: 'Menjumlah, mengurang, nilai tempat', icon: '🌿' },
-  3: { label: 'Kelas 3', topics: 'Perkalian & pembagian sederhana', icon: '🍀' },
-  4: { label: 'Kelas 4', topics: 'Pecahan dasar', icon: '🌳' },
-  5: { label: 'Kelas 5', topics: 'Pecahan senilai & bagian dari jumlah', icon: '🌲' },
-  6: { label: 'Kelas 6', topics: 'Persen & operasi campuran', icon: '🏔️' },
+  3: { label: 'Kelas 3', topics: 'Tambah, kurang, kali sederhana', icon: '🍀' },
+  4: { label: 'Kelas 4', topics: 'Tambah-kurang puluhan & perkalian', icon: '🌳' },
+  5: { label: 'Kelas 5', topics: 'Perkalian, pembagian, campuran ringan', icon: '🌲' },
+  6: { label: 'Kelas 6', topics: 'Operasi hitung cepat kelas atas', icon: '🏔️' },
 };
 
 // ---------------------------------------------------------------------------
-// KELAS 1 — MEMBILANG & PENJUMLAHAN KECIL
+// KELAS 1 â€” MEMBILANG & PENJUMLAHAN KECIL
 // ---------------------------------------------------------------------------
 
 /**
  * Membilang.
  *
  * Paling dasar: anak memasang sejumlah papan yang diminta. Melatih
- * korespondensi satu-satu — menghubungkan angka dengan banyaknya benda.
+ * korespondensi satu-satu â€” menghubungkan angka dengan banyaknya benda.
  */
 function genCounting(): BridgeTask {
   const den = randInt(5, 10);
@@ -182,14 +183,14 @@ function genAdditionSmall(): BridgeTask {
 }
 
 // ---------------------------------------------------------------------------
-// KELAS 2 — PENGURANGAN & NILAI TEMPAT
+// KELAS 2 â€” PENGURANGAN & NILAI TEMPAT
 // ---------------------------------------------------------------------------
 
 /**
  * Pengurangan lewat "melengkapi".
  *
  * Sebagian papan sudah terpasang, anak diminta menambah sampai target.
- * Melatih pengurangan tanpa pernah menyebut kata "pengurangan" — anak
+ * Melatih pengurangan tanpa pernah menyebut kata "pengurangan" â€” anak
  * cukup melihat berapa yang masih kurang.
  */
 function genSubtraction(): BridgeTask {
@@ -206,7 +207,7 @@ function genSubtraction(): BridgeTask {
     preset: already,
     prompt: `Jembatan perlu ${target} papan, sudah ada ${already}`,
     hint: `Berapa papan lagi supaya jadi ${target}? Hitung dari ${already} ke ${target}`,
-    explanation: `${target} − ${already} = ${target - already}, jadi perlu ${target - already} papan lagi.`,
+    explanation: `${target} âˆ’ ${already} = ${target - already}, jadi perlu ${target - already} papan lagi.`,
     topicLabel: TOPIC_LABEL.subtraction,
   };
 }
@@ -238,14 +239,14 @@ function genPlaceValue(): BridgeTask {
 }
 
 // ---------------------------------------------------------------------------
-// KELAS 3 — PERKALIAN & PEMBAGIAN
+// KELAS 3 â€” PERKALIAN & PEMBAGIAN
 // ---------------------------------------------------------------------------
 
 /**
  * Perkalian sebagai penjumlahan berulang.
  *
  * "3 kelompok berisi 4" jauh lebih mudah dipahami daripada "3 x 4"
- * bagi anak yang baru belajar — dan papan jembatan membuat kelompok
+ * bagi anak yang baru belajar â€” dan papan jembatan membuat kelompok
  * itu terlihat nyata.
  */
 function genMultiplication(): BridgeTask {
@@ -263,7 +264,7 @@ function genMultiplication(): BridgeTask {
     preset: 0,
     prompt: `Pasang ${groups} kelompok, tiap kelompok ${per} papan`,
     hint: `Pasang ${per} papan, ulangi sampai ${groups} kali`,
-    explanation: `${groups} × ${per} = ${target}, jadi ${target} papan.`,
+    explanation: `${groups} Ã— ${per} = ${target}, jadi ${target} papan.`,
     topicLabel: TOPIC_LABEL.multiplication,
   };
 }
@@ -281,15 +282,101 @@ function genDivision(): BridgeTask {
     denominator: total,
     target: per,
     preset: 0,
-    prompt: `${total} papan dibagi ${parts} bagian sama — pasang 1 bagian`,
+    prompt: `${total} papan dibagi ${parts} bagian sama â€” pasang 1 bagian`,
     hint: `Bagi ${total} papan jadi ${parts} kelompok sama banyak. Berapa isi tiap kelompok?`,
-    explanation: `${total} ÷ ${parts} = ${per}, jadi tiap bagian berisi ${per} papan.`,
+    explanation: `${total} Ã· ${parts} = ${per}, jadi tiap bagian berisi ${per} papan.`,
     topicLabel: TOPIC_LABEL.division,
   };
 }
 
+function genAdditionMedium(): BridgeTask {
+  const a = randInt(6, 15);
+  const b = randInt(3, Math.min(9, 24 - a));
+  const target = a + b;
+
+  return {
+    id: nextId('addition'),
+    grade: 4,
+    topic: 'addition',
+    denominator: target + randInt(2, 5),
+    target,
+    preset: 0,
+    prompt: `Pasang hasil dari ${a} + ${b}`,
+    hint: 'Jumlahkan satuan dulu, lalu puluhannya.',
+    explanation: `${a} + ${b} = ${target}, jadi pasang ${target} papan.`,
+    topicLabel: TOPIC_LABEL.addition,
+  };
+}
+
+function genSubtractionMedium(): BridgeTask {
+  const a = randInt(18, 32);
+  const b = randInt(4, Math.min(14, a - 6));
+  const target = a - b;
+
+  return {
+    id: nextId('subtraction'),
+    grade: 4,
+    topic: 'subtraction',
+    denominator: target + randInt(2, 6),
+    target,
+    preset: 0,
+    prompt: `Pasang hasil dari ${a} - ${b}`,
+    hint: `Kurangi ${a} dengan ${b}. Boleh hitung mundur bertahap.`,
+    explanation: `${a} - ${b} = ${target}, jadi pasang ${target} papan.`,
+    topicLabel: TOPIC_LABEL.subtraction,
+  };
+}
+
+function genMultiplicationMedium(): BridgeTask {
+  const pairs = [
+    [4, 3],
+    [5, 3],
+    [6, 3],
+    [4, 4],
+    [5, 4],
+    [6, 4],
+    [7, 3],
+    [8, 3],
+  ] as const;
+  const [a, b] = pick([...pairs]);
+  const target = a * b;
+
+  return {
+    id: nextId('multiplication'),
+    grade: 5,
+    topic: 'multiplication',
+    denominator: target + randInt(2, 8),
+    target,
+    preset: 0,
+    prompt: `Pasang hasil dari ${a} x ${b}`,
+    hint: `${a} x ${b} artinya ${a} dijumlahkan sebanyak ${b} kali.`,
+    explanation: `${a} x ${b} = ${target}, jadi pasang ${target} papan.`,
+    topicLabel: TOPIC_LABEL.multiplication,
+  };
+}
+
+function genMixedOperation(): BridgeTask {
+  const a = randInt(2, 5);
+  const b = randInt(3, 4);
+  const c = randInt(2, 6);
+  const target = a * b + c;
+
+  return {
+    id: nextId('fraction'),
+    grade: 6,
+    topic: 'fraction',
+    denominator: target + randInt(2, 10),
+    target,
+    preset: 0,
+    prompt: `Pasang hasil dari ${a} x ${b} + ${c}`,
+    hint: 'Kerjakan perkalian dulu, baru tambah.',
+    explanation: `${a} x ${b} = ${a * b}, lalu ${a * b} + ${c} = ${target}.`,
+    topicLabel: TOPIC_LABEL.fraction,
+  };
+}
+
 // ---------------------------------------------------------------------------
-// KELAS 4 — PECAHAN DASAR
+// KELAS 4 â€” PECAHAN DASAR
 // ---------------------------------------------------------------------------
 
 function genFraction(): BridgeTask {
@@ -311,7 +398,7 @@ function genFraction(): BridgeTask {
 }
 
 // ---------------------------------------------------------------------------
-// KELAS 5 — PECAHAN SENILAI
+// KELAS 5 â€” PECAHAN SENILAI
 // ---------------------------------------------------------------------------
 
 /**
@@ -319,7 +406,7 @@ function genFraction(): BridgeTask {
  *
  * Target ditulis dalam penyebut KECIL, tapi papan yang tersedia
  * berpenyebut besar. Anak harus menyadari bahwa 1/2 dan 4/8 adalah
- * besaran yang sama — bukan sekadar menghitung.
+ * besaran yang sama â€” bukan sekadar menghitung.
  */
 function genEquivalent(): BridgeTask {
   const base = pick([
@@ -348,14 +435,14 @@ function genEquivalent(): BridgeTask {
 }
 
 // ---------------------------------------------------------------------------
-// KELAS 6 — PERSEN
+// KELAS 6 â€” PERSEN
 // ---------------------------------------------------------------------------
 
 /**
  * Persen dari suatu jumlah.
  *
  * Dibatasi pada persen yang hasilnya bulat (25%, 50%, 75%, 10%, 20%)
- * agar anak bisa membangunnya dengan papan utuh — pecahan papan akan
+ * agar anak bisa membangunnya dengan papan utuh â€” pecahan papan akan
  * membingungkan.
  */
 function genPercent(): BridgeTask {
@@ -377,7 +464,7 @@ function genPercent(): BridgeTask {
     preset: 0,
     prompt: `Pasang ${choice.pct}% dari ${choice.den} papan`,
     hint: `${choice.pct}% artinya ${choice.pct} dari tiap 100. Dari ${choice.den} papan, berapa banyak?`,
-    explanation: `${choice.pct}% × ${choice.den} = ${target}, jadi ${target} papan.`,
+    explanation: `${choice.pct}% Ã— ${choice.den} = ${target}, jadi ${target} papan.`,
     topicLabel: TOPIC_LABEL.percent,
   };
 }
@@ -389,17 +476,17 @@ function genPercent(): BridgeTask {
 /**
  * Topik yang tersedia di tiap kelas.
  *
- * Kelas atas SENGAJA masih memuat topik kelas bawah — pengulangan
+ * Kelas atas SENGAJA masih memuat topik kelas bawah â€” pengulangan
  * berjarak menjaga keterampilan dasar tetap lancar. Tapi porsinya
  * lebih kecil, terlihat dari berapa kali topik itu muncul di daftar.
  */
 const TOPICS_BY_GRADE: Record<Grade, (() => BridgeTask)[]> = {
   1: [genCounting, genCounting, genAdditionSmall],
   2: [genAdditionSmall, genSubtraction, genSubtraction, genPlaceValue],
-  3: [genMultiplication, genMultiplication, genDivision, genSubtraction],
-  4: [genFraction, genFraction, genMultiplication, genDivision],
-  5: [genEquivalent, genEquivalent, genFraction, genDivision],
-  6: [genPercent, genPercent, genEquivalent, genMultiplication],
+  3: [genAdditionSmall, genSubtraction, genMultiplication, genMultiplication, genDivision],
+  4: [genAdditionMedium, genSubtractionMedium, genMultiplication, genMultiplicationMedium],
+  5: [genAdditionMedium, genSubtractionMedium, genMultiplicationMedium, genDivision],
+  6: [genMultiplicationMedium, genDivision, genMixedOperation, genAdditionMedium],
 };
 
 /** Satu soal acak pada kelas tertentu. */
@@ -411,7 +498,7 @@ export function generateTask(grade: Grade): BridgeTask {
  * Sekumpulan soal dengan topik BERGILIRAN, bukan diacak murni.
  *
  * Pengacakan murni sering menghasilkan tiga soal sejenis berturut-turut,
- * yang membuat latihan terasa monoton — persis keluhan pengguna. Selain
+ * yang membuat latihan terasa monoton â€” persis keluhan pengguna. Selain
  * itu, mencampur topik terbukti lebih baik untuk ingatan jangka panjang
  * daripada mengelompokkannya.
  */
@@ -442,11 +529,11 @@ export function saveGrade(grade: Grade): void {
   try {
     localStorage.setItem(GRADE_KEY, String(grade));
   } catch {
-    /* Diamkan — kegagalan menyimpan tidak boleh menghentikan permainan. */
+    /* Diamkan â€” kegagalan menyimpan tidak boleh menghentikan permainan. */
   }
 }
 
-/** Jumlah topik berbeda yang tersedia — dipakai layar pilih kelas. */
+/** Jumlah topik berbeda yang tersedia â€” dipakai layar pilih kelas. */
 export function topicCount(grade: Grade): number {
   return new Set(TOPICS_BY_GRADE[grade].map((f) => f.name)).size;
 }

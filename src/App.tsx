@@ -18,7 +18,7 @@ import OnboardingTour from './components/OnboardingTour';
 import { worlds, type World } from './data/worlds';
 import { initialProgress, loadProgress, addXp, type Progress } from './game/progress';
 
-// --- Numeria (3D fraction bridge) ---
+// --- Numeria (3D arithmetic bridge) ---
 import NumeriaGame from './game/numeria/NumeriaGame';
 import { numeriaLevels } from './game/numeria/levels';
 import { computeMastery as numeriaMasteryFn, loadEvidence as numeriaLoad } from './game/numeria/evidence';
@@ -74,7 +74,7 @@ function withDynamicMastery(base: World[]): World[] {
 const objectiveText: Record<string, string> = {
   quran: 'Kenali huruf hijaiyah dan harakat dasar: fathah, kasrah, dammah.',
   adab: 'Nilai kebiasaan sehari-hari dan pelajari adab yang benar.',
-  math: 'Sambungkan jembatan pecahan sesuai target yang diminta.',
+  math: 'Sambungkan jembatan operasi hitung: tambah, kurang, dan kali.',
   arabic: 'Tebak arti kosakata Arab sehari-hari.',
   english: 'Cocokkan kata Inggris dengan artinya.',
   digital: 'Nilai situasi online: aman atau tidak aman.',
@@ -305,7 +305,7 @@ function Parent({
   const all = [
     { id: 'quran', ev: quranLoad(), total: quranLevels.length, masterFn: quranMasteryFn, label: 'Hijaiyah & harakat' },
     { id: 'adab', ev: adabLoad(), total: adabChapters.length, masterFn: adabMasteryFn, label: 'Adab sehari-hari' },
-    { id: 'math', ev: numeriaLoad(), total: numeriaLevels.length, masterFn: numeriaMasteryFn, label: 'Pecahan & logika' },
+    { id: 'math', ev: numeriaLoad(), total: numeriaLevels.length, masterFn: numeriaMasteryFn, label: 'Operasi hitung' },
     { id: 'arabic', ev: arabicLoad(), total: arabicLevels.length, masterFn: arabicMasteryFn, label: 'Kosakata Arab' },
     { id: 'english', ev: englishLoad(), total: englishLevels.length, masterFn: englishMasteryFn, label: 'Kosakata Inggris' },
     { id: 'digital', ev: digitalLoad(), total: digitalLevels.length, masterFn: digitalMasteryFn, label: 'Keamanan digital' },

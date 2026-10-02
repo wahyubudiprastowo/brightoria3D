@@ -807,18 +807,22 @@ export default function NumeriaGame({
         id: missionLevel.id,
         denominator: missionLevel.denominator,
         target: missionLevel.target,
-        prompt: `Sambungkan ${missionLevel.target}/${missionLevel.denominator} jembatan`,
+        prompt: missionLevel.prompt,
         hint: missionLevel.hint,
-        explanation: `${missionLevel.target} papan dari ${missionLevel.denominator} papan sama dengan ${missionLevel.target}/${missionLevel.denominator}.`,
+        explanation: missionLevel.explanation,
         kindLabel: missionLevel.title,
       };
     }
     if (challenge) {
       const labels: Record<string, string> = {
-        build: 'Bangun pecahan',
-        equivalent: 'Pecahan senilai',
+        build: 'Bangun bilangan',
+        equivalent: 'Perkalian lanjut',
         sum: 'Penjumlahan',
         complete: 'Lengkapi',
+        counting: 'Membilang',
+        multiply: 'Perkalian',
+        divide: 'Pembagian',
+        percent: 'Hitung cepat',
       };
       return {
         id: challenge.id,
@@ -1162,8 +1166,8 @@ export default function NumeriaGame({
         <div className="nmr-screen">
           <div className="nmr-panel">
             <div className="nmr-panel-emoji">🌉</div>
-            <h2>Jembatan Pecahan</h2>
-            <p>Pasang papan yang tepat agar penjelajah bisa menyeberang!</p>
+            <h2>Jembatan Operasi Hitung</h2>
+            <p>Latih tambah, kurang, dan kali dengan memasang papan yang tepat.</p>
 
             <div className="nmr-modes">
               <button className="nmr-mode" onClick={startMission}>

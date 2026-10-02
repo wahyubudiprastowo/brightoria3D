@@ -50,27 +50,26 @@ feedback. Detail teknis di `docs/technical/TECHNICAL-ARCHITECTURE.md`.
 ## 1. Pulau Numeria — Matematika dan Logika (mekanik SELESAI)
 
 ### Kompetensi yang dilatih (draft, selaraskan dengan Kurikulum Merdeka SD)
-Fase A-B (kelas 1-4 SD): pecahan sederhana, konsep bagian-dari-keseluruhan,
-perbandingan pecahan senilai.
+Fase B-C (kelas 3-6 SD): operasi hitung dasar yang lebih ringan dan familiar:
+penjumlahan, pengurangan, perkalian, pembagian exact sederhana, serta operasi
+campuran ringan. Fokusnya adalah kelancaran berhitung, bukan pecahan/persen.
 
-### Game: Numeria Fraction Bridge (5 level, 3D, dapat dimainkan)
+### Game: Numeria Arithmetic Bridge (5 level, 3D, dapat dimainkan)
 ```text
-Level 1  1/4  — mengenalkan konsep "satu bagian dari empat"
-Level 2  3/4  — memilih beberapa bagian sekaligus
-Level 3  2/6  — denominator berbeda, memperkuat generalisasi konsep
-Level 4  5/8  — denominator lebih besar, melatih ketelitian
-Level 5  6/8  — setara 3/4, mengajarkan penyederhanaan pecahan SECARA
-                IMPLISIT melalui pengulangan visual
+Level 1  3 + 4       - penjumlahan kecil sebagai pemanasan
+Level 2  12 - 5      - pengurangan dasar yang mudah divisualkan
+Level 3  3 x 4       - perkalian sebagai penjumlahan berulang
+Level 4  8 + 5       - penjumlahan dua angka yang masih ramah kelas 3-4
+Level 5  6 x 3       - perkalian lanjutan ringan untuk kelas 4-6
 ```
 
 ### Tujuan pembelajaran eksplisit (learning objectives)
 ```text
-LO1: Anak dapat mengidentifikasi numerator dan denominator dari representasi
-     visual (jumlah bagian dipilih vs jumlah bagian total).
-LO2: Anak dapat memilih jumlah bagian yang tepat sesuai target pecahan yang
-     diberikan dalam notasi a/b.
-LO3: Anak mengalami (bukan dihafalkan) bahwa dua pecahan berbeda notasi
-     bisa bernilai sama (6/8 = 3/4) melalui pengalaman bermain berulang.
+LO1: Anak dapat menghitung hasil tambah, kurang, dan kali sederhana lalu
+     membangun jawabannya sebagai jumlah papan yang tepat.
+LO2: Anak memahami perkalian sebagai penjumlahan berulang, bukan hafalan saja.
+LO3: Anak kelas 3-6 mendapat latihan operasi hitung yang cukup mudah untuk
+     dimainkan mandiri, tetapi tetap bisa naik tingkat lewat mode tanpa ujung.
 ```
 
 ### Juice Patch 10

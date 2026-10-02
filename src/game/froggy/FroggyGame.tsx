@@ -334,6 +334,7 @@ function FractionBar({ fraction }: { fraction: Fraction }) {
 }
 
 function VisualRow({ visual }: { visual: MathVisual }) {
+  if (visual.fractions.length === 0) return null;
   return (
     <div className="frg-visual">
       {visual.fractions.map((f, i) => (
@@ -1982,7 +1983,7 @@ export default function FroggyGame({
                 <span className="frg-topic-body">
                   <span className="frg-topic-title">Angka</span>
                   <span className="frg-topic-desc">
-                    Pecahan dengan tingkat kesulitan yang menyesuaikan kemampuanmu
+                    Operasi hitung dengan tingkat kesulitan yang menyesuaikan kemampuanmu
                   </span>
                   <span className="frg-topic-tag level">Tidak pernah habis</span>
                 </span>

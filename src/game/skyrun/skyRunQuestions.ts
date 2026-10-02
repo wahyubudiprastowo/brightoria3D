@@ -9,7 +9,7 @@
  * bentuk yang sama, sehingga scene 3D tidak perlu tahu asal soalnya.
  *
  *   KATA   -> reviewDeck.ts   : kosakata yang sudah dikuasai anak
- *   ANGKA  -> mathGenerator.ts : pecahan yang dihasilkan prosedural
+ *   ANGKA  -> mathGenerator.ts : operasi hitung yang dihasilkan prosedural
  *
  * Keuntungan pemisahan ini: menambah jenis materi ketiga nanti cukup
  * dengan menambah satu fungsi di berkas ini. SkyRunGame.tsx sama
@@ -260,14 +260,16 @@ function buildMathFlight(): SkyQuestion[] {
 /** Kalimat perintah disesuaikan jenis soalnya agar tidak monoton. */
 function pickAsk(q: MathQuestion): string {
   switch (q.topic) {
-    case 'compare':
-      return 'Pilih yang lebih besar';
-    case 'partOfWhole':
-      return 'Baca gambarnya';
-    case 'simplify':
-      return 'Pilih bentuk paling sederhana';
-    case 'equivalent':
-      return 'Cari pecahan senilai';
+    case 'addition':
+      return 'Pilih hasil penjumlahan';
+    case 'subtraction':
+      return 'Pilih hasil pengurangan';
+    case 'multiplication':
+      return 'Pilih hasil perkalian';
+    case 'division':
+      return 'Pilih hasil pembagian';
+    case 'mixed':
+      return 'Kerjakan perkalian dulu';
     default:
       return 'Berapa hasilnya?';
   }
