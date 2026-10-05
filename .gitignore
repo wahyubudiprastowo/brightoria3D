@@ -16,3 +16,5 @@ coverage/
 .env.local
 *.log
 *.bak
+
+.vercel

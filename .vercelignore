@@ -1,0 +1,23 @@
+.git
+.vercel
+.openai
+.tools
+
+node_modules
+dist
+coverage
+
+android/.gradle
+android/app/build
+android/build
+
+assets-source
+graphify-out
+patches
+
+*.log
+*.bak
+*.tsbuildinfo
+
+# Source/model exports kept at the repo root are not used at runtime.
+/*.glb
