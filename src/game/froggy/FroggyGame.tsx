@@ -1648,7 +1648,7 @@ export default function FroggyGame({
   );
 
   function chooseTopic(picked: SkyTopic) {
-    const built = buildFlight(picked);
+    const built = buildFlight(picked, 'frog34');
     setTopic(picked);
     setPlan({ questions: built.questions, levelLabel: built.levelLabel ?? '' });
     setPhase('intro');
@@ -1693,7 +1693,7 @@ export default function FroggyGame({
     // penjadwalan Leitner. Alasannya sama seperti Patch 48.
     let levelUp: 'up' | 'down' | null = null;
     if (question.math) {
-      const result = recordMathAnswer(question.math, pendingLane);
+      const result = recordMathAnswer(question.math, pendingLane, question.mathProfile);
       levelUp = result.levelChanged;
     }
 
@@ -1783,7 +1783,7 @@ export default function FroggyGame({
 
   function playAgain() {
     if (!topic) return;
-    const built = buildFlight(topic);
+    const built = buildFlight(topic, 'frog34');
     setPlan({ questions: built.questions, levelLabel: built.levelLabel ?? '' });
     setIndex(0);
     setScore(0);
@@ -1983,9 +1983,9 @@ export default function FroggyGame({
                 <span className="frg-topic-body">
                   <span className="frg-topic-title">Angka</span>
                   <span className="frg-topic-desc">
-                    Operasi hitung dengan tingkat kesulitan yang menyesuaikan kemampuanmu
+                    Matematika kelas 3-4: bilangan besar, kali-bagi, pecahan, pola, luas, data
                   </span>
-                  <span className="frg-topic-tag level">Tidak pernah habis</span>
+                  <span className="frg-topic-tag level">Kelas 3-4</span>
                 </span>
                 <span className="frg-topic-arrow">›</span>
               </button>
@@ -2006,7 +2006,7 @@ export default function FroggyGame({
             <h2>{topic === 'angka' ? 'Lompat Katak: Angka' : 'Lompat Katak: Kata'}</h2>
             <p>
               {topic === 'angka'
-                ? `Tingkat sekarang: ${plan.levelLabel}. Pilih daun teratai berisi jawaban yang benar!`
+                ? `Materi ${plan.levelLabel}. Pilih daun teratai berisi jawaban yang benar!`
                 : 'Pilih daun teratai berisi jawaban yang benar, lalu katak akan melompat ke sana!'}
             </p>
 

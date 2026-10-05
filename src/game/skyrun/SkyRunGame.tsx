@@ -980,7 +980,7 @@ export default function SkyRunGame({
   const slot = topic ? record[topic] : record.kata;
 
   function chooseTopic(picked: SkyTopic) {
-    const built = buildFlight(picked);
+    const built = buildFlight(picked, 'flight12');
     setTopic(picked);
     setPlan({ questions: built.questions, levelLabel: built.levelLabel ?? '' });
     setPhase('intro');
@@ -1027,7 +1027,7 @@ const setLane = useCallback(
     // menyesuaikan diri dari lima jawaban terakhir.
     let levelUp: 'up' | 'down' | null = null;
     if (question.math) {
-      const result = recordMathAnswer(question.math, chosen);
+      const result = recordMathAnswer(question.math, chosen, question.mathProfile);
       levelUp = result.levelChanged;
     }
 
@@ -1124,7 +1124,7 @@ const setLane = useCallback(
 
   function flyAgain() {
     if (!topic) return;
-    const built = buildFlight(topic);
+    const built = buildFlight(topic, 'flight12');
     setPlan({ questions: built.questions, levelLabel: built.levelLabel ?? '' });
     setIndex(0);
     setScore(0);
@@ -1351,9 +1351,9 @@ const setLane = useCallback(
                 <span className="skr-topic-body">
                   <span className="skr-topic-title">Angka</span>
                   <span className="skr-topic-desc">
-                    Operasi hitung dengan tingkat kesulitan yang menyesuaikan kemampuanmu
+                    Matematika kelas 1-2: membilang, tambah-kurang, pola, bentuk, pengukuran
                   </span>
-                  <span className="skr-topic-tag level">Tidak pernah habis</span>
+                  <span className="skr-topic-tag level">Kelas 1-2</span>
                 </span>
                 <span className="skr-topic-arrow">›</span>
               </button>
@@ -1374,7 +1374,7 @@ const setLane = useCallback(
             <h2>{topic === 'angka' ? 'Penerbangan Angka' : 'Penerbangan Kata'}</h2>
             <p>
               {topic === 'angka'
-                ? `Tingkat sekarang: ${plan.levelLabel}. Terbangkan pesawatmu menembus gerbang jawaban yang benar!`
+                ? `Materi ${plan.levelLabel}. Terbangkan pesawatmu menembus gerbang jawaban yang benar!`
                 : 'Terbangkan pesawatmu menembus gerbang jawaban yang benar!'}
             </p>
 

@@ -659,7 +659,7 @@ export default function ArabicGame({
                 {view === 'result' && 'Hasil Perjalanan'}
                 {view === 'collection' && 'Buku Koleksi Kosakata'}
                 {view === 'market' && 'Pasar Kata Arab'}
-                {view === 'handNumbers' && 'AI Angka Arab'}
+                {view === 'handNumbers' && 'AI Angka Arab & Surat'}
               </h2>
             </div>
           </div>
@@ -718,8 +718,8 @@ export default function ArabicGame({
                 </span>
               </span>
               <span>
-                <b>AI Angka Arab</b>
-                <span>Cubit kartu dengan kamera tangan, lalu cocokkan ke angka Arab &#1633; sampai &#1633;&#1632;.</span>
+                <b>AI Angka Arab & Surat</b>
+                <span>Cubit kartu dengan kamera tangan: cocokkan angka, lalu lanjut sambung surat pendek.</span>
               </span>
               <span className="oasis-market-entry-arrow">&rsaquo;</span>
             </button>

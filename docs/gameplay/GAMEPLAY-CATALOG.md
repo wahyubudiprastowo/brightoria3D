@@ -35,7 +35,7 @@
 |---|---|---|---|---|
 | Pulau Numeria | `math` | ✅ Game sungguhan, 3D (5 level) | Draft, selaras Kurikulum Merdeka | `03_pulau_numeria.webp` |
 | Benteng Digital | `digital` | ✅ Game sungguhan, kartu situasi | Draft, prinsip literasi digital umum | `06_benteng_digital.webp` |
-| Oasis Bahasa Arab | `arabic` | ✅ Game sungguhan, ekspedisi (72 kartu) + Pasar Kata Arab | Draft, BELUM disahkan akademik | `pulau-arabic.glb` + fallback `04_oasis_bahasa_arab.webp` |
+| Oasis Bahasa Arab | `arabic` | ✅ Game sungguhan, ekspedisi (72 kartu) + Pasar Kata Arab + AI Angka Arab & Surat | Draft, BELUM disahkan akademik | `pulau-arabic.glb` + fallback `04_oasis_bahasa_arab.webp` |
 | Taman Al-Qur'an | `quran` | ✅ Game sungguhan (mesin kuis bersama) | Draft, BELUM disahkan tim tahsin/tahfidz | `pulau-quran.glb` dari `meshy-pulauquran2.glb` + fallback `01_taman_alquran.webp` |
 | Kampung Adab | `adab` | ✅ Game sungguhan (mesin kuis bersama) | Draft, BELUM disahkan tim karakter | `02_kampung_adab.webp` |
 | English Harbor | `english` | ✅ Game sungguhan (mesin kuis bersama) | Draft, selaras CEFR Pre-A1/A1 | `05_english_harbor.webp` |
@@ -50,26 +50,24 @@ feedback. Detail teknis di `docs/technical/TECHNICAL-ARCHITECTURE.md`.
 ## 1. Pulau Numeria — Matematika dan Logika (mekanik SELESAI)
 
 ### Kompetensi yang dilatih (draft, selaraskan dengan Kurikulum Merdeka SD)
-Fase B-C (kelas 3-6 SD): operasi hitung dasar yang lebih ringan dan familiar:
-penjumlahan, pengurangan, perkalian, pembagian exact sederhana, serta operasi
-campuran ringan. Fokusnya adalah kelancaran berhitung, bukan pecahan/persen.
+Pembagian materi matematika kini dipisah per game:
+Penerbangan Ilmu untuk kelas 1-2, Lompat Katak untuk kelas 3-4, dan Jembatan
+Numeria untuk kelas 5-6. Semua konten adalah ringkasan/generator internal dari
+PDF rujukan pengguna dan tetap perlu validasi akademik Bright Academy.
 
-### Game: Numeria Arithmetic Bridge (5 level, 3D, dapat dimainkan)
+### Game: Numeria Arithmetic Bridge (kelas 5-6, 3D, dapat dimainkan)
 ```text
-Level 1  3 + 4       - penjumlahan kecil sebagai pemanasan
-Level 2  12 - 5      - pengurangan dasar yang mudah divisualkan
-Level 3  3 x 4       - perkalian sebagai penjumlahan berulang
-Level 4  8 + 5       - penjumlahan dua angka yang masih ramah kelas 3-4
-Level 5  6 x 3       - perkalian lanjutan ringan untuk kelas 4-6
+Kelas 5: KPK/FPB, pecahan senilai, keliling, luas, sudut, dan data.
+Kelas 6: pecahan-desimal, rasio, persen, kubus-balok, dan peluang dasar.
 ```
 
 ### Tujuan pembelajaran eksplisit (learning objectives)
 ```text
-LO1: Anak dapat menghitung hasil tambah, kurang, dan kali sederhana lalu
-     membangun jawabannya sebagai jumlah papan yang tepat.
-LO2: Anak memahami perkalian sebagai penjumlahan berulang, bukan hafalan saja.
-LO3: Anak kelas 3-6 mendapat latihan operasi hitung yang cukup mudah untuk
-     dimainkan mandiri, tetapi tetap bisa naik tingkat lewat mode tanpa ujung.
+LO1: Anak dapat membangun jawaban numerik sebagai jumlah papan yang tepat.
+LO2: Anak kelas 5 melatih KPK/FPB, pecahan senilai, keliling/luas, sudut,
+     dan data dalam bentuk manipulatif.
+LO3: Anak kelas 6 melatih pecahan-desimal, rasio, persen, kubus-balok, dan
+     peluang dasar tanpa keluar dari batas materi SD.
 ```
 
 ### Juice Patch 10
@@ -150,13 +148,18 @@ minuman, buah, dan benda sehari-hari dari data kurikulum Arabic yang sudah ada.
 Status konten tetap membutuhkan review guru Bahasa Arab sebelum dipakai sebagai
 materi resmi.
 
-### Mini-game tambahan: "AI Angka Arab"
+### Mini-game tambahan: "AI Angka Arab & Surat"
 
-Pemain mencocokkan kartu kata bilangan Arab 1-10 ke petak angka Arab dengan
-gesture cubit kamera sebagai mode utama. Izin kamera diminta saat game mulai,
-dan tombol kamera tetap tersedia untuk mencoba ulang jika browser belum memberi
-akses. Patch 2026-10-02 mengganti alur izin kamera agar kegagalan akses tidak
-memunculkan popup native; mouse/touch hanya fallback cadangan.
+Pemain memakai gesture cubit kamera sebagai mode utama. Level 1 mencocokkan
+kartu kata bilangan Arab 1-10 ke petak angka Arab. Level 2 menjadi materi lanjut
+berupa "Sambung Surat Pendek": anak mencubit kartu potongan ayat, lalu melepasnya
+ke kotak urutan surat/ayat yang tepat.
+
+Izin kamera diminta saat game mulai, dan tombol kamera tetap tersedia untuk
+mencoba ulang jika browser belum memberi akses. Patch 2026-10-02 mengganti alur
+izin kamera agar kegagalan akses tidak memunculkan popup native; mouse/touch
+hanya fallback cadangan. Konten bilangan Arab dan potongan surat pendek tetap
+draft sampai divalidasi guru Qur'an/Bahasa Arab Bright Academy.
 
 ### Juice Patch 10
 Confetti di layar ringkasan ekspedisi (medali trofi mendapat animasi

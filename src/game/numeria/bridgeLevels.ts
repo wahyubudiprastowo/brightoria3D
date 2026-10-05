@@ -72,7 +72,17 @@ export type BridgeKind =
   | 'counting'
   | 'multiply'
   | 'divide'
-  | 'percent';
+  | 'percent'
+  | 'kpk'
+  | 'fpb'
+  | 'decimal'
+  | 'ratio'
+  | 'perimeter'
+  | 'area'
+  | 'angle'
+  | 'cube'
+  | 'chance'
+  | 'data';
 
 /** Bentuk data TIDAK BERUBAH dari Patch 54. */
 export interface BridgeChallenge {
@@ -127,6 +137,26 @@ function kindOf(topic: BridgeTask['topic']): BridgeKind {
       return 'equivalent';
     case 'percent':
       return 'percent';
+    case 'kpk':
+      return 'kpk';
+    case 'fpb':
+      return 'fpb';
+    case 'decimal':
+      return 'decimal';
+    case 'ratio':
+      return 'ratio';
+    case 'perimeter':
+      return 'perimeter';
+    case 'area':
+      return 'area';
+    case 'angle':
+      return 'angle';
+    case 'cube':
+      return 'cube';
+    case 'chance':
+      return 'chance';
+    case 'data':
+      return 'data';
     default:
       return 'build';
   }
@@ -144,9 +174,8 @@ function kindOf(topic: BridgeTask['topic']): BridgeKind {
  * pernah terlempar ke materi yang jauh dari yang sedang dipelajarinya.
  */
 function effectiveGrade(base: Grade, level: MathLevel): Grade {
-  const shift = level === 'ringan' ? -1 : level === 'menantang' ? 1 : 0;
-  const next = base + shift;
-  return Math.min(6, Math.max(1, next)) as Grade;
+  if (base >= 6) return 6;
+  return (level === 'menantang' ? 6 : 5) as Grade;
 }
 
 // ---------------------------------------------------------------------------

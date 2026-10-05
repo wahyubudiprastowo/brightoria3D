@@ -1,5 +1,5 @@
 ﻿/**
- * mathCurriculum.ts â€” Materi matematika kelas 1-6 SD (Patch 60).
+ * mathCurriculum.ts â€” Materi matematika Jembatan kelas 5-6 SD.
  *
  * ====================================================================
  * MASALAH YANG DIPECAHKAN
@@ -69,7 +69,17 @@ export type MathTopic =
   | 'division'
   | 'fraction'
   | 'equivalent'
-  | 'percent';
+  | 'percent'
+  | 'kpk'
+  | 'fpb'
+  | 'decimal'
+  | 'ratio'
+  | 'perimeter'
+  | 'area'
+  | 'angle'
+  | 'cube'
+  | 'chance'
+  | 'data';
 
 export interface BridgeTask {
   id: string;
@@ -118,9 +128,19 @@ export const TOPIC_LABEL: Record<MathTopic, string> = {
   placeValue: 'Nilai Tempat',
   multiplication: 'Perkalian',
   division: 'Pembagian',
-  fraction: 'Operasi Campuran',
-  equivalent: 'Perkalian Lanjut',
-  percent: 'Hitung Cepat',
+  fraction: 'Pecahan',
+  equivalent: 'Pecahan Senilai',
+  percent: 'Persen',
+  kpk: 'KPK',
+  fpb: 'FPB',
+  decimal: 'Desimal',
+  ratio: 'Rasio',
+  perimeter: 'Keliling',
+  area: 'Luas',
+  angle: 'Sudut',
+  cube: 'Kubus & Balok',
+  chance: 'Peluang',
+  data: 'Data',
 };
 
 /** Keterangan tiap kelas untuk layar pilih. */
@@ -129,8 +149,8 @@ export const GRADE_INFO: Record<Grade, { label: string; topics: string; icon: st
   2: { label: 'Kelas 2', topics: 'Menjumlah, mengurang, nilai tempat', icon: '🌿' },
   3: { label: 'Kelas 3', topics: 'Tambah, kurang, kali sederhana', icon: '🍀' },
   4: { label: 'Kelas 4', topics: 'Tambah-kurang puluhan & perkalian', icon: '🌳' },
-  5: { label: 'Kelas 5', topics: 'Perkalian, pembagian, campuran ringan', icon: '🌲' },
-  6: { label: 'Kelas 6', topics: 'Operasi hitung cepat kelas atas', icon: '🏔️' },
+  5: { label: 'Kelas 5', topics: 'KPK/FPB, pecahan, keliling, luas, sudut, data', icon: '🌲' },
+  6: { label: 'Kelas 6', topics: 'Pecahan-desimal, rasio, kubus-balok, peluang', icon: '🏔️' },
 };
 
 // ---------------------------------------------------------------------------
@@ -469,6 +489,222 @@ function genPercent(): BridgeTask {
   };
 }
 
+function gcd(a: number, b: number): number {
+  let x = Math.abs(a);
+  let y = Math.abs(b);
+  while (y !== 0) {
+    [x, y] = [y, x % y];
+  }
+  return x || 1;
+}
+
+function lcm(a: number, b: number): number {
+  return (a * b) / gcd(a, b);
+}
+
+function genKpk(): BridgeTask {
+  const [a, b] = pick([
+    [4, 6],
+    [5, 10],
+    [6, 8],
+    [3, 9],
+    [8, 12],
+  ] as const);
+  const target = lcm(a, b);
+
+  return {
+    id: nextId('kpk'),
+    grade: 5,
+    topic: 'kpk',
+    denominator: target + randInt(2, 8),
+    target,
+    preset: 0,
+    prompt: `Pasang KPK dari ${a} dan ${b}`,
+    hint: `Cari kelipatan terkecil yang sama-sama dimiliki ${a} dan ${b}.`,
+    explanation: `Kelipatan persekutuan terkecil dari ${a} dan ${b} adalah ${target}.`,
+    topicLabel: TOPIC_LABEL.kpk,
+  };
+}
+
+function genFpb(): BridgeTask {
+  const [a, b] = pick([
+    [12, 18],
+    [16, 24],
+    [20, 30],
+    [18, 27],
+    [24, 36],
+  ] as const);
+  const target = gcd(a, b);
+
+  return {
+    id: nextId('fpb'),
+    grade: 5,
+    topic: 'fpb',
+    denominator: target + randInt(6, 16),
+    target,
+    preset: 0,
+    prompt: `Pasang FPB dari ${a} dan ${b}`,
+    hint: `Cari faktor terbesar yang membagi ${a} dan ${b}.`,
+    explanation: `Faktor persekutuan terbesar dari ${a} dan ${b} adalah ${target}.`,
+    topicLabel: TOPIC_LABEL.fpb,
+  };
+}
+
+function genDecimal(): BridgeTask {
+  const den = pick([10, 20, 25]);
+  const target = pick(den === 10 ? [2, 4, 5, 7] : den === 20 ? [5, 10, 15] : [5, 10, 20]);
+  const decimal = target / den;
+
+  return {
+    id: nextId('decimal'),
+    grade: 6,
+    topic: 'decimal',
+    denominator: den,
+    target,
+    preset: 0,
+    prompt: `Sambungkan ${decimal.toLocaleString('id-ID')} bagian jembatan`,
+    hint: `Ubah desimal menjadi pecahan dari ${den} papan.`,
+    explanation: `${decimal.toLocaleString('id-ID')} = ${target}/${den}, jadi pasang ${target} papan.`,
+    topicLabel: TOPIC_LABEL.decimal,
+  };
+}
+
+function genRatio(): BridgeTask {
+  const base = pick([
+    { a: 1, b: 2, total: 12 },
+    { a: 2, b: 3, total: 15 },
+    { a: 3, b: 5, total: 16 },
+    { a: 4, b: 5, total: 18 },
+  ]);
+  const target = (base.total / (base.a + base.b)) * base.a;
+
+  return {
+    id: nextId('ratio'),
+    grade: 6,
+    topic: 'ratio',
+    denominator: base.total,
+    target,
+    preset: 0,
+    prompt: `Rasio merah:biru = ${base.a}:${base.b}. Total ${base.total}, pasang bagian merah`,
+    hint: `Jumlah bagian = ${base.a + base.b}. Cari nilai 1 bagian, lalu ambil ${base.a} bagian.`,
+    explanation: `1 bagian = ${base.total} : ${base.a + base.b} = ${base.total / (base.a + base.b)}, jadi merah = ${target}.`,
+    topicLabel: TOPIC_LABEL.ratio,
+  };
+}
+
+function genPerimeter(): BridgeTask {
+  const length = randInt(4, 10);
+  const width = randInt(2, 7);
+  const target = 2 * (length + width);
+
+  return {
+    id: nextId('perimeter'),
+    grade: 5,
+    topic: 'perimeter',
+    denominator: target + randInt(2, 8),
+    target,
+    preset: 0,
+    prompt: `Keliling persegi panjang ${length} x ${width}`,
+    hint: 'Keliling persegi panjang = 2 x (panjang + lebar).',
+    explanation: `2 x (${length} + ${width}) = ${target}.`,
+    topicLabel: TOPIC_LABEL.perimeter,
+  };
+}
+
+function genArea(): BridgeTask {
+  const length = randInt(4, 9);
+  const width = randInt(3, 8);
+  const target = length * width;
+
+  return {
+    id: nextId('area'),
+    grade: 5,
+    topic: 'area',
+    denominator: target + randInt(2, 8),
+    target,
+    preset: 0,
+    prompt: `Luas persegi panjang ${length} x ${width}`,
+    hint: 'Luas persegi panjang = panjang x lebar.',
+    explanation: `${length} x ${width} = ${target}.`,
+    topicLabel: TOPIC_LABEL.area,
+  };
+}
+
+function genAngle(): BridgeTask {
+  const known = pick([30, 40, 50, 60, 70, 80, 90, 100, 120]);
+  const targetDegrees = 180 - known;
+  const target = targetDegrees / 10;
+
+  return {
+    id: nextId('angle'),
+    grade: 5,
+    topic: 'angle',
+    denominator: 18,
+    target,
+    preset: 0,
+    prompt: `Sudut pelurus dari ${known}° (1 papan = 10°)`,
+    hint: 'Dua sudut pelurus jumlahnya 180°. Setelah itu bagi hasil derajat dengan 10.',
+    explanation: `180° - ${known}° = ${targetDegrees}°, berarti ${target} papan.`,
+    topicLabel: TOPIC_LABEL.angle,
+  };
+}
+
+function genCube(): BridgeTask {
+  const length = randInt(3, 5);
+  const width = randInt(2, 4);
+  const height = randInt(2, 3);
+  const target = length * width * height;
+
+  return {
+    id: nextId('cube'),
+    grade: 6,
+    topic: 'cube',
+    denominator: target + randInt(3, 12),
+    target,
+    preset: 0,
+    prompt: `Volume balok ${length} x ${width} x ${height}`,
+    hint: 'Volume balok = panjang x lebar x tinggi.',
+    explanation: `${length} x ${width} x ${height} = ${target}.`,
+    topicLabel: TOPIC_LABEL.cube,
+  };
+}
+
+function genChance(): BridgeTask {
+  const total = pick([6, 8, 10, 12]);
+  const target = randInt(1, total - 1);
+
+  return {
+    id: nextId('chance'),
+    grade: 6,
+    topic: 'chance',
+    denominator: total,
+    target,
+    preset: 0,
+    prompt: `Peluang ${target} kejadian baik dari ${total} percobaan`,
+    hint: 'Peluang sederhana ditulis bagian kejadian dibanding semua kemungkinan.',
+    explanation: `Peluangnya ${target}/${total}, jadi pasang ${target} dari ${total} papan.`,
+    topicLabel: TOPIC_LABEL.chance,
+  };
+}
+
+function genData(): BridgeTask {
+  const values = [randInt(4, 12), randInt(6, 16), randInt(8, 20)];
+  const target = Math.max(...values);
+
+  return {
+    id: nextId('data'),
+    grade: 5,
+    topic: 'data',
+    denominator: target + randInt(2, 8),
+    target,
+    preset: 0,
+    prompt: `Data: ${values.join(', ')}. Pasang nilai terbesar`,
+    hint: 'Bandingkan semua angka dalam data.',
+    explanation: `Nilai terbesar dari ${values.join(', ')} adalah ${target}.`,
+    topicLabel: TOPIC_LABEL.data,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // PEMILIH TOPIK PER KELAS
 // ---------------------------------------------------------------------------
@@ -485,8 +721,8 @@ const TOPICS_BY_GRADE: Record<Grade, (() => BridgeTask)[]> = {
   2: [genAdditionSmall, genSubtraction, genSubtraction, genPlaceValue],
   3: [genAdditionSmall, genSubtraction, genMultiplication, genMultiplication, genDivision],
   4: [genAdditionMedium, genSubtractionMedium, genMultiplication, genMultiplicationMedium],
-  5: [genAdditionMedium, genSubtractionMedium, genMultiplicationMedium, genDivision],
-  6: [genMultiplicationMedium, genDivision, genMixedOperation, genAdditionMedium],
+  5: [genKpk, genFpb, genEquivalent, genPerimeter, genArea, genAngle, genData],
+  6: [genFraction, genDecimal, genRatio, genCube, genChance, genPercent, genEquivalent],
 };
 
 /** Satu soal acak pada kelas tertentu. */
@@ -518,16 +754,16 @@ export function loadGrade(): Grade {
   try {
     const raw = localStorage.getItem(GRADE_KEY);
     const n = Number(raw);
-    if (n >= 1 && n <= 6) return n as Grade;
+    if (n === 5 || n === 6) return n as Grade;
   } catch {
     /* diamkan */
   }
-  return 1;
+  return 5;
 }
 
 export function saveGrade(grade: Grade): void {
   try {
-    localStorage.setItem(GRADE_KEY, String(grade));
+    localStorage.setItem(GRADE_KEY, String(grade <= 5 ? 5 : 6));
   } catch {
     /* Diamkan â€” kegagalan menyimpan tidak boleh menghentikan permainan. */
   }

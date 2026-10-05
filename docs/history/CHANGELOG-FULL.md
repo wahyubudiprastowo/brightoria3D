@@ -1,3 +1,19 @@
+## 2026-10-05 - Pembagian Materi Matematika per Game
+
+- Membaca PDF rujukan `Matematika I` sampai `Matematika VI`; `Matematika IX` tidak dipakai untuk game SD karena materinya SMP.
+- Memisahkan generator soal matematika menjadi profil `flight12` untuk Penerbangan Ilmu dan `frog34` untuk Lompat Katak.
+- Penerbangan Ilmu kini fokus kelas 1-2: membilang, tambah-kurang awal, nilai tempat dasar, pola, bentuk, pengukuran, pecahan setengah/seperempat, dan data sederhana.
+- Lompat Katak kini fokus kelas 3-4: bilangan lebih besar, tambah-kurang, kali-bagi, nilai tempat ribuan, pengukuran, pecahan dasar, pola, luas, dan data.
+- Jembatan Numeria dikunci untuk kelas 5-6: KPK/FPB, pecahan senilai, desimal, rasio, persen, keliling/luas, sudut, data, kubus-balok, dan peluang dasar.
+- Konten matematika tetap draft dan perlu validasi akademik Bright Academy sebelum rilis resmi.
+
+## 2026-10-05 - Oasis AI Sambung Surat Pendek
+
+- Menambahkan mode lanjut `Level 2: Sambung Surat` ke mini-game kamera `AI Angka Arab & Surat`.
+- Mode baru memakai mekanik cubit tangan yang sama untuk mengambil kartu potongan surat pendek dan melepasnya ke urutan target yang benar.
+- UI game dibuat adaptif untuk jumlah target per mode, termasuk progress, hasil akhir, label target, dan instruksi status.
+- Konten potongan surat pendek masih draft dan perlu validasi guru Qur'an/Bahasa Arab Bright Academy sebelum rilis resmi.
+
 ## 2026-09-21 ? Peta foreground adventure
 
 - Model `Meshy_AI_Starbound_Wanderer_0921084739_texture.glb` dan `Meshy_AI_White_Cat_with_Red_Sc_0921091412_texture.glb` dari Downloads disalin ke `assets-source/models/`.

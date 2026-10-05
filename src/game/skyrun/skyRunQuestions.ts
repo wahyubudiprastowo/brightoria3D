@@ -35,6 +35,7 @@ import {
   generateMathSet,
   loadMathProgress,
   LEVEL_LABEL,
+  type MathProfile,
   type MathQuestion,
   type MathVisual,
 } from '../math/mathGenerator';
@@ -89,6 +90,7 @@ export interface SkyQuestion {
   explanation?: string;
   /** Rujukan ke soal asli, dipakai mencatat jawaban ke mesin adaptif. */
   math?: MathQuestion;
+  mathProfile?: MathProfile;
 }
 
 function safeReadJson(key: string): Record<string, unknown> | null {
@@ -235,8 +237,8 @@ const LEVEL_ACCENT: Record<string, string> = {
   menantang: '#9a5ec9',
 };
 
-function buildMathFlight(): SkyQuestion[] {
-  const questions = generateMathSet(FLIGHT_LENGTH);
+function buildMathFlight(profile: MathProfile): SkyQuestion[] {
+  const questions = generateMathSet(FLIGHT_LENGTH, undefined, profile);
 
   return questions.map((q) => ({
     id: `angka-${q.id}`,
@@ -249,11 +251,12 @@ function buildMathFlight(): SkyQuestion[] {
     promptIsArabic: false,
     optionsAreArabic: false,
     emoji: '',
-    label: LEVEL_LABEL[q.level],
+    label: LEVEL_LABEL[profile][q.level],
     accent: LEVEL_ACCENT[q.level] ?? '#28a8e0',
     visual: q.visual,
     explanation: q.explanation,
     math: q,
+    mathProfile: profile,
   }));
 }
 
@@ -270,6 +273,20 @@ function pickAsk(q: MathQuestion): string {
       return 'Pilih hasil pembagian';
     case 'mixed':
       return 'Kerjakan perkalian dulu';
+    case 'counting':
+      return 'Pilih bilangan yang tepat';
+    case 'placeValue':
+      return 'Pilih nilai bilangannya';
+    case 'pattern':
+      return 'Lanjutkan polanya';
+    case 'fractionBasic':
+      return 'Pilih nilai pecahannya';
+    case 'measurement':
+      return 'Pilih hasil pengukuran';
+    case 'geometry':
+      return 'Pilih jawaban bangun';
+    case 'data':
+      return 'Baca datanya';
     default:
       return 'Berapa hasilnya?';
   }
@@ -289,14 +306,14 @@ export interface FlightPlan {
   levelLabel?: string;
 }
 
-export function buildFlight(topic: SkyTopic): FlightPlan {
+export function buildFlight(topic: SkyTopic, mathProfile: MathProfile = 'flight12'): FlightPlan {
   if (topic === 'angka') {
-    const progress = loadMathProgress();
+    const progress = loadMathProgress(mathProfile);
     return {
-      questions: buildMathFlight(),
+      questions: buildMathFlight(mathProfile),
       poolSize: -1,
       topic: 'angka',
-      levelLabel: LEVEL_LABEL[progress.level],
+      levelLabel: LEVEL_LABEL[mathProfile][progress.level],
     };
   }
 

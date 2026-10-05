@@ -1,3 +1,20 @@
+## 2026-10-05 - Pembagian Materi Matematika per Game
+
+- Membaca PDF rujukan `Matematika I` sampai `Matematika VI`; `Matematika IX` tidak dipakai untuk game SD karena materinya SMP.
+- Memisahkan generator soal matematika menjadi profil `flight12` untuk Penerbangan Ilmu dan `frog34` untuk Lompat Katak.
+- Penerbangan Ilmu kini fokus kelas 1-2: membilang, penjumlahan/pengurangan awal, nilai tempat dasar, pola, bentuk, pengukuran, pecahan setengah/seperempat, dan data sederhana.
+- Lompat Katak kini fokus kelas 3-4: bilangan lebih besar, tambah-kurang, perkalian/pembagian, nilai tempat ribuan, pengukuran, pecahan dasar, pola, luas, dan data.
+- Jembatan Numeria dikunci untuk kelas 5-6: KPK/FPB, pecahan senilai, desimal, rasio, persen, keliling/luas, sudut, data, kubus-balok, dan peluang dasar.
+- Konten matematika tetap draft dan perlu validasi akademik Bright Academy sebelum rilis resmi.
+
+## 2026-10-05 - Oasis AI Sambung Surat Pendek
+
+- Menambahkan mode `Level 2: Sambung Surat` ke mini-game `AI Angka Arab & Surat` di Pulau Oasis Bahasa Arab.
+- Mode baru tetap memakai mekanik kamera tangan/cubit yang sama, tetapi materi berubah menjadi menyusun potongan surat pendek ke urutan target ayat.
+- Menambahkan pemilih level di modal awal dan tab kecil saat game belum berjalan: `Level 1: Angka` dan `Level 2: Surat`.
+- UI target, progress, hasil akhir, dan instruksi status dibuat adaptif berdasarkan mode aktif, termasuk jumlah target yang tidak selalu 10.
+- Konten potongan surat pendek masih draft dan perlu validasi guru Qur'an/Bahasa Arab Bright Academy sebelum dipakai resmi.
+
 ## 2026-10-02 - Kampung Adab 3D visual polish
 
 - Memperbesar dan merapatkan aset existing di `Adab Daily Life Simulator` agar warung, masjid, majelis ilmu, taman, rumah, NPC, pohon, dan props terasa lebih hadir.

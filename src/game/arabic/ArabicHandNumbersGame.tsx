@@ -26,6 +26,9 @@ interface NumberRow {
   word: string;
   meaning: string;
   color: string;
+  targetLabel?: string;
+  cardLabel?: string;
+  feedback?: string;
 }
 
 interface FloatingCard {
@@ -84,6 +87,80 @@ const NUMBERS: NumberRow[] = [
   { id: 10, number: '١٠', word: 'عَشَرَةٌ', meaning: 'Sepuluh', color: '#F87171' },
 ];
 
+const SURAH_ROWS: NumberRow[] = [
+  {
+    id: 1,
+    number: '١',
+    word: 'قُلْ هُوَ اللَّهُ أَحَدٌ',
+    meaning: 'Ayat 1',
+    color: '#38BDF8',
+    targetLabel: 'Al-Ikhlas 1',
+    feedback: 'Awal surat Al-Ikhlas.',
+  },
+  {
+    id: 2,
+    number: '٢',
+    word: 'اللَّهُ الصَّمَدُ',
+    meaning: 'Ayat 2',
+    color: '#34D399',
+    targetLabel: 'Al-Ikhlas 2',
+    feedback: 'Lanjutan surat Al-Ikhlas.',
+  },
+  {
+    id: 3,
+    number: '٣',
+    word: 'لَمْ يَلِدْ وَلَمْ يُولَدْ',
+    meaning: 'Ayat 3',
+    color: '#FBBF24',
+    targetLabel: 'Al-Ikhlas 3',
+    feedback: 'Ayat ketiga surat Al-Ikhlas.',
+  },
+  {
+    id: 4,
+    number: '٤',
+    word: 'وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ',
+    meaning: 'Ayat 4',
+    color: '#F472B6',
+    targetLabel: 'Al-Ikhlas 4',
+    feedback: 'Penutup surat Al-Ikhlas.',
+  },
+  {
+    id: 5,
+    number: '٥',
+    word: 'مِنْ شَرِّ مَا خَلَقَ',
+    meaning: 'Al-Falaq 2',
+    color: '#A78BFA',
+    targetLabel: 'Al-Falaq 2',
+    feedback: 'Potongan awal perlindungan dalam surat Al-Falaq.',
+  },
+  {
+    id: 6,
+    number: '٦',
+    word: 'مِنْ شَرِّ الْوَسْوَاسِ الْخَنَّاسِ',
+    meaning: 'An-Nas 4',
+    color: '#2DD4BF',
+    targetLabel: 'An-Nas 4',
+    feedback: 'Potongan perlindungan dalam surat An-Nas.',
+  },
+];
+
+type HandLessonMode = 'numbers' | 'surah';
+
+const MODE_META: Record<HandLessonMode, { title: string; subtitle: string; instruction: string; rows: NumberRow[] }> = {
+  numbers: {
+    title: 'AI Angka Arab ١-١٠',
+    subtitle: 'Cocokkan kata bilangan Arab ke angka Arab.',
+    instruction: 'Cubit kartu kata Arab, bawa ke angka Arab yang benar, lalu buka jari.',
+    rows: NUMBERS,
+  },
+  surah: {
+    title: 'AI Sambung Surat Pendek',
+    subtitle: 'Next level: urutkan potongan surat pendek dengan capit tangan.',
+    instruction: 'Cubit potongan ayat, bawa ke kotak urutan surat yang tepat, lalu buka jari.',
+    rows: SURAH_ROWS,
+  },
+};
+
 const DEFAULT_SETTINGS: TeacherSettings = {
   timeLimit: 90,
   pinchSensitivity: 55,
@@ -118,11 +195,19 @@ const HAND_CSS = `
 .hand-pill { display: inline-flex; align-items: center; gap: 7px; border: 1px solid rgba(255,255,255,.24); background: rgba(13,20,36,.76); color: #fef3c7; padding: 8px 11px; border-radius: 999px; font: 800 12px Outfit, Cairo, sans-serif; backdrop-filter: blur(12px); box-shadow: 0 8px 22px #0005; }
 .hand-actions { display: flex; gap: 8px; align-items: center; pointer-events: auto; }
 .hand-icon-btn { border: 1px solid rgba(255,255,255,.24); background: rgba(13,20,36,.78); color: #fef3c7; width: 39px; height: 39px; border-radius: 999px; display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(10px); }
+.hand-mode-tabs { position: absolute; top: 72px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: auto; }
+.hand-mode-tab { border: 1px solid rgba(255,255,255,.24); border-radius: 999px; background: rgba(13,20,36,.72); color: #dbeafe; padding: 8px 13px; font: 900 12px Cairo, sans-serif; cursor: pointer; backdrop-filter: blur(10px); }
+.hand-mode-tab.active { background: linear-gradient(135deg,#f59e0b,#06b6d4); color: #07111f; border-color: rgba(255,255,255,.5); }
+.hand-mode-tab:disabled { opacity: .55; cursor: not-allowed; }
+.hand-mode-choice { border: 1px solid rgba(255,255,255,.24); border-radius: 16px; background: rgba(255,255,255,.08); color: #e0f2fe; padding: 10px 12px; font: 900 12px Cairo, sans-serif; cursor: pointer; text-align: left; }
+.hand-mode-choice.active { background: linear-gradient(135deg,#0f766e,#f59e0b); color: #fff7ed; border-color: #fde68a; box-shadow: 0 10px 24px #f59e0b33; }
 .hand-target-grid { position: absolute; top: 116px; left: 16%; right: 16%; display: grid; grid-template-columns: repeat(10, minmax(70px, 1fr)); gap: 10px; pointer-events: auto; }
+.hand-target-grid.surah { left: 10%; right: 10%; grid-template-columns: repeat(6, minmax(118px, 1fr)); }
 .hand-target { min-height: 88px; border-radius: 16px; border: 1px solid rgba(255,255,255,.24); background: rgba(13,20,36,.82); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 12px 28px #0006; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fef3c7; transition: transform .15s, background .15s, border .15s; }
 .hand-target-number { font: 900 30px Amiri, serif; line-height: 1; }
 .hand-target-word { font: 800 16px Amiri, serif; direction: rtl; line-height: 1.2; color: white; }
 .hand-target-meaning { font: 800 10px Cairo, sans-serif; color: #dbeafe; }
+.hand-target-label { font: 900 11px Cairo, sans-serif; color: #fef3c7; text-align: center; }
 .hand-target.matched { background: rgba(5,150,105,.9); border-color: rgba(167,243,208,.82); color: white; transform: translateY(-2px); }
 .hand-target.shake { animation: hand-shake .34s ease; background: rgba(190,18,60,.86); }
 @keyframes hand-shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
@@ -134,6 +219,7 @@ const HAND_CSS = `
 .hand-card.wrong { animation: hand-card-wrong .42s ease; }
 @keyframes hand-card-wrong { 0%,100% { transform: translate(-50%, -50%) rotate(0); } 30% { transform: translate(-50%, -50%) rotate(-6deg); } 65% { transform: translate(-50%, -50%) rotate(7deg); } }
 .hand-card-word { font: 900 25px Amiri, serif; direction: rtl; text-shadow: 0 3px 10px #0008; }
+.hand-card-word.surah { font-size: 20px; line-height: 1.35; }
 .hand-card-meaning { margin-top: 2px; font: 800 11px Cairo, sans-serif; color: #dbeafe; }
 .hand-reticle { position: absolute; width: 58px; height: 58px; border-radius: 999px; transform: translate(-50%, -50%); border: 3px solid #06b6d4; box-shadow: 0 0 28px #06b6d4aa; display: grid; place-items: center; pointer-events: none; transition: width .12s, height .12s, border-color .12s; }
 .hand-reticle.pinching { width: 42px; height: 42px; border-color: #f59e0b; box-shadow: 0 0 30px #f59e0bcc; animation: hand-pulse .8s ease-in-out infinite; }
@@ -168,7 +254,8 @@ const HAND_CSS = `
 .hand-leader-row { display: grid; grid-template-columns: 32px 1fr auto; gap: 10px; align-items: center; border-radius: 14px; background: rgba(255,255,255,.08); padding: 10px; font: 800 13px Cairo, sans-serif; }
 @media (max-width: 840px) {
   .hand-arabic-topbar { top: 10px; left: 10px; right: 10px; }
-  .hand-target-grid { grid-template-columns: repeat(5, 1fr); top: 82px; left: 10px; right: 10px; }
+  .hand-mode-tabs { top: 58px; }
+  .hand-target-grid, .hand-target-grid.surah { grid-template-columns: repeat(3, 1fr); top: 102px; left: 10px; right: 10px; }
   .hand-target { min-height: 72px; }
   .hand-target-number { font-size: 24px; }
   .hand-card { width: 124px; min-height: 74px; }
@@ -256,8 +343,8 @@ function useSynthSfx(enabled: boolean) {
   return play;
 }
 
-function initialCards(width: number, height: number): FloatingCard[] {
-  return NUMBERS.map((row, i) => ({
+function initialCards(width: number, height: number, rows: NumberRow[]): FloatingCard[] {
+  return rows.map((row, i) => ({
     id: row.id,
     x: rand(90, Math.max(120, width - 90)),
     y: rand(Math.min(320, height * 0.45), Math.max(360, height - 90)),
@@ -296,6 +383,7 @@ export default function ArabicHandNumbersGame({
   const dragTimesRef = useRef<number[]>([]);
   const lastPinchRef = useRef(false);
   const [phase, setPhase] = useState<'start' | 'playing' | 'settings' | 'leaderboard' | 'result'>('start');
+  const [mode, setMode] = useState<HandLessonMode>('numbers');
   const [settings, setSettings] = useState<TeacherSettings>(DEFAULT_SETTINGS);
   const [cards, setCards] = useState<FloatingCard[]>([]);
   const [particles, setParticles] = useState<Particle[]>([]);
@@ -309,6 +397,8 @@ export default function ArabicHandNumbersGame({
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => readLeaderboard());
   const [studentName, setStudentName] = useState('');
   const playSfx = useSynthSfx(settings.sfx);
+  const activeMode = MODE_META[mode];
+  const activeRows = activeMode.rows;
 
   const heldCard = cards.find((card) => card.id === heldIdRef.current);
   const accuracy = useMemo(() => {
@@ -360,14 +450,14 @@ export default function ArabicHandNumbersGame({
     heldIdRef.current = null;
     playSfx('drop');
     dragTimesRef.current.push((performance.now() - dragStartRef.current) / 1000);
-    const droppedOn = NUMBERS.find((row) => {
+    const droppedOn = activeRows.find((row) => {
       const rect = targetRefs.current[row.id]?.getBoundingClientRect();
       if (!rect) return false;
       return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
     });
 
     if (droppedOn?.id === heldId) {
-      const row = NUMBERS.find((item) => item.id === heldId)!;
+      const row = activeRows.find((item) => item.id === heldId)!;
       cardsRef.current = cardsRef.current.map((card) => (card.id === heldId ? { ...card, matched: true } : card));
       setCards([...cardsRef.current]);
       setMatchedCount((count) => count + 1);
@@ -376,7 +466,7 @@ export default function ArabicHandNumbersGame({
       arabicSfx.correct();
       burst(localX, localY, row.color);
       onConfetti();
-      pushToast(`Benar! ${row.number} adalah ${row.word}`);
+      pushToast(row.feedback ? `Benar! ${row.feedback}` : `Benar! ${row.number} adalah ${row.word}`);
       return;
     }
 
@@ -393,7 +483,7 @@ export default function ArabicHandNumbersGame({
       );
       setCards([...cardsRef.current]);
     }
-  }, [burst, onConfetti, playSfx, pushToast, settings.correctScore, settings.wrongPenalty]);
+  }, [activeRows, burst, onConfetti, playSfx, pushToast, settings.correctScore, settings.wrongPenalty]);
 
   const pickNearestCard = useCallback((x: number, y: number) => {
     if (heldIdRef.current) return;
@@ -549,7 +639,7 @@ export default function ArabicHandNumbersGame({
   const startGame = useCallback(() => {
     const wrapper = wrapperRef.current;
     const rect = wrapper?.getBoundingClientRect();
-    const nextCards = initialCards(rect?.width ?? 900, rect?.height ?? 620);
+    const nextCards = initialCards(rect?.width ?? 900, rect?.height ?? 620, activeRows);
     cardsRef.current = nextCards;
     heldIdRef.current = null;
     dragTimesRef.current = [];
@@ -564,7 +654,7 @@ export default function ArabicHandNumbersGame({
     setPhase('playing');
     arabicSfx.click();
     void startCamera();
-  }, [settings.timeLimit, startCamera]);
+  }, [activeRows, settings.timeLimit, startCamera]);
 
   useEffect(() => {
     if (phase !== 'playing') return;
@@ -632,7 +722,7 @@ export default function ArabicHandNumbersGame({
           .map((p) => ({ ...p, x: p.x + p.vx, y: p.y + p.vy, vy: p.vy + 0.08, life: p.life - 1 }))
           .filter((p) => p.life > 0),
       );
-      if (matchedCount >= NUMBERS.length) {
+      if (matchedCount >= activeRows.length) {
         setPhase('result');
         onXpEarned(25 + Math.max(0, Math.round(score / 3)));
         arabicSfx.complete();
@@ -642,7 +732,7 @@ export default function ArabicHandNumbersGame({
     }
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [matchedCount, onXpEarned, phase, score, settings.speed]);
+  }, [activeRows.length, matchedCount, onXpEarned, phase, score, settings.speed]);
 
   useEffect(() => {
     if (phase !== 'playing') stopCamera();
@@ -681,6 +771,19 @@ export default function ArabicHandNumbersGame({
     pushToast('Skor tersimpan di Top 10.');
   }
 
+  function selectMode(nextMode: HandLessonMode) {
+    if (phase === 'playing') {
+      pushToast('Selesaikan atau keluar dulu sebelum ganti level.');
+      return;
+    }
+    setMode(nextMode);
+    setCards([]);
+    setMatchedCount(0);
+    setWrongCount(0);
+    setScore(0);
+    setTimeLeft(settings.timeLimit);
+  }
+
   const avgDrag = dragTimesRef.current.length
     ? (dragTimesRef.current.reduce((sum, value) => sum + value, 0) / dragTimesRef.current.length).toFixed(1)
     : '0.0';
@@ -694,7 +797,7 @@ export default function ArabicHandNumbersGame({
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <span className="hand-pill"><Camera size={14} /> {cameraStatus}</span>
             <span className="hand-pill">Skor {score}</span>
-            <span className="hand-pill">{matchedCount}/10 cocok</span>
+            <span className="hand-pill">{matchedCount}/{activeRows.length} cocok</span>
             <span className="hand-pill">{timeLeft}s</span>
           </div>
           <div className="hand-actions">
@@ -705,8 +808,21 @@ export default function ArabicHandNumbersGame({
           </div>
         </div>
 
-        <div className="hand-target-grid">
-          {NUMBERS.map((row) => {
+        <div className="hand-mode-tabs">
+          {(Object.keys(MODE_META) as HandLessonMode[]).map((item) => (
+            <button
+              key={item}
+              className={'hand-mode-tab' + (mode === item ? ' active' : '')}
+              disabled={phase === 'playing'}
+              onClick={() => selectMode(item)}
+            >
+              {item === 'numbers' ? 'Level 1: Angka' : 'Level 2: Surat'}
+            </button>
+          ))}
+        </div>
+
+        <div className={'hand-target-grid' + (mode === 'surah' ? ' surah' : '')}>
+          {activeRows.map((row) => {
             const matched = cards.find((card) => card.id === row.id)?.matched;
             return (
               <div
@@ -716,6 +832,7 @@ export default function ArabicHandNumbersGame({
                 style={{ borderColor: `${row.color}88`, boxShadow: `0 12px 28px #0006, inset 0 0 0 1px ${row.color}33` }}
               >
                 <span className="hand-target-number">{row.number}</span>
+                {row.targetLabel && <span className="hand-target-label">{row.targetLabel}</span>}
                 {matched && <span className="hand-target-word">{row.word}</span>}
                 {matched && settings.showMalay && <span className="hand-target-meaning">{row.meaning}</span>}
               </div>
@@ -725,7 +842,7 @@ export default function ArabicHandNumbersGame({
 
         <div className="hand-card-layer">
           {cards.filter((card) => !card.matched).map((card) => {
-            const row = NUMBERS.find((item) => item.id === card.id)!;
+            const row = activeRows.find((item) => item.id === card.id)!;
             const tilt = Math.sin(card.wobble) * 3.6;
             return (
               <div
@@ -739,7 +856,7 @@ export default function ArabicHandNumbersGame({
                 onPointerCancel={handlePointerUp}
               >
                 <div>
-                  <div className="hand-card-word">{row.word}</div>
+                  <div className={'hand-card-word' + (mode === 'surah' ? ' surah' : '')}>{row.cardLabel ?? row.word}</div>
                   {settings.showMalay && <div className="hand-card-meaning">{row.meaning}</div>}
                 </div>
               </div>
@@ -767,7 +884,7 @@ export default function ArabicHandNumbersGame({
           <span key={p.id} className="hand-particle" style={{ left: p.x, top: p.y, color: p.color, opacity: Math.max(0, p.life / 60) }} />
         ))}
         <div className="hand-status">
-          {hand.pinching ? '✊ JARI DIKECILKAN (MEMEGANG)' : '🖐️ JARI TERBUKA (SEDIA)'} • cubit kartu, bawa ke angka Arab, lalu buka jari
+          {hand.pinching ? 'JARI DIKECILKAN (MEMEGANG)' : 'JARI TERBUKA (SEDIA)'} - {activeMode.instruction}
         </div>
         <div className="hand-toast-wrap">
           {toast.map((item, index) => <div key={`${item}-${index}`} className="hand-toast">{item}</div>)}
@@ -778,14 +895,18 @@ export default function ArabicHandNumbersGame({
         <div className="hand-modal">
           <div className="hand-modal-card">
             <span className="chip">Mini-game AI Vision</span>
-            <h3>AI Angka Arab ١-١٠</h3>
-            <p>Gunakan kamera untuk menggerakkan tangan. Cubit untuk mengambil kartu kata Arab, arahkan ke petak angka yang cocok, lalu buka jari untuk melepas.</p>
+            <h3>{activeMode.title}</h3>
+            <p>{activeMode.subtitle} {activeMode.instruction}</p>
+            <div className="hand-modal-actions" style={{ marginBottom: 6 }}>
+              <button className={'hand-mode-choice' + (mode === 'numbers' ? ' active' : '')} onClick={() => selectMode('numbers')}>Level 1: Angka Arab<br /><small>Cocokkan kata bilangan ke angka.</small></button>
+              <button className={'hand-mode-choice' + (mode === 'surah' ? ' active' : '')} onClick={() => selectMode('surah')}>Level 2: Sambung Surat<br /><small>Urutkan potongan surat pendek.</small></button>
+            </div>
             <div className="hand-guide">
               <div className="hand-guide-card"><b>1</b> Buka tangan agar sensor siap.</div>
               <div className="hand-guide-card"><b>2</b> Cubit untuk mengambil kartu.</div>
-              <div className="hand-guide-card"><b>3</b> Lepas di angka Arab yang tepat.</div>
+              <div className="hand-guide-card"><b>3</b> Lepas di kotak target yang tepat.</div>
             </div>
-            <p>Kamera tidak wajib. Jika izin kamera ditolak, game tetap bisa dimainkan dengan mouse atau sentuhan.</p>
+            <p>Mode utama memakai kamera tangan. Mouse atau sentuhan hanya cadangan teknis saat guru mengetes.</p>
             <div className="hand-modal-actions">
               <button className="hand-primary" onClick={startGame}>Mulai Bermain <ChevronRight size={16} /></button>
               <button className="hand-secondary" onClick={() => setPhase('settings')}>Mod Guru</button>
@@ -856,11 +977,11 @@ export default function ArabicHandNumbersGame({
       {phase === 'result' && (
         <div className="hand-modal">
           <div className="hand-modal-card">
-            <span className="chip">Hasil AI Angka Arab</span>
-            <h3>{matchedCount >= 10 ? 'Semua cocok!' : 'Permainan selesai'}</h3>
+            <span className="chip">Hasil {activeMode.title}</span>
+            <h3>{matchedCount >= activeRows.length ? 'Semua cocok!' : 'Permainan selesai'}</h3>
             <div className="hand-result-grid">
               <div className="hand-result-stat"><b>{score}</b>Skor akhir</div>
-              <div className="hand-result-stat"><b>{matchedCount}/10</b>Berjaya</div>
+              <div className="hand-result-stat"><b>{matchedCount}/{activeRows.length}</b>Berjaya</div>
               <div className="hand-result-stat"><b>{wrongCount}</b>Salah kotak</div>
               <div className="hand-result-stat"><b>{accuracy}%</b>Ketepatan</div>
               <div className="hand-result-stat"><b>{avgDrag}s</b>Purata masa seret</div>
