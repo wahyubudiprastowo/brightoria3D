@@ -1,3 +1,27 @@
+## 2026-10-02 - Kampung Adab 3D visual polish
+
+- Memperbesar dan merapatkan aset existing di `Adab Daily Life Simulator` agar warung, masjid, majelis ilmu, taman, rumah, NPC, pohon, dan props terasa lebih hadir.
+- Mengubah simulator menjadi fullscreen `100vw/100vh` dengan Canvas penuh layar dan HUD ringkas di atas scene.
+- Merapikan komposisi map: warung di kiri, masjid sebagai landmark belakang-tengah, majelis dekat pusat, taman kanan tengah, rumah kanan, dan karakter di foreground.
+- Menambahkan plaza tengah, jalur tanah natural, cluster batu/rumput/bunga, pagar kayu, lampu taman, bangku, dan papan pusat memakai geometri ringan.
+- Memperbaiki lighting menjadi lebih hangat dengan ambient/hemisphere/directional sunlight, shadow lebih lembut, serta tombol pencahayaan hangat/netral.
+- Revisi lanjutan merenggangkan lokasi yang berdempetan, memperbesar terrain agar tepi map tidak terlalu terlihat, menurunkan kamera ke framing plaza, menambahkan bukit/awan latar, memberi offset label per area, dan mengganti judul HUD menjadi papan kayu seperti referensi.
+- Mengganti latar procedural Kampung Adab dengan asset storybook lokal `kampung-adab-storybook-bg.png`, membuat Canvas transparan, dan mengurangi elemen backdrop 3D agar scene lebih bersih seperti mockup low-poly yang diberikan user.
+- Konten adab dan staging visual tetap draft sampai divalidasi tim Bright Academy.
+
+## 2026-10-02 - AI Angka Arab camera fallback
+
+- Mengganti alur kamera `AI Angka Arab` agar tidak lagi memakai helper `camera_utils` saat meminta izin kamera, sehingga penolakan izin tidak memunculkan popup `alert()` native.
+- Jika izin kamera ditolak, game sekarang menampilkan toast/status in-game dan tetap dapat dimainkan dengan mouse atau sentuhan.
+- Kamera kembali menjadi mode utama: izin kamera diminta saat game dimulai, tombol kamera tetap tersedia untuk mencoba lagi jika browser belum memberi akses, dan mouse/touch hanya menjadi fallback cadangan.
+
+## 2026-10-02 - Materi Hadits Anak untuk Kampung Adab
+
+- Menambahkan modul `hadithLessons.ts` berisi 15 Hadits Hikmah anak yang disarikan dari PDF `200 Hadits pilihan untuk anak-anak`.
+- Menghubungkan misi 3D Kampung Adab dengan hadits bertema salam, ilmu, masjid, menahan marah, dan jujur.
+- Menampilkan kartu `Hadits Hikmah` di panel misi agar anak mendapat ringkasan nilai dan latihan harian sebelum memilih sikap.
+- Semua ringkasan hadits tetap berstatus draft dan perlu validasi akademik Bright Academy sebelum rilis resmi.
+
 ## 2026-10-02 - Numeria operasi hitung kelas 3-6
 
 - Mengecek sumber materi matematika: pulau utama matematika adalah `Pulau Numeria`, sedangkan mode Latihan/SkyRun/Froggy memakai generator angka bersama.

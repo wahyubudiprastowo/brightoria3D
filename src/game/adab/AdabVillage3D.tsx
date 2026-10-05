@@ -1,11 +1,10 @@
 import CanvasBoundary from '../../components/CanvasBoundary';
 import BlockyCharacter, { type CharacterMotion } from '../../components/world3d/BlockyCharacter';
-import { ThreePointLights } from '../../render/CinematicRig';
 import ProceduralEnv from '../../render/ProceduralEnv';
 import { getQuality } from '../../render/quality';
 import { Html, OrbitControls, useGLTF } from '@react-three/drei';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Camera, HandHeart, Move } from 'lucide-react';
+import { Camera, HandHeart, Map, Move, Settings, Sun } from 'lucide-react';
 import { Suspense, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import * as THREE from 'three';
 
@@ -22,6 +21,11 @@ export interface SimMission {
   locationId: string;
   title: string;
   scenario: string;
+  hadith?: {
+    title: string;
+    childSummary: string;
+    practicePrompt: string;
+  };
   choices: SimChoice[];
 }
 
@@ -34,6 +38,7 @@ export interface VillageLocation {
   placeModel: string;
   npcScale: number;
   placeScale: number;
+  labelOffset?: [number, number, number];
   accent: string;
 }
 
@@ -50,7 +55,7 @@ interface CameraControlState {
   distanceOffset: number;
 }
 
-const ARENA_RADIUS = 15;
+const ARENA_RADIUS = 15.2;
 
 function clamp(v: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, v));
@@ -68,55 +73,60 @@ export const adabLocations3d: VillageLocation[] = [
     id: 'home',
     name: 'Rumah',
     subtitle: 'Bantu orang tua',
-    position: [-8.5, -4.5],
+    position: [10.4, -1.3],
     npcModel: '/assets/adab-village/mother-helper.glb',
     placeModel: '/assets/adab-village/bazaar-cottage.glb',
-    npcScale: 1.55,
-    placeScale: 3.2,
+    npcScale: 1.45,
+    placeScale: 3.9,
+    labelOffset: [0.25, 3.25, 0.15],
     accent: '#c86845',
   },
   {
     id: 'school',
     name: 'Majelis Ilmu',
     subtitle: 'Adab belajar',
-    position: [-2.5, 7.5],
+    position: [2.0, 3.45],
     npcModel: '/assets/adab-village/wise-imam.glb',
     placeModel: '/assets/adab-village/knowledge-statue.glb',
-    npcScale: 1.45,
-    placeScale: 2.4,
+    npcScale: 1.38,
+    placeScale: 3.05,
+    labelOffset: [-0.15, 3.05, 0],
     accent: '#3d73bc',
   },
   {
     id: 'mosque',
     name: 'Masjid',
     subtitle: 'Tenang dan tertib',
-    position: [7.5, 6.5],
+    position: [-4.15, 5.05],
     npcModel: '/assets/adab-village/hooded-wanderer.glb',
     placeModel: '/assets/adab-village/oasis-mosque.glb',
-    npcScale: 1.35,
-    placeScale: 3,
+    npcScale: 1.45,
+    placeScale: 4.25,
+    labelOffset: [0.2, 3.8, 0.1],
     accent: '#17856f',
   },
   {
     id: 'park',
     name: 'Taman Sahabat',
     subtitle: 'Berbagi dan meminta maaf',
-    position: [-7, 6.5],
+    position: [7.15, 2.95],
     npcModel: '/assets/adab-village/hijab-girl.glb',
     placeModel: '/assets/adab-village/adab-mosque-sign.glb',
-    npcScale: 1.25,
-    placeScale: 2.5,
+    npcScale: 1.35,
+    placeScale: 2.9,
+    labelOffset: [0.05, 2.95, 0.2],
     accent: '#8b5ab5',
   },
   {
     id: 'shop',
     name: 'Warung Amanah',
     subtitle: 'Jujur saat membeli',
-    position: [8, -4.8],
+    position: [-9.55, -1.85],
     npcModel: '/assets/adab-village/boy-friend.glb',
     placeModel: '/assets/adab-village/market-stall.glb',
-    npcScale: 1.35,
-    placeScale: 2.9,
+    npcScale: 1.45,
+    placeScale: 3.8,
+    labelOffset: [-0.2, 3.15, 0.1],
     accent: '#da843c',
   },
 ];
@@ -161,7 +171,7 @@ function FittedModel({
 
 function Terrain() {
   const geometry = useMemo(() => {
-    const plane = new THREE.PlaneGeometry(36, 36, 70, 70);
+    const plane = new THREE.PlaneGeometry(46, 40, 96, 88);
     const pos = plane.attributes.position;
     const colors: number[] = [];
     const color = new THREE.Color();
@@ -170,14 +180,16 @@ function Terrain() {
       const z = pos.getY(i);
       const h = groundHeight(x, z);
       pos.setZ(i, h);
-      const path = Math.min(
-        Math.abs(z),
-        Math.abs(x + 0.34 * z),
-        Math.abs(x - 0.3 * z),
-      );
-      if (path < 0.8) color.set('#d7b27a');
-      else if (Math.hypot(x, z) > 13.5) color.set('#6bb765');
-      else color.set(h > 0.06 ? '#8fd46f' : '#7cc96a');
+      const centerPlaza = Math.hypot(x, z - 0.15) < 2.9;
+      const mainPath = Math.abs(x * 0.08 + z + 5.4) < 1.28 && z < 0.8;
+      const crossPath = Math.abs(z - 1.35 - Math.sin(x * 0.22) * 0.32) < 0.96 && x > -11.4 && x < 11.7;
+      const mosquePath = Math.abs(x + 3.2 + Math.sin(z * 0.55) * 0.24) < 0.82 && z > 1.2 && z < 6.2;
+      const homePath = Math.abs(x - 8.8 - Math.sin(z * 0.5) * 0.2) < 0.76 && z > -2.4 && z < 2.6;
+      const outer = Math.hypot(x * 0.78, z) > 17.1;
+      if (centerPlaza) color.set(i % 2 ? '#e9cc95' : '#dcb879');
+      else if (mainPath || crossPath || mosquePath || homePath) color.set(i % 3 === 0 ? '#e4c38a' : '#d8b175');
+      else if (outer) color.set('#78bd68');
+      else color.set(h > 0.06 ? '#9adf78' : '#83cf6f');
       colors.push(color.r, color.g, color.b);
     }
     plane.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
@@ -206,6 +218,7 @@ function MissionMarker({
   const [x, z] = location.position;
   const y = groundHeight(x, z);
   const ring = useRef<THREE.Mesh>(null);
+  const labelOffset = location.labelOffset ?? [0, 3.1, 0];
 
   useFrame((state) => {
     if (!ring.current) return;
@@ -217,24 +230,24 @@ function MissionMarker({
   return (
     <group position={[x, y, z]}>
       <mesh ref={ring} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, 0]}>
-        <ringGeometry args={[1.25, 1.48, 36]} />
+        <ringGeometry args={[1.45, 1.65, 40]} />
         <meshBasicMaterial color={done ? '#f3c861' : location.accent} transparent opacity={near ? 0.8 : 0.45} />
       </mesh>
       <mesh position={[0, 0.03, 0]}>
-        <cylinderGeometry args={[1.3, 1.45, 0.08, 18]} />
+        <cylinderGeometry args={[1.55, 1.82, 0.1, 28]} />
         <meshStandardMaterial color={done ? '#fff3cd' : '#fff7df'} roughness={0.8} />
       </mesh>
-      <group position={[0, 0, -1.25]} rotation={[0, Math.PI, 0]}>
+      <group position={[0, 0.02, -1.15]} rotation={[0, Math.PI, 0]}>
         <Suspense fallback={null}>
           <FittedModel url={location.placeModel} size={location.placeScale} />
         </Suspense>
       </group>
-      <group position={[0.75, 0, 0.7]} rotation={[0, -0.35, 0]}>
+      <group position={[1.02, 0.02, 0.9]} rotation={[0, -0.35, 0]}>
         <Suspense fallback={null}>
           <FittedModel url={location.npcModel} size={location.npcScale} />
         </Suspense>
       </group>
-      <Html center position={[0, 2.8, 0]} zIndexRange={[30, 0]}>
+      <Html center position={labelOffset} zIndexRange={[30, 0]}>
         <div className={'adab3d-label' + (near ? ' near' : '')}>
           <b>{done ? 'Selesai' : location.name}</b>
           <span>{near ? 'Tekan Bantu' : location.subtitle}</span>
@@ -246,39 +259,127 @@ function MissionMarker({
 
 function VillageDecor() {
   const treePositions: [number, number, number][] = [
-    [-12, -7, 1.1],
-    [-12, 8, 0.9],
-    [-3, -11, 1],
-    [4, 11, 0.95],
-    [12, 3, 1.05],
-    [12, -9, 0.9],
+    [-14.0, -5.2, 1.45], [-12.8, 4.9, 1.18], [-8.0, 7.2, 1.1],
+    [-1.0, 7.8, 1.0], [5.3, 7.1, 1.05], [11.4, 5.25, 1.28],
+    [13.6, -2.75, 1.22], [-5.7, -8.4, 1.0], [5.8, -8.1, 1.08],
+  ];
+  const rocks: [number, number, number][] = [
+    [-7.0, -4.0, .42], [-6.1, -3.35, .26], [-11.1, .85, .34],
+    [3.5, -2.55, .3], [7.8, .35, .36], [8.9, 1.45, .24],
+    [-2.6, 1.85, .22], [1.55, -4.55, .26], [11.8, -2.0, .42],
+    [-12.4, -2.8, .36], [5.2, 4.9, .3],
+  ];
+  const flowerClusters: [number, number, string][] = [
+    [-7.2, -2.55, '#fff7d5'], [-6.5, -1.9, '#f6b9c8'], [3.0, .65, '#ffffff'],
+    [5.35, 1.0, '#ffe4ed'], [8.65, -2.65, '#fff7d5'], [-3.35, 2.75, '#f6b9c8'],
+    [.05, -1.8, '#ffffff'], [-10.25, -3.45, '#fff7d5'], [10.2, .7, '#ffffff'],
+    [-.8, 2.45, '#ffe4ed'],
+  ];
+  const lamps: [number, number][] = [
+    [-4.7, .7], [4.45, .45], [-2.35, 3.35], [7.9, 2.1], [-8.9, -2.95], [9.55, -1.15],
+  ];
+  const fenceRuns: [number, number, number, number][] = [
+    [-13.2, -4.35, Math.PI / 2, 5], [-9.3, -5.7, 0, 4], [9.0, -5.35, 0, 4],
+    [12.7, -2.9, Math.PI / 2, 4], [6.3, 4.9, 0, 4], [-6.3, 6.05, 0, 4],
   ];
   return (
     <>
       {treePositions.map(([x, z, s], i) => (
         <group key={i} position={[x, groundHeight(x, z), z]} scale={s}>
           <mesh position={[0, 0.45, 0]} castShadow>
-            <cylinderGeometry args={[0.16, 0.24, 0.9, 7]} />
+            <cylinderGeometry args={[0.18, 0.3, 1.05, 7]} />
             <meshStandardMaterial color="#7b4c24" roughness={0.9} />
           </mesh>
-          <mesh position={[0, 1.2, 0]} castShadow>
-            <dodecahedronGeometry args={[0.8, 0]} />
+          <mesh position={[0, 1.35, 0]} castShadow>
+            <dodecahedronGeometry args={[0.92, 0]} />
             <meshStandardMaterial color={i % 2 ? '#55a957' : '#67bf54'} roughness={0.85} />
+          </mesh>
+          <mesh position={[0.42, 1.02, -0.16]} castShadow>
+            <dodecahedronGeometry args={[0.48, 0]} />
+            <meshStandardMaterial color={i % 2 ? '#7ccf62' : '#4f9a50'} roughness={0.85} />
           </mesh>
         </group>
       ))}
-      <mesh position={[0, groundHeight(0, 0) + 0.08, 0]} receiveShadow>
-        <cylinderGeometry args={[2.3, 2.5, 0.12, 32]} />
-        <meshStandardMaterial color="#e8c997" roughness={0.9} />
-      </mesh>
-      <mesh position={[0, groundHeight(0, 0) + 0.55, 0]} castShadow>
-        <boxGeometry args={[1.8, 0.72, 0.2]} />
-        <meshStandardMaterial color="#9b5b2d" roughness={0.8} />
-      </mesh>
-      <mesh position={[0, groundHeight(0, 0) + 0.18, 0.55]} castShadow>
-        <boxGeometry args={[0.16, 0.8, 0.16]} />
-        <meshStandardMaterial color="#7b4c24" roughness={0.8} />
-      </mesh>
+      <group position={[0, groundHeight(0, 0), 0]}>
+        <mesh position={[0, 0.08, 0]} receiveShadow>
+          <cylinderGeometry args={[2.55, 2.75, 0.12, 40]} />
+          <meshStandardMaterial color="#e7c58d" roughness={0.9} />
+        </mesh>
+        <mesh position={[0, 0.17, 0]} receiveShadow>
+          <ringGeometry args={[1.88, 2.03, 40]} />
+          <meshStandardMaterial color="#b58b5e" roughness={0.9} side={THREE.DoubleSide} />
+        </mesh>
+        <mesh position={[0, 0.75, -0.18]} castShadow>
+          <boxGeometry args={[2.05, 0.95, 0.2]} />
+          <meshStandardMaterial color="#9b5b2d" roughness={0.8} />
+        </mesh>
+        <mesh position={[0, 0.32, 0.48]} castShadow>
+          <boxGeometry args={[0.18, 0.96, 0.18]} />
+          <meshStandardMaterial color="#7b4c24" roughness={0.8} />
+        </mesh>
+        <mesh position={[-1.7, 0.22, .98]} rotation={[0, .2, 0]} castShadow>
+          <boxGeometry args={[1.05, .22, .26]} />
+          <meshStandardMaterial color="#ab6f38" roughness={0.85} />
+        </mesh>
+        <mesh position={[1.7, 0.22, .98]} rotation={[0, -.2, 0]} castShadow>
+          <boxGeometry args={[1.05, .22, .26]} />
+          <meshStandardMaterial color="#ab6f38" roughness={0.85} />
+        </mesh>
+      </group>
+      {rocks.map(([x, z, s], i) => (
+        <mesh key={`rock-${i}`} position={[x, groundHeight(x, z) + s * 0.14, z]} scale={s} castShadow>
+          <dodecahedronGeometry args={[1, 0]} />
+          <meshStandardMaterial color={i % 2 ? '#a7aaa0' : '#8f968c'} roughness={0.92} />
+        </mesh>
+      ))}
+      {flowerClusters.map(([x, z, color], i) => (
+        <group key={`flowers-${i}`} position={[x, groundHeight(x, z) + 0.07, z]}>
+          <mesh castShadow>
+            <dodecahedronGeometry args={[0.38, 0]} />
+            <meshStandardMaterial color="#4fa64e" roughness={0.86} />
+          </mesh>
+          {[0, 1, 2, 3].map((p) => {
+            const a = p * Math.PI * 0.5 + i * 0.3;
+            return (
+              <mesh key={p} position={[Math.cos(a) * .28, .12, Math.sin(a) * .22]} scale={[.08, .08, .08]} castShadow>
+                <sphereGeometry args={[1, 8, 6]} />
+                <meshStandardMaterial color={color} roughness={0.75} />
+              </mesh>
+            );
+          })}
+        </group>
+      ))}
+      {lamps.map(([x, z], i) => (
+        <group key={`lamp-${i}`} position={[x, groundHeight(x, z), z]}>
+          <mesh position={[0, .55, 0]} castShadow>
+            <cylinderGeometry args={[.055, .075, 1.1, 8]} />
+            <meshStandardMaterial color="#654023" roughness={0.72} />
+          </mesh>
+          <mesh position={[0, 1.2, 0]} castShadow>
+            <boxGeometry args={[.24, .32, .24]} />
+            <meshStandardMaterial color="#ffd98a" emissive="#ffb13f" emissiveIntensity={0.55} roughness={0.5} />
+          </mesh>
+          <pointLight position={[0, 1.18, 0]} color="#ffd38a" intensity={0.6} distance={3.1} />
+        </group>
+      ))}
+      {fenceRuns.map(([x, z, rot, count], i) => (
+        <group key={`fence-${i}`} position={[x, groundHeight(x, z) + .22, z]} rotation={[0, rot, 0]}>
+          {Array.from({ length: count }).map((_, n) => (
+            <group key={n} position={[(n - (count - 1) / 2) * .72, 0, 0]}>
+              <mesh position={[0, .22, 0]} castShadow>
+                <boxGeometry args={[.12, .55, .12]} />
+                <meshStandardMaterial color="#8a572f" roughness={0.85} />
+              </mesh>
+              {n < count - 1 && (
+                <mesh position={[.36, .33, 0]} castShadow>
+                  <boxGeometry args={[.62, .09, .1]} />
+                  <meshStandardMaterial color="#ad7440" roughness={0.85} />
+                </mesh>
+              )}
+            </group>
+          ))}
+        </group>
+      ))}
     </>
   );
 }
@@ -296,7 +397,7 @@ function Player({
 }) {
   const group = useRef<THREE.Group>(null);
   const velocity = useRef(new THREE.Vector2());
-  const position = useRef(new THREE.Vector2(0, -9.5));
+  const position = useRef(new THREE.Vector2(0, -8.55));
   const facing = useRef(0);
   const camera = useThree((s) => s.camera);
   const motion = useRef<CharacterMotion>({ speed: 0, airborne: false });
@@ -313,9 +414,9 @@ function Player({
       ? new THREE.Vector2(rawWish.x * cos - rawWish.y * sin, rawWish.x * -sin - rawWish.y * cos)
       : rawWish.clone();
     if (wish.length() > 1) wish.normalize();
-    velocity.current.lerp(wish.multiplyScalar(5.2), Math.min(1, dt * 12));
+    velocity.current.lerp(wish.multiplyScalar(4.6), Math.min(1, dt * 12));
     position.current.addScaledVector(velocity.current, dt);
-    if (position.current.length() > ARENA_RADIUS - 1.4) position.current.setLength(ARENA_RADIUS - 1.4);
+    if (position.current.length() > ARENA_RADIUS - 1.25) position.current.setLength(ARENA_RADIUS - 1.25);
 
     const x = position.current.x;
     const z = position.current.y;
@@ -329,17 +430,17 @@ function Player({
       }
       group.current.rotation.y = facing.current;
     }
-    motion.current.speed = Math.min(1, velocity.current.length() / 5.2);
+    motion.current.speed = Math.min(1, velocity.current.length() / 4.6);
     onMove([x, z]);
 
     const cameraYaw = control.locked ? control.followYaw : facing.current + control.yawOffset;
-    const dist = 7.4 + control.distanceOffset;
-    const height = y + 5.15 + control.pitchOffset * 4.2 + control.distanceOffset * 0.12;
+    const dist = 10.4 + control.distanceOffset;
+    const height = y + 3.95 + control.pitchOffset * 3.35 + control.distanceOffset * 0.1;
     camera.position.lerp(
       new THREE.Vector3(x - Math.sin(cameraYaw) * dist, Math.max(y + 2.4, height), z - Math.cos(cameraYaw) * dist),
       Math.min(1, dt * 3),
     );
-    camera.lookAt(x, y + 1.1 + control.pitchOffset * 0.25, z);
+    camera.lookAt(x, y + 1.18 + control.pitchOffset * 0.25, z + 1.85);
   });
 
   return (
@@ -355,15 +456,17 @@ function Scene({
   cameraControl,
   frozen,
   doneIds,
+  warmLight,
   onNear,
 }: {
   input: RefObject<InputState>;
   cameraControl: RefObject<CameraControlState>;
   frozen: boolean;
   doneIds: Set<string>;
+  warmLight: boolean;
   onNear: (locationId: string | null) => void;
 }) {
-  const player = useRef<[number, number]>([0, -9.5]);
+  const player = useRef<[number, number]>([0, -8.55]);
   const nearRef = useRef<string | null>(null);
   const frame = useRef(0);
   const quality = getQuality();
@@ -388,10 +491,22 @@ function Scene({
 
   return (
     <>
-      <ProceduralEnv intensity={0.75} />
-      <color attach="background" args={['#bfe9ff']} />
-      <fog attach="fog" args={['#dff4ff', 22, 48]} />
-      <ThreePointLights intensity={1} shadowRadius={18} />
+      <ProceduralEnv intensity={warmLight ? 0.42 : 0.55} />
+      <fog attach="fog" args={['#dff4ff', 19, 42]} />
+      <ambientLight intensity={warmLight ? 0.62 : 0.78} color={warmLight ? '#fff1d6' : '#f7fbff'} />
+      <hemisphereLight intensity={warmLight ? 0.72 : 0.9} color="#dff7ff" groundColor="#7fc16d" />
+      <directionalLight
+        castShadow
+        position={[-6, 10, 5]}
+        intensity={warmLight ? 2.15 : 1.6}
+        color={warmLight ? '#ffe0a3' : '#ffffff'}
+        shadow-mapSize-width={1536}
+        shadow-mapSize-height={1536}
+        shadow-camera-left={-16}
+        shadow-camera-right={16}
+        shadow-camera-top={16}
+        shadow-camera-bottom={-16}
+      />
       <Terrain />
       <VillageDecor />
       <Player input={input} cameraControl={cameraControl} frozen={frozen} onMove={(pos) => (player.current = pos)} />
@@ -404,7 +519,7 @@ function Scene({
         />
       ))}
       <OrbitControls enabled={false} />
-      {!quality.postfx && <ambientLight intensity={0.25} />}
+      {!quality.postfx && <ambientLight intensity={0.18} />}
     </>
   );
 }
@@ -436,6 +551,7 @@ export default function AdabVillage3D({
   const knobRef = useRef<HTMLDivElement>(null);
   const [nearLocationId, setNearLocationId] = useState<string | null>(null);
   const [cameraLocked, setCameraLocked] = useState(false);
+  const [warmLight, setWarmLight] = useState(true);
   const doneLocationIds = useMemo(
     () => new Set(doneMissionIds.map((id) => missions.find((mission) => mission.id === id)?.locationId).filter(Boolean) as string[]),
     [doneMissionIds, missions],
@@ -600,13 +716,20 @@ export default function AdabVillage3D({
     <div className="adab3d-shell">
       <div className="adab3d-canvas" ref={canvasWrapRef}>
         <CanvasBoundary>
-          <Canvas shadows dpr={[1, 1.5]} camera={{ position: [0, 6, 10], fov: 48 }}>
+          <Canvas
+            shadows
+            dpr={[1, 1.5]}
+            camera={{ position: [0, 4.2, 9.8], fov: 39, near: 0.1, far: 90 }}
+            gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
+            onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+          >
             <Suspense fallback={null}>
               <Scene
                 input={input}
                 cameraControl={cameraControl}
                 frozen={!!activeMission}
                 doneIds={doneLocationIds}
+                warmLight={warmLight}
                 onNear={setNearLocationId}
               />
             </Suspense>
@@ -614,24 +737,50 @@ export default function AdabVillage3D({
         </CanvasBoundary>
       </div>
 
-      <div className="adab3d-top">
-        <b>{doneMissionIds.length}/{missions.length} misi adab</b>
-        <span>Jalan ke warga, lalu tekan Bantu.</span>
+      <div className="adab3d-title">
+        <b>KAMPUNG ADAB</b>
+        <span>Adab Daily Life Simulator</span>
       </div>
 
-      <button className={'adab3d-camera' + (cameraLocked ? ' locked' : '')} onClick={() => setCameraLocked((value) => !value)}>
-        <Camera size={16} /> {cameraLocked ? 'Shift Lock Aktif' : 'Shift Lock'}
-      </button>
+      <div className="adab3d-progress">
+        <div className="adab3d-progress-row">
+          <span className="adab3d-progress-icon"><HandHeart size={22} /></span>
+          <span>Misi Adab</span>
+        </div>
+        <div className="adab3d-progress-track">
+          <span className="adab3d-progress-fill" style={{ width: `${(doneMissionIds.length / Math.max(1, missions.length)) * 100}%` }} />
+        </div>
+        <small>{doneMissionIds.length}/{missions.length} misi adab</small>
+      </div>
+
+      <div className="adab3d-toolbar">
+        <button className="adab3d-tool" onClick={onBack}>
+          <Map size={18} /> Peta
+        </button>
+        <button className={'adab3d-tool icon' + (cameraLocked ? ' locked' : '')} aria-label="Kamera" onClick={() => setCameraLocked((value) => !value)}>
+          <Camera size={18} />
+        </button>
+        <button
+          className="adab3d-tool icon"
+          aria-label="Pengaturan"
+          onClick={() => {
+            cameraControl.current.yawOffset = 0;
+            cameraControl.current.pitchOffset = 0;
+            cameraControl.current.distanceOffset = 0;
+          }}
+        >
+          <Settings size={18} />
+        </button>
+        <button className={'adab3d-tool icon' + (warmLight ? ' on' : '')} aria-label="Pencahayaan" onClick={() => setWarmLight((value) => !value)}>
+          <Sun size={18} />
+        </button>
+      </div>
 
       <div className="adab3d-stick" ref={stickRef} aria-label="Kontrol gerak">
         <div className="adab3d-stick-knob" ref={knobRef}>
           <Move size={18} />
         </div>
       </div>
-
-      <button className="adab3d-back" onClick={onBack}>
-        Peta
-      </button>
 
       {nearLocation && !activeMission && (
         <div className="adab3d-near">
@@ -651,6 +800,13 @@ export default function AdabVillage3D({
           </span>
           <h3>{activeMission.title}</h3>
           <p>{activeMission.scenario}</p>
+          {activeMission.hadith && (
+            <div className="adab-sim-hadith">
+              <b>Hadits Hikmah: {activeMission.hadith.title}</b>
+              <span>{activeMission.hadith.childSummary}</span>
+              <small>{activeMission.hadith.practicePrompt}</small>
+            </div>
+          )}
           <div className="adab-sim-choices">
             {activeMission.choices.map((choice) => (
               <button key={choice.text} className="adab-sim-choice" onClick={() => onChoose(choice)}>

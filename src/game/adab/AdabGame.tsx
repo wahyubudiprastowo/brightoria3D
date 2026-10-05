@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BookOpen, ChevronRight, Lock, RotateCcw, Sparkles, Star, X } from 'lucide-react';
 import AdabVillage3D from './AdabVillage3D';
+import { adabHadithLessons, hadithById, type HadithLesson } from './hadithLessons';
 import { chapters, type StoryChapter, type StoryChoice } from './scenarios';
 import { computeMastery, loadEvidence, recordChoice, saveEvidence, type AdabEvidence } from './evidence';
 import { Confetti, usePunch } from '../juice';
@@ -46,7 +47,20 @@ const STYLE_ID = 'brightoria-adab-story-styles-v1';
 const ADAB_CSS = `
 .adab-overlay { position: fixed; inset: 0; z-index: 75; background: linear-gradient(160deg,#2e1608ee,#3d1f0fee); backdrop-filter: blur(10px); display: grid; place-items: center; padding: 16px; }
 .adab-shell { position: relative; width: min(720px,96vw); max-height: 92vh; overflow-y: auto; background: #fffaf3; border-radius: 26px; padding: 26px; box-shadow: 0 25px 80px #0007; display: flex; flex-direction: column; gap: 16px; border-top: 6px solid #c86845; background-image: radial-gradient(circle at 100% 0%, #ffe9de 0%, transparent 55%), radial-gradient(circle at 0% 100%, #fff3d6 0%, transparent 55%); }
-.adab-shell.simulator { width: min(1360px, 98vw); max-height: 96vh; padding: 16px; }
+.adab-shell.simulator {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  max-height: none;
+  padding: 0;
+  border-radius: 0;
+  border-top: 0;
+  overflow: hidden;
+  background: #bfe9ff url('/assets/adab-village/kampung-adab-storybook-bg.png') center center / cover no-repeat;
+  box-shadow: none;
+}
+.adab-shell.simulator > .adab-head { display: none !important; }
 .adab-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
 .adab-head h2 { margin: 6px 0 0; color: #6b2f12; }
 .adab-close-btn { border: 0; background: #fbe6da; border-radius: 50%; width: 35px; height: 35px; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; color: #c86845; }
@@ -114,26 +128,96 @@ const ADAB_CSS = `
 .adab-sim-choice:hover:not(:disabled) { border-color: #c86845; transform: translateY(-2px); }
 .adab-sim-choice:disabled { cursor: default; }
 .adab-sim-feedback { border-radius: 14px; padding: 12px; background: #fff3cd; border: 1px solid #edcc6d; color: #704910; font-size: 12px; line-height: 1.45; }
+.adab-sim-hadith { border-radius: 15px; border: 1px solid #d8b56d; background: linear-gradient(135deg,#fff8db,#f6e5b7); padding: 11px 12px; color: #684215; display: flex; flex-direction: column; gap: 5px; box-shadow: inset 0 0 0 1px #fff8; }
+.adab-sim-hadith b { font-size: 12px; color: #6b3a15; }
+.adab-sim-hadith span { font-size: 12px; line-height: 1.42; color: #704910; }
+.adab-sim-hadith small { font-size: 11px; color: #8a5710; font-weight: 800; }
 .adab-sim-footer { display: flex; justify-content: space-between; gap: 8px; margin-top: auto; flex-wrap: wrap; }
-.adab3d-shell { position: relative; height: min(80vh, 780px); min-height: 660px; overflow: hidden; border-radius: 22px; border: 3px solid #d9a35f; background: #bfe9ff; box-shadow: inset 0 0 0 6px #ffffff66; }
+.adab3d-shell {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+  border-radius: 0;
+  border: 0;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0) 30%, rgba(106,156,75,.18) 100%),
+    url('/assets/adab-village/kampung-adab-storybook-bg.png') center center / cover no-repeat;
+  box-shadow: none;
+  isolation: isolate;
+}
 .adab3d-canvas { position: absolute; inset: 0; }
-.adab3d-top { position: absolute; left: 16px; top: 16px; display: flex; flex-direction: column; gap: 2px; border-radius: 16px; background: #fffaf3ee; border: 1px solid #f3d9c0; padding: 10px 12px; color: #6b2f12; box-shadow: 0 10px 24px #4f2a1222; pointer-events: none; }
-.adab3d-top b { font-size: 14px; }
-.adab3d-top span { font-size: 11px; color: #8a5230; }
-.adab3d-back { position: absolute; right: 16px; top: 16px; border: 0; border-radius: 999px; padding: 10px 14px; background: #fffaf3ee; color: #8a3d16; font-weight: 900; box-shadow: 0 10px 24px #4f2a1222; }
-.adab3d-camera { position: absolute; right: 92px; top: 16px; border: 0; border-radius: 999px; padding: 10px 14px; background: #fffaf3ee; color: #8a3d16; font-weight: 900; box-shadow: 0 10px 24px #4f2a1222; display: inline-flex; align-items: center; gap: 7px; }
-.adab3d-camera.locked { background: linear-gradient(135deg,#c86845,#8a3d16); color: #fff; }
-.adab3d-label { min-width: 112px; border-radius: 13px; background: #fffaf3f2; border: 2px solid #f3d9c0; color: #6b2f12; padding: 7px 10px; text-align: center; box-shadow: 0 8px 16px #4f2a1230; font-size: 11px; transform: translateY(0); transition: transform .16s ease, border-color .16s ease; }
+.adab3d-canvas canvas { background: transparent !important; }
+.adab3d-title {
+  position: absolute;
+  left: clamp(18px, 3vw, 42px);
+  top: clamp(14px, 2.4vw, 34px);
+  color: #6b2f12;
+  pointer-events: none;
+  filter: drop-shadow(0 14px 18px #4f2a122f);
+}
+.adab3d-title b {
+  display: block;
+  width: fit-content;
+  border-radius: 20px;
+  padding: 9px 24px 11px;
+  background: linear-gradient(180deg,#a75b2c,#7d3819);
+  border: 3px solid #6e2f13;
+  box-shadow: inset 0 3px 0 #d68b4c, inset 0 -4px 0 #552510, 0 4px 0 #52230f;
+  color: #ffe4ad;
+  font-size: clamp(23px, 3.8vw, 52px);
+  line-height: .98;
+  letter-spacing: .035em;
+  text-shadow: 0 3px 0 #54220e, 0 0 2px #fff0c8;
+}
+.adab3d-title span {
+  display: inline-block;
+  margin-top: -4px;
+  margin-left: clamp(26px, 4vw, 72px);
+  border-radius: 999px;
+  background: linear-gradient(180deg,#ffe8bd,#ffc97f);
+  border: 2px solid #bd7b35;
+  padding: 6px 20px;
+  font-size: clamp(12px, 1.2vw, 17px);
+  font-weight: 900;
+  color: #4d230f;
+  box-shadow: 0 8px 18px #4f2a1224;
+}
+.adab3d-progress {
+  position: absolute;
+  left: clamp(18px, 3vw, 42px);
+  top: clamp(120px, 12.4vw, 160px);
+  width: min(320px, calc(100vw - 36px));
+  border-radius: 20px;
+  background: #fffaf3ee;
+  border: 2px solid #f1bd80;
+  padding: 13px 15px;
+  color: #3f2415;
+  box-shadow: 0 12px 32px #4f2a1224;
+  backdrop-filter: blur(8px);
+}
+.adab3d-progress-row { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 15px; }
+.adab3d-progress-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: #fff4da; color: #5aa446; box-shadow: inset 0 0 0 2px #f1bd80; }
+.adab3d-progress-track { height: 11px; border-radius: 999px; background: #e8d9c3; overflow: hidden; margin: 10px 0 6px; }
+.adab3d-progress-fill { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#64b857,#9bd05c); }
+.adab3d-progress small { color: #6d4d38; font-weight: 800; }
+.adab3d-toolbar { position: absolute; right: clamp(14px, 2.8vw, 42px); top: clamp(14px, 2.4vw, 38px); display: flex; gap: 10px; align-items: center; }
+.adab3d-tool { border: 0; min-height: 48px; border-radius: 999px; padding: 0 16px; background: #fffaf3ee; color: #7b3b18; font-weight: 900; box-shadow: 0 10px 24px #4f2a1224; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: 2px solid #f1bd80; backdrop-filter: blur(8px); }
+.adab3d-tool.icon { width: 52px; padding: 0; justify-content: center; }
+.adab3d-tool.locked, .adab3d-tool.on { background: linear-gradient(135deg,#c86845,#8a3d16); color: #fff; border-color: #ffd9a8; }
+.adab3d-label { min-width: 102px; border-radius: 999px; background: #fffaf3f2; border: 2px solid #f1bd80; color: #4d230f; padding: 6px 10px; text-align: center; box-shadow: 0 8px 16px #4f2a1226; font-size: 10px; transform: translateY(0); transition: transform .16s ease, border-color .16s ease, opacity .16s ease; opacity: .94; }
 .adab3d-label.near { border-color: #c86845; transform: translateY(-6px); }
-.adab3d-label b { display: block; font-size: 12px; }
-.adab3d-label span { color: #8a5230; }
-.adab3d-near { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; border-radius: 18px; background: #fffaf3f2; border: 2px solid #f3d9c0; padding: 10px 12px; color: #6b2f12; box-shadow: 0 12px 30px #4f2a1230; }
+.adab3d-label b { display: block; font-size: 11px; }
+.adab3d-label span { color: #8a5230; font-size: 9px; }
+.adab3d-near { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; border-radius: 18px; background: #fffaf3f2; border: 2px solid #f1bd80; padding: 10px 12px; color: #6b2f12; box-shadow: 0 12px 30px #4f2a1230; backdrop-filter: blur(8px); }
 .adab3d-near span { font-size: 13px; white-space: nowrap; }
 .adab3d-near button { border: 0; border-radius: 12px; padding: 10px 14px; color: #fff; background: linear-gradient(135deg,#c86845,#8a3d16); display: inline-flex; align-items: center; gap: 7px; font-weight: 900; }
 .adab3d-card { position: absolute; right: 18px; bottom: 18px; width: min(380px, calc(100% - 36px)); max-height: calc(100% - 88px); overflow-y: auto; border-radius: 22px; background: #fffaf3f5; border: 2px solid #f3d9c0; box-shadow: 0 18px 45px #4f2a1240; padding: 16px; display: flex; flex-direction: column; gap: 12px; color: #6b2f12; }
 .adab3d-card h3 { margin: 0; color: #6b2f12; }
 .adab3d-card p { margin: 0; color: #7a4b2c; line-height: 1.45; font-size: 13px; }
-.adab3d-stick { position: absolute; left: 22px; bottom: 22px; width: 126px; height: 126px; border-radius: 999px; background: #fffaf3a8; border: 2px solid #f3d9c0; box-shadow: 0 12px 30px #4f2a122e; touch-action: none; display: grid; place-items: center; }
+.adab3d-stick { position: absolute; left: clamp(20px, 3vw, 54px); bottom: clamp(22px, 4vw, 56px); width: 126px; height: 126px; border-radius: 999px; background: #fffaf38c; border: 2px solid #f1bd80; box-shadow: 0 12px 30px #4f2a122e; touch-action: none; display: grid; place-items: center; backdrop-filter: blur(7px); }
 .adab3d-stick::before { content: ''; position: absolute; width: 62px; height: 62px; border-radius: 999px; border: 2px dashed #c8684566; }
 .adab3d-stick-knob { width: 54px; height: 54px; border-radius: 999px; background: linear-gradient(135deg,#fffaf3,#ffe2ca); color: #8a3d16; display: grid; place-items: center; box-shadow: 0 8px 18px #4f2a1238; will-change: transform; }
 @media (max-width: 700px) {
@@ -143,11 +227,16 @@ const ADAB_CSS = `
   .adab-sim-shell { grid-template-columns: 1fr; min-height: 0; }
   .adab-village-map { min-height: 480px; }
   .adab-sim-panel { min-height: 360px; }
-  .adab3d-shell { min-height: 650px; height: 78vh; }
+  .adab3d-shell { min-height: 100vh; height: 100vh; }
+  .adab3d-title b { font-size: 24px; padding: 7px 14px 9px; border-radius: 16px; }
+  .adab3d-title span { font-size: 11px; padding: 5px 12px; }
+  .adab3d-progress { top: 88px; width: 245px; padding: 10px 12px; }
+  .adab3d-progress-row { font-size: 13px; }
+  .adab3d-toolbar { top: 12px; right: 10px; gap: 6px; }
+  .adab3d-tool { min-height: 42px; padding: 0 11px; font-size: 12px; }
+  .adab3d-tool.icon { width: 42px; }
   .adab3d-card { left: 12px; right: 12px; bottom: 90px; width: auto; max-height: 44%; }
   .adab3d-near { bottom: 158px; width: calc(100% - 24px); justify-content: space-between; }
-  .adab3d-camera { top: 68px; right: 12px; }
-  .adab3d-back { right: 12px; }
 }
 `;
 
@@ -182,6 +271,7 @@ interface SimMission {
   locationId: string;
   title: string;
   scenario: string;
+  hadith: HadithLesson;
   choices: SimChoice[];
 }
 
@@ -201,8 +291,9 @@ const simMissions: SimMission[] = [
     locationId: 'home',
     title: 'Tamu di Depan Rumah',
     scenario: 'Bri melihat tetangga tua berdiri di depan rumah sambil membawa bingkisan. Ibu sedang di dapur dan belum mendengar salamnya.',
+    hadith: hadithById('spread-salam'),
     choices: [
-      { text: 'Menjawab salam, menyambut dengan sopan, lalu memanggil ibu', quality: 'best', feedback: 'Bagus sekali. Menjawab salam dan memuliakan tamu membuat rumah terasa ramah.' },
+      { text: 'Menjawab salam, menyambut dengan sopan, lalu memanggil ibu', quality: 'best', feedback: 'Bagus sekali. Menjawab salam dan memuliakan tamu membuat rumah terasa ramah. Latih juga adab berbuat baik kepada tetangga.' },
       { text: 'Memanggil ibu dari jauh tanpa menyapa tamu dulu', quality: 'good', feedback: 'Ibu jadi tahu ada tamu, tapi akan lebih indah kalau salam dijawab dan tamu disapa lembut.' },
       { text: 'Pura-pura tidak melihat karena sedang ingin bermain', quality: 'needsWork', feedback: 'Yuk belajar peka. Tamu dan tetangga perlu disambut dengan adab yang baik.' },
     ],
@@ -212,6 +303,7 @@ const simMissions: SimMission[] = [
     locationId: 'school',
     title: 'Majelis Ilmu Kecil',
     scenario: 'Guru sedang menjelaskan kisah teladan. Kamu tahu jawabannya, tapi teman di sebelahmu masih berpikir.',
+    hadith: hadithById('knowledge'),
     choices: [
       { text: 'Angkat tangan, menunggu dipersilakan, lalu menjawab singkat', quality: 'best', feedback: 'MasyaAllah. Antusias belajar tetap disertai adab menunggu giliran.' },
       { text: 'Berbisik membantu teman agar ia tidak bingung', quality: 'good', feedback: 'Niatmu membantu. Saat guru berbicara, lebih baik tunggu waktu diskusi agar majelis tetap tertib.' },
@@ -223,6 +315,7 @@ const simMissions: SimMission[] = [
     locationId: 'mosque',
     title: 'Sandal di Serambi',
     scenario: 'Di depan masjid, sandal anak-anak berserakan sampai menghalangi jalan jamaah yang mau masuk.',
+    hadith: hadithById('mosque'),
     choices: [
       { text: 'Merapikan sandal, lalu mengajak teman menjaga serambi', quality: 'best', feedback: 'Keren. Menjaga kebersihan dan kerapian masjid adalah bagian dari adab ibadah.' },
       { text: 'Merapikan sandal sendiri tanpa bicara ke teman', quality: 'good', feedback: 'Itu sudah baik. Mengajak teman dengan lembut bisa membuat kebaikan menyebar.' },
@@ -234,6 +327,7 @@ const simMissions: SimMission[] = [
     locationId: 'park',
     title: 'Jembatan Damai',
     scenario: 'Dua teman berebut giliran ayunan. Keduanya mulai kesal dan permainan hampir berhenti.',
+    hadith: hadithById('anger'),
     choices: [
       { text: 'Mengusulkan antre bergiliran dan mengajak keduanya saling minta maaf', quality: 'best', feedback: 'Indah sekali. Kamu membantu teman berdamai tanpa memihak.' },
       { text: 'Meminta mereka suit agar cepat selesai', quality: 'good', feedback: 'Itu bisa membantu memilih giliran. Akan lebih baik kalau tetap ada kata maaf dan aturan bergiliran.' },
@@ -245,6 +339,7 @@ const simMissions: SimMission[] = [
     locationId: 'shop',
     title: 'Keranjang Amanah',
     scenario: 'Penjual warung sedang melayani orang lain. Ia meminta Bri mengambil roti dan meletakkan uangnya di kotak amanah.',
+    hadith: hadithById('truthfulness'),
     choices: [
       { text: 'Ambil roti sesuai izin, bayar pas, lalu mengucap terima kasih', quality: 'best', feedback: 'MasyaAllah, itu amanah. Saat tidak diawasi pun kita tetap jujur.' },
       { text: 'Ambil roti dulu, lalu menunggu penjual untuk memastikan harga', quality: 'good', feedback: 'Bagus, kamu ingin memastikan. Kalau harga sudah jelas, membayar di kotak amanah juga baik.' },
@@ -353,6 +448,7 @@ export default function AdabGame({
       <div className={'adab-shell' + (view === 'simulator' ? ' simulator' : '')}>
         <Confetti trigger={confettiTick} />
 
+        {view !== 'simulator' && (
         <header className="adab-head">
           <div>
             <span className="chip">Kampung Adab</span>
@@ -360,11 +456,10 @@ export default function AdabGame({
               {view === 'map' && 'Kisah Pilihan — 8 Bab Kehidupan Sehari-hari'}
               {(view === 'story' || view === 'outcome') && activeChapter?.title}
               {view === 'collection' && 'Buku Kisah'}
-              {view === 'simulator' && 'Adab Daily Life Simulator'}
             </h2>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {(view === 'story' || view === 'outcome' || view === 'simulator') && (
+            {(view === 'story' || view === 'outcome') && (
               <button className="adab-book-btn" onClick={backToMap}>
                 Peta
               </button>
@@ -384,13 +479,14 @@ export default function AdabGame({
             </button>
           </div>
         </header>
+        )}
 
         {view === 'map' && (
           <div>
             <div className="adab-sim-cta">
               <div>
                 <h3>Adab Daily Life Simulator</h3>
-                <p>Jelajahi kampung kecil, bantu Bri memilih sikap terbaik di rumah, sekolah, masjid, taman, dan warung.</p>
+                <p>Jelajahi kampung kecil, bantu Bri memilih sikap terbaik, dan temukan {adabHadithLessons.length} Hadits Hikmah anak dari materi PDF.</p>
               </div>
               <button className="adab-primary-btn" onClick={openSimulator}>
                 Masuk Kampung <ChevronRight size={16} />

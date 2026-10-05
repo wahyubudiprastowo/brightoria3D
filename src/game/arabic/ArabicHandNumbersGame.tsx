@@ -5,10 +5,6 @@ import { arabicSfx } from './arabicSfx';
 declare global {
   interface Window {
     Hands?: new (config: { locateFile: (file: string) => string }) => MediaPipeHands;
-    Camera?: new (
-      video: HTMLVideoElement,
-      config: { onFrame: () => Promise<void>; width: number; height: number },
-    ) => { start: () => Promise<void>; stop?: () => void };
   }
 }
 
@@ -73,7 +69,6 @@ interface LeaderboardEntry {
 
 const STYLE_ID = 'brightoria-arabic-hand-numbers-styles-v1';
 const HANDS_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js';
-const CAMERA_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js';
 const LEADERBOARD_KEY = 'brightoria.arabic.handNumbers.leaderboard.v1';
 
 const NUMBERS: NumberRow[] = [
@@ -291,7 +286,8 @@ export default function ArabicHandNumbersGame({
   const targetRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const handsRef = useRef<MediaPipeHands | null>(null);
-  const cameraRef = useRef<{ stop?: () => void } | null>(null);
+  const cameraStreamRef = useRef<MediaStream | null>(null);
+  const cameraFrameRef = useRef(0);
   const rafRef = useRef(0);
   const lastRef = useRef(performance.now());
   const heldIdRef = useRef<number | null>(null);
@@ -308,7 +304,7 @@ export default function ArabicHandNumbersGame({
   const [score, setScore] = useState(0);
   const [matchedCount, setMatchedCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
-  const [cameraStatus, setCameraStatus] = useState('Kamera belum aktif');
+  const [cameraStatus, setCameraStatus] = useState('Kamera siap dinyalakan');
   const [hand, setHand] = useState({ x: 0, y: 0, pinching: false, visible: false });
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => readLeaderboard());
   const [studentName, setStudentName] = useState('');
@@ -323,6 +319,17 @@ export default function ArabicHandNumbersGame({
   const pushToast = useCallback((message: string) => {
     setToast((items) => [...items.slice(-2), message]);
     window.setTimeout(() => setToast((items) => items.slice(1)), 2200);
+  }, []);
+
+  const stopCamera = useCallback(() => {
+    if (cameraFrameRef.current) window.cancelAnimationFrame(cameraFrameRef.current);
+    cameraFrameRef.current = 0;
+    cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
+    cameraStreamRef.current = null;
+    handsRef.current?.close?.();
+    handsRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+    setHand((value) => ({ ...value, visible: false, pinching: false }));
   }, []);
 
   const burst = useCallback((x: number, y: number, color: string) => {
@@ -491,10 +498,18 @@ export default function ArabicHandNumbersGame({
 
   const startCamera = useCallback(async () => {
     try {
+      stopCamera();
       setCameraStatus('Memuat AI Vision...');
       await loadScript(HANDS_URL, 'mediapipe-hands-script');
-      await loadScript(CAMERA_URL, 'mediapipe-camera-script');
-      if (!window.Hands || !window.Camera || !videoRef.current) throw new Error('MediaPipe belum siap');
+      if (!window.Hands || !videoRef.current) throw new Error('MediaPipe belum siap');
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 960 },
+          height: { ideal: 540 },
+          facingMode: 'user',
+        },
+        audio: false,
+      });
       const hands = new window.Hands({
         locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
       });
@@ -506,22 +521,30 @@ export default function ArabicHandNumbersGame({
       });
       hands.onResults((results) => drawCamera(results));
       handsRef.current = hands;
-      const camera = new window.Camera(videoRef.current, {
-        onFrame: async () => {
-          if (videoRef.current) await hands.send({ image: videoRef.current });
-        },
-        width: 960,
-        height: 540,
-      });
-      cameraRef.current = camera;
-      await camera.start();
+      cameraStreamRef.current = stream;
+      videoRef.current.srcObject = stream;
+      videoRef.current.muted = true;
+      videoRef.current.playsInline = true;
+      await videoRef.current.play();
+      const tick = async () => {
+        if (!videoRef.current || !handsRef.current) return;
+        try {
+          if (videoRef.current.readyState >= 2) await handsRef.current.send({ image: videoRef.current });
+        } finally {
+          cameraFrameRef.current = window.requestAnimationFrame(tick);
+        }
+      };
+      cameraFrameRef.current = window.requestAnimationFrame(tick);
       setCameraStatus('AI kamera aktif');
       pushToast('Kamera aktif. Cubit untuk ambil kartu.');
-    } catch {
-      setCameraStatus('Kamera tidak aktif, gunakan mouse atau sentuhan.');
-      pushToast('Kamera belum aktif. Mode mouse/touch tetap bisa dipakai.');
+    } catch (error) {
+      stopCamera();
+      const denied =
+        error instanceof DOMException && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError');
+      setCameraStatus('Aktifkan izin kamera di browser');
+      pushToast(denied ? 'Klik ikon kamera di address bar, pilih Allow, lalu tekan tombol kamera.' : 'Kamera belum aktif. Tekan tombol kamera untuk mencoba lagi.');
     }
-  }, [drawCamera, pushToast]);
+  }, [drawCamera, pushToast, stopCamera]);
 
   const startGame = useCallback(() => {
     const wrapper = wrapperRef.current;
@@ -537,6 +560,7 @@ export default function ArabicHandNumbersGame({
     setWrongCount(0);
     setMatchedCount(0);
     setTimeLeft(settings.timeLimit);
+    setCameraStatus('Memuat AI Vision...');
     setPhase('playing');
     arabicSfx.click();
     void startCamera();
@@ -620,10 +644,11 @@ export default function ArabicHandNumbersGame({
     return () => cancelAnimationFrame(rafRef.current);
   }, [matchedCount, onXpEarned, phase, score, settings.speed]);
 
-  useEffect(() => () => {
-    cameraRef.current?.stop?.();
-    handsRef.current?.close?.();
-  }, []);
+  useEffect(() => {
+    if (phase !== 'playing') stopCamera();
+  }, [phase, stopCamera]);
+
+  useEffect(() => () => stopCamera(), [stopCamera]);
 
   function handlePointerDown(cardId: number, event: ReactPointerEvent<HTMLDivElement>) {
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -673,6 +698,7 @@ export default function ArabicHandNumbersGame({
             <span className="hand-pill">{timeLeft}s</span>
           </div>
           <div className="hand-actions">
+            <button className="hand-icon-btn" onClick={() => void startCamera()} aria-label="Aktifkan kamera"><Camera size={17} /></button>
             <button className="hand-icon-btn" onClick={() => setPhase('settings')} aria-label="Pengaturan"><Settings size={17} /></button>
             <button className="hand-icon-btn" onClick={() => setPhase('leaderboard')} aria-label="Top 10"><Trophy size={17} /></button>
             <button className="hand-icon-btn" onClick={onBack} aria-label="Kembali"><X size={17} /></button>

@@ -150,6 +150,14 @@ minuman, buah, dan benda sehari-hari dari data kurikulum Arabic yang sudah ada.
 Status konten tetap membutuhkan review guru Bahasa Arab sebelum dipakai sebagai
 materi resmi.
 
+### Mini-game tambahan: "AI Angka Arab"
+
+Pemain mencocokkan kartu kata bilangan Arab 1-10 ke petak angka Arab dengan
+gesture cubit kamera sebagai mode utama. Izin kamera diminta saat game mulai,
+dan tombol kamera tetap tersedia untuk mencoba ulang jika browser belum memberi
+akses. Patch 2026-10-02 mengganti alur izin kamera agar kegagalan akses tidak
+memunculkan popup native; mouse/touch hanya fallback cadangan.
+
 ### Juice Patch 10
 Confetti di layar ringkasan ekspedisi (medali trofi mendapat animasi
 "portal-win"). Sisanya (jalur jejak, ransel, sistem bintang) sudah menjadi
@@ -186,6 +194,8 @@ bentuk juice tersendiri sejak Patch 09 — tidak diubah.
 - Lima lokasi memakai aset GLB lokal dari user: rumah/cottage, majelis ilmu, masjid, taman/sign, dan warung amanah.
 - NPC 3D sementara memakai aset ibu, imam/guru, teman anak, anak berhijab, dan wanderer agar interaksi terasa seperti mini ekspedisi, bukan panel kuis.
 - Materi dibuat sebagai mini quest adab sehari-hari: membantu orang tua, adab majelis ilmu, menjaga masjid, meminta maaf/berbagi, dan amanah saat membeli.
+- Visual Patch 2026-10-02 membuat mode ini fullscreen, memperbesar aset existing, merapikan komposisi kampung, menambahkan plaza tengah, jalur tanah natural, cluster batu/rumput/bunga, pagar, lampu taman, dan HUD ringkas agar scene terasa lebih matang. Revisi lanjutan merenggangkan lokasi yang terlalu berdempetan, memberi offset label per area, memperbesar terrain, memakai background storybook lokal dari user, dan mengubah judul HUD menjadi papan kayu seperti mockup Kampung Adab.
+- Materi PDF `200 Hadits pilihan untuk anak-anak` mulai dipakai sebagai modul `Hadits Hikmah`: batch awal 15 tema aman anak, dan 5 tema sudah ditempel ke misi 3D Kampung Adab sebagai ringkasan nilai + latihan harian.
 - Progress simulator disimpan terpisah di `brightoria.adab.dailySimulator.v1` agar koleksi kisah lama tetap aman.
 - Reward XP ringan diberikan saat misi lokasi pertama kali selesai; tidak ada musik latar.
 - Konten skenario tetap draft dan perlu validasi tim karakter/akademik Bright Academy sebelum rilis final.
