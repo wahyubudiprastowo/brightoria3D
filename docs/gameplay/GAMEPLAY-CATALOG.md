@@ -161,6 +161,17 @@ izin kamera agar kegagalan akses tidak memunculkan popup native; mouse/touch
 hanya fallback cadangan. Konten bilangan Arab dan potongan surat pendek tetap
 draft sampai divalidasi guru Qur'an/Bahasa Arab Bright Academy.
 
+### Materi tambahan: "Mufrodat Qur'an" (Patch 2026-10-14)
+
+Oasis Bahasa Arab kini menampilkan jalur materi dari repository referensi
+`Qur-an-Learning-Adventure-Platform`: kosakata Qur'an dasar dari surat pendek
+sebagai free trial, dan kamus Qur'an lanjutan berbasis akar kata/tema sebagai
+premium. Materi ditempatkan di Oasis karena fokusnya adalah bahasa/kosakata,
+bukan tilawah/tajwid.
+
+Konten ini masih berupa kurasi draft dari sumber referensi pengguna dan perlu
+validasi guru Bahasa Arab/Qur'an Bright Academy sebelum rilis resmi.
+
 ### Juice Patch 10
 Confetti di layar ringkasan ekspedisi (medali trofi mendapat animasi
 "portal-win"). Sisanya (jalur jejak, ransel, sistem bintang) sudah menjadi
@@ -183,6 +194,17 @@ bentuk juice tersendiri sejak Patch 09 — tidak diubah.
 - Visual map memakai aset pixel PNG lokal dari user: rumah, platform rumput, air, jembatan, pagar, papan kayu, pohon, semak, ayam, dan sapi.
 - Teks Arab/latin/urutan materi tetap draft sampai divalidasi tim akademik/tahsin Bright Academy.
 
+### Materi tambahan: Jalur Iqra, Juz 30, dan Tajwid (Patch 2026-10-14)
+
+Taman Al-Qur'an kini menampilkan panel jalur materi dari repository referensi
+`Qur-an-Learning-Adventure-Platform`. Free trial berisi Iqra' Jilid 1, Taman
+Juz 30 Starter, dan Tajwid Dasar. Premium diarahkan untuk Iqra' Jilid 2-6 dan
+Tilawah 30 Juz.
+
+Pembagian ini mengikuti fungsi pulau: Taman Al-Qur'an untuk membaca,
+tilawah, tajwid, dan hafalan; Oasis Bahasa Arab untuk mufrodat/kosakata.
+Materi tetap draft hingga divalidasi tim tahsin/tahfidz Bright Academy.
+
 ---
 
 ## 5. Kampung Adab — Karakter dan Kebiasaan Baik (`AdabGame.tsx`)
@@ -199,6 +221,9 @@ bentuk juice tersendiri sejak Patch 09 — tidak diubah.
 - Materi dibuat sebagai mini quest adab sehari-hari: membantu orang tua, adab majelis ilmu, menjaga masjid, meminta maaf/berbagi, dan amanah saat membeli.
 - Visual Patch 2026-10-02 membuat mode ini fullscreen, memperbesar aset existing, merapikan komposisi kampung, menambahkan plaza tengah, jalur tanah natural, cluster batu/rumput/bunga, pagar, lampu taman, dan HUD ringkas agar scene terasa lebih matang. Revisi lanjutan merenggangkan lokasi yang terlalu berdempetan, memberi offset label per area, memperbesar terrain, memakai background storybook lokal dari user, dan mengubah judul HUD menjadi papan kayu seperti mockup Kampung Adab.
 - Materi PDF `200 Hadits pilihan untuk anak-anak` mulai dipakai sebagai modul `Hadits Hikmah`: batch awal 15 tema aman anak, dan 5 tema sudah ditempel ke misi 3D Kampung Adab sebagai ringkasan nilai + latihan harian.
+- Patch 2026-10-14 menambahkan panel `Materi Adab Qur'ani` dari repository
+  referensi `Qur-an-Learning-Adventure-Platform`: praktik harian santri sebagai
+  free trial dan hikmah surat/asbabun nuzul sebagai premium.
 - Progress simulator disimpan terpisah di `brightoria.adab.dailySimulator.v1` agar koleksi kisah lama tetap aman.
 - Reward XP ringan diberikan saat misi lokasi pertama kali selesai; tidak ada musik latar.
 - Konten skenario tetap draft dan perlu validasi tim karakter/akademik Bright Academy sebelum rilis final.

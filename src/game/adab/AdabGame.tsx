@@ -5,6 +5,7 @@ import { adabHadithLessons, hadithById, type HadithLesson } from './hadithLesson
 import { chapters, type StoryChapter, type StoryChoice } from './scenarios';
 import { computeMastery, loadEvidence, recordChoice, saveEvidence, type AdabEvidence } from './evidence';
 import { Confetti, usePunch } from '../juice';
+import { quranItemsByIsland } from '../quran/quranAdventureContent';
 
 /**
  * AdabGame.tsx — Patch 26. Mekanik "Kisah Pilihan" (branching story) untuk
@@ -43,6 +44,7 @@ import { Confetti, usePunch } from '../juice';
  */
 
 const STYLE_ID = 'brightoria-adab-story-styles-v1';
+const adabQuranPath = quranItemsByIsland('adab');
 
 const ADAB_CSS = `
 .adab-overlay { position: fixed; inset: 0; z-index: 75; background: linear-gradient(160deg,#2e1608ee,#3d1f0fee); backdrop-filter: blur(10px); display: grid; place-items: center; padding: 16px; }
@@ -101,6 +103,19 @@ const ADAB_CSS = `
 .adab-sim-cta { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; margin-bottom: 14px; padding: 14px; border-radius: 18px; border: 2px solid #f3d9c0; background: linear-gradient(135deg,#fff8ec,#ffe2ca); box-shadow: 0 8px 22px #c8684518; }
 .adab-sim-cta h3 { margin: 0 0 4px; color: #6b2f12; }
 .adab-sim-cta p { margin: 0; color: #8a5230; font-size: 12px; }
+.adab-quran-path { display: grid; gap: 10px; margin: 0 0 14px; }
+.adab-quran-path-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; color: #6b2f12; }
+.adab-quran-path-head h3 { margin: 0; font-size: 16px; }
+.adab-quran-path-head small { color: #8a5230; font-weight: 800; }
+.adab-quran-path-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.adab-quran-path-card { border: 1px solid #f3d9c0; background: linear-gradient(150deg,#fffdf8,#ffe6d2); border-radius: 16px; padding: 13px; color: #6b2f12; box-shadow: 0 8px 18px #c8684514; }
+.adab-quran-path-card.premium { background: linear-gradient(150deg,#fff8e6,#f7ead0); border-color: #efd09a; }
+.adab-quran-path-badge { display: inline-flex; align-items: center; gap: 5px; width: fit-content; border-radius: 999px; padding: 4px 8px; margin-bottom: 8px; font-size: 10px; font-weight: 900; background: #fbe6da; color: #a15321; }
+.adab-quran-path-card.premium .adab-quran-path-badge { background: #ffe6b7; color: #8a5a12; }
+.adab-quran-path-card h4 { margin: 0 0 3px; font-size: 14px; }
+.adab-quran-path-card p { margin: 0 0 8px; font-size: 11px; color: #8a5230; line-height: 1.35; }
+.adab-quran-path-sample { border-radius: 12px; background: #fffaf3; border: 1px solid #eadfc8; padding: 8px; font-size: 12px; color: #6b2f12; }
+.adab-quran-path-focus { display: block; margin-top: 8px; font-size: 11px; color: #8a5230; line-height: 1.35; }
 .adab-sim-shell { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; min-height: 520px; }
 .adab-village-map { position: relative; min-height: 520px; overflow: hidden; border-radius: 22px; border: 3px solid #d9a35f; background:
   radial-gradient(circle at 14% 18%, #bce68f 0 10%, transparent 10.5%),
@@ -492,6 +507,26 @@ export default function AdabGame({
                 Masuk Kampung <ChevronRight size={16} />
               </button>
             </div>
+            <section className="adab-quran-path" aria-label="Materi adab dari Qur'an Learning Adventure">
+              <div className="adab-quran-path-head">
+                <h3>Materi Adab Qur'ani</h3>
+                <small>Praktik harian + hikmah surat</small>
+              </div>
+              <div className="adab-quran-path-grid">
+                {adabQuranPath.map((item) => (
+                  <article key={item.id} className={'adab-quran-path-card ' + item.tier}>
+                    <span className="adab-quran-path-badge">
+                      {item.tier === 'premium' && <Lock size={11} />}
+                      {item.badge}
+                    </span>
+                    <h4>{item.title}</h4>
+                    <p>{item.subtitle}</p>
+                    <div className="adab-quran-path-sample">{item.sample}</div>
+                    <span className="adab-quran-path-focus">{item.focus}</span>
+                  </article>
+                ))}
+              </div>
+            </section>
             <div className="adab-mastery-bar" style={{ marginBottom: 14 }}>
               <div className="adab-mastery-track">
                 <span className="adab-mastery-fill" style={{ width: `${overallMastery}%` }} />

@@ -13,6 +13,7 @@ import {
 import { isArabicTtsAvailable, speakArabic } from './quranTts';
 import { Confetti } from '../juice';
 import { sfx } from '../sound';
+import { quranItemsByIsland } from './quranAdventureContent';
 
 /**
  * QuranGame.tsx — Patch 30 (PERBAIKAN UX BESAR atas Patch 28/29).
@@ -131,6 +132,20 @@ const HIJAIYAH_CSS = `
 .quran-garden-cta { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; margin: 0 0 14px; padding: 14px; border: 2px solid #bfe0d6; border-radius: 18px; background: linear-gradient(135deg,#f8fff9,#fff3d6); color: #17403a; }
 .quran-garden-cta h3 { margin: 0 0 4px; font-size: 18px; }
 .quran-garden-cta p { margin: 0; font-size: 12px; color: #4c6b62; }
+.quran-path-section { display: grid; gap: 10px; margin: 0 0 14px; }
+.quran-path-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #17403a; }
+.quran-path-head h3 { margin: 0; font-size: 16px; }
+.quran-path-head small { color: #4c6b62; font-weight: 800; }
+.quran-path-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.quran-path-card { position: relative; border: 1px solid #cdeadf; background: linear-gradient(150deg,#ffffff,#e8f8f0); border-radius: 16px; padding: 13px 13px 12px; color: #17403a; box-shadow: 0 8px 18px #17403a12; overflow: hidden; }
+.quran-path-card.premium { background: linear-gradient(150deg,#fff8e6,#f7ead0); border-color: #efd09a; }
+.quran-path-card.premium::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg,#ffffff00,#9b6b2f0f); pointer-events: none; }
+.quran-path-badge { display: inline-flex; align-items: center; gap: 5px; width: fit-content; border-radius: 999px; padding: 4px 8px; margin-bottom: 8px; font-size: 10px; font-weight: 900; background: #dff3ea; color: #126153; }
+.quran-path-card.premium .quran-path-badge { background: #ffe6b7; color: #8a5a12; }
+.quran-path-card h4 { margin: 0 0 3px; font-size: 14px; }
+.quran-path-card p { margin: 0 0 8px; font-size: 11px; color: #4c6b62; line-height: 1.35; }
+.quran-path-sample { min-height: 34px; border-radius: 12px; background: #fffaf3; border: 1px solid #eadfc8; padding: 8px; font-size: 18px; color: #17403a; text-align: center; }
+.quran-path-focus { display: block; margin-top: 8px; font-size: 11px; color: #4c6b62; line-height: 1.35; }
 .quran-garden-shell { display: grid; gap: 12px; }
 .quran-garden-hud { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; color: #17403a; font-size: 12px; font-weight: 800; }
 .quran-pixel-map { position: relative; height: min(58vh, 470px); min-height: 360px; overflow: hidden; border: 4px solid #285c35; border-radius: 14px; background:
@@ -191,6 +206,7 @@ const HIJAIYAH_CSS = `
   .hijaiyah-match-item { min-height: 72px; font-size: 28px; }
   .hijaiyah-match-item.word { font-size: 16px; }
   .quran-garden-cta { grid-template-columns: 1fr; }
+  .quran-path-head { align-items: flex-start; flex-direction: column; }
   .quran-pixel-map { min-height: 430px; height: 58vh; }
   .quran-garden-controls { grid-template-columns: 1fr; }
   .quran-read-btn { justify-self: stretch; }
@@ -261,6 +277,7 @@ interface GardenSurah {
 }
 
 const GARDEN_KEY = 'brightoria.quran.garden.v1';
+const quranPath = quranItemsByIsland('quran');
 
 const gardenSurahs: GardenSurah[] = [
   {
@@ -995,6 +1012,26 @@ export default function QuranGame({
                 Jelajah taman <ChevronRight size={16} />
               </button>
             </div>
+            <section className="quran-path-section" aria-label="Jalur materi Taman Al-Qur'an">
+              <div className="quran-path-head">
+                <h3>Jalur Materi Qur'an</h3>
+                <small>Free trial untuk mulai, premium untuk lanjutan.</small>
+              </div>
+              <div className="quran-path-grid">
+                {quranPath.map((item) => (
+                  <article key={item.id} className={'quran-path-card ' + item.tier}>
+                    <span className="quran-path-badge">
+                      {item.tier === 'premium' && <Lock size={11} />}
+                      {item.badge}
+                    </span>
+                    <h4>{item.title}</h4>
+                    <p>{item.subtitle}</p>
+                    <div className="quran-path-sample hijaiyah-arabic">{item.sample}</div>
+                    <span className="quran-path-focus">{item.focus}</span>
+                  </article>
+                ))}
+              </div>
+            </section>
             <div className="hijaiyah-mastery-bar" style={{ marginBottom: 12 }}>
               <div className="hijaiyah-mastery-track">
                 <span className="hijaiyah-mastery-fill" style={{ width: `${overallMastery}%` }} />

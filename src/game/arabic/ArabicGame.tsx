@@ -25,6 +25,7 @@ import ModelPreview from '../../components/world3d/ModelPreview';
 import { modelUrls } from '../../components/world3d/LocalModel';
 import ArabicMarketGame from './ArabicMarketGame';
 import ArabicHandNumbersGame from './ArabicHandNumbersGame';
+import { quranItemsByIsland } from '../quran/quranAdventureContent';
 
 /**
  * ArabicGame.tsx â€” Patch 25 (URUTAN ALUR DIPERBAIKI + tema per-pos untuk
@@ -74,6 +75,7 @@ const OLD_STYLE_IDS = [
   'brightoria-oasis-arabic-styles-v4',
 ];
 const FONT_LINK_ID = 'brightoria-oasis-arabic-font';
+const quranVocabPath = quranItemsByIsland('arabic');
 
 /** Palet warna kategori â€” di-cycle per nomor pelajaran. Sekarang juga
  *  dipakai untuk mewarnai kartu tertutup pada mode Cocokkan (Patch 25),
@@ -159,6 +161,19 @@ const OASIS_CSS = `
 .oasis-stop-card b { font-size: 12px; }
 .oasis-stop-arabic { font-size: 15px; }
 .oasis-stop-stars { display: flex; gap: 2px; margin-top: 2px; }
+.oasis-quran-vocab-section { display: grid; gap: 10px; margin: 0 0 14px; }
+.oasis-quran-vocab-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #17403a; }
+.oasis-quran-vocab-head h3 { margin: 0; font-size: 16px; }
+.oasis-quran-vocab-head small { color: #4c6b62; font-weight: 800; }
+.oasis-quran-vocab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.oasis-quran-vocab-card { border: 1px solid #cdeadf; background: linear-gradient(150deg,#ffffff,#e9f7ef); border-radius: 16px; padding: 13px; box-shadow: 0 8px 18px #17403a12; color: #17403a; }
+.oasis-quran-vocab-card.premium { background: linear-gradient(150deg,#fff8e6,#f7ead0); border-color: #efd09a; }
+.oasis-quran-vocab-badge { display: inline-flex; align-items: center; gap: 5px; width: fit-content; border-radius: 999px; padding: 4px 8px; margin-bottom: 8px; font-size: 10px; font-weight: 900; background: #dff3ea; color: #126153; }
+.oasis-quran-vocab-card.premium .oasis-quran-vocab-badge { background: #ffe6b7; color: #8a5a12; }
+.oasis-quran-vocab-card h4 { margin: 0 0 3px; font-size: 14px; }
+.oasis-quran-vocab-card p { margin: 0 0 8px; font-size: 11px; color: #4c6b62; line-height: 1.35; }
+.oasis-quran-vocab-sample { border-radius: 12px; background: #fffaf3; border: 1px solid #eadfc8; padding: 8px; text-align: center; font-size: 18px; color: #17403a; }
+.oasis-quran-vocab-focus { display: block; margin-top: 8px; font-size: 11px; color: #4c6b62; line-height: 1.35; }
 
 .oasis-intro { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 8px 4px 4px; }
 .oasis-mascot-big { width: 120px !important; max-width: 120px !important; height: auto !important; object-fit: contain; margin-bottom: 4px; animation: oasis-bob 3s ease-in-out infinite; }
@@ -723,6 +738,27 @@ export default function ArabicGame({
               </span>
               <span className="oasis-market-entry-arrow">&rsaquo;</span>
             </button>
+
+            <section className="oasis-quran-vocab-section" aria-label="Materi mufrodat Qur'an">
+              <div className="oasis-quran-vocab-head">
+                <h3>Mufrodat Qur'an</h3>
+                <small>Free trial dan lanjutan premium</small>
+              </div>
+              <div className="oasis-quran-vocab-grid">
+                {quranVocabPath.map((item) => (
+                  <article key={item.id} className={'oasis-quran-vocab-card ' + item.tier}>
+                    <span className="oasis-quran-vocab-badge">
+                      {item.tier === 'premium' && <Lock size={11} />}
+                      {item.badge}
+                    </span>
+                    <h4>{item.title}</h4>
+                    <p>{item.subtitle}</p>
+                    <div className="oasis-quran-vocab-sample oasis-arabic-text">{item.sample}</div>
+                    <span className="oasis-quran-vocab-focus">{item.focus}</span>
+                  </article>
+                ))}
+              </div>
+            </section>
 
             <div className="oasis-mastery-bar">
               <div className="oasis-mastery-track">

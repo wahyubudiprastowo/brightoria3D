@@ -1,3 +1,11 @@
+## 2026-10-14 - Integrasi Materi Qur'an Learning Adventure
+
+- Mengambil bahan terkurasi dari repository `Qur-an-Learning-Adventure-Platform` dan memetakannya ke pulau Brightoria yang sesuai.
+- Taman Al-Qur'an kini menampilkan jalur materi Iqra, Juz 30, tajwid dasar, dan lanjutan premium 30 juz/Iqra 2-6.
+- Oasis Bahasa Arab kini menampilkan jalur `Mufrodat Qur'an`: free trial kosakata surat pendek dan premium kamus Qur'an lanjutan.
+- Kampung Adab kini menampilkan materi `Adab Qur'ani`: praktik harian free trial dan hikmah surat/asbabun nuzul sebagai premium.
+- Semua materi baru tetap berstatus draft dan perlu validasi akademik Bright Academy sebelum rilis resmi.
+
 ## 2026-10-05 - Pembagian Materi Matematika per Game
 
 - Membaca PDF rujukan `Matematika I` sampai `Matematika VI`; `Matematika IX` tidak dipakai untuk game SD karena materinya SMP.
