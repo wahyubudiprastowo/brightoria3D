@@ -13,7 +13,10 @@ import {
 import { isArabicTtsAvailable, speakArabic } from './quranTts';
 import { Confetti } from '../juice';
 import { sfx } from '../sound';
-import { quranItemsByIsland } from './quranAdventureContent';
+import { quranItemsByIsland, type QuranPathItem } from './quranAdventureContent';
+import { IqraReader, Juz30Reader } from './QuranReaders';
+import { getRecitationUrl } from './quranReaderData';
+import { QuranMemoryArena, QURAN_MEMORY_CSS } from './QuranMemoryArena';
 
 /**
  * QuranGame.tsx — Patch 30 (PERBAIKAN UX BESAR atas Patch 28/29).
@@ -137,7 +140,9 @@ const HIJAIYAH_CSS = `
 .quran-path-head h3 { margin: 0; font-size: 16px; }
 .quran-path-head small { color: #4c6b62; font-weight: 800; }
 .quran-path-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
-.quran-path-card { position: relative; border: 1px solid #cdeadf; background: linear-gradient(150deg,#ffffff,#e8f8f0); border-radius: 16px; padding: 13px 13px 12px; color: #17403a; box-shadow: 0 8px 18px #17403a12; overflow: hidden; }
+.quran-path-card { position: relative; border: 1px solid #cdeadf; background: linear-gradient(150deg,#ffffff,#e8f8f0); border-radius: 16px; padding: 13px 13px 12px; color: #17403a; box-shadow: 0 8px 18px #17403a12; overflow: hidden; text-align: left; cursor: pointer; font: inherit; width: 100%; transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
+.quran-path-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px #17403a1c; border-color: #60c7ad; }
+.quran-path-card:focus-visible { outline: 3px solid #68d6bd; outline-offset: 2px; }
 .quran-path-card.premium { background: linear-gradient(150deg,#fff8e6,#f7ead0); border-color: #efd09a; }
 .quran-path-card.premium::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg,#ffffff00,#9b6b2f0f); pointer-events: none; }
 .quran-path-badge { display: inline-flex; align-items: center; gap: 5px; width: fit-content; border-radius: 999px; padding: 4px 8px; margin-bottom: 8px; font-size: 10px; font-weight: 900; background: #dff3ea; color: #126153; }
@@ -146,6 +151,20 @@ const HIJAIYAH_CSS = `
 .quran-path-card p { margin: 0 0 8px; font-size: 11px; color: #4c6b62; line-height: 1.35; }
 .quran-path-sample { min-height: 34px; border-radius: 12px; background: #fffaf3; border: 1px solid #eadfc8; padding: 8px; font-size: 18px; color: #17403a; text-align: center; }
 .quran-path-focus { display: block; margin-top: 8px; font-size: 11px; color: #4c6b62; line-height: 1.35; }
+.quran-path-cta { display: inline-flex; align-items: center; gap: 4px; margin-top: 9px; font-size: 11px; font-weight: 900; color: #0f7c68; }
+.quran-path-detail { display: grid; gap: 12px; }
+.quran-path-detail-hero { border: 1px solid #cdeadf; border-radius: 18px; padding: 16px; background: linear-gradient(135deg,#f8fff9,#fff7df); color: #17403a; }
+.quran-path-detail-hero.premium { border-color: #efd09a; background: linear-gradient(135deg,#fff8e6,#f7ead0); }
+.quran-path-detail-hero h3 { margin: 8px 0 4px; font-size: 22px; }
+.quran-path-detail-hero p { margin: 0 0 10px; color: #4c6b62; line-height: 1.45; }
+.quran-path-detail-source { display: block; font-size: 11px; color: #5b756d; }
+.quran-path-lesson-grid { display: grid; gap: 10px; }
+.quran-path-lesson { border: 1px solid #dceee7; border-radius: 16px; padding: 14px; background: #ffffffd8; color: #17403a; }
+.quran-path-lesson h4 { margin: 0 0 8px; font-size: 15px; }
+.quran-path-lesson-arabic { margin: 0 0 8px; padding: 10px; border-radius: 12px; background: #fffaf3; border: 1px solid #eadfc8; text-align: center; font-size: 24px; line-height: 1.5; }
+.quran-path-lesson-meta { display: grid; gap: 5px; font-size: 12px; color: #4c6b62; line-height: 1.45; }
+.quran-path-practice { margin-top: 10px; border-radius: 12px; padding: 10px; background: #e9f7ef; color: #126153; font-size: 12px; font-weight: 800; line-height: 1.45; }
+.quran-path-detail-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
 .quran-garden-shell { display: grid; gap: 12px; }
 .quran-garden-hud { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; color: #17403a; font-size: 12px; font-weight: 800; }
 .quran-pixel-map { position: relative; height: min(58vh, 470px); min-height: 360px; overflow: hidden; border: 4px solid #285c35; border-radius: 14px; background:
@@ -195,7 +214,12 @@ const HIJAIYAH_CSS = `
 .quran-reading-card { position: fixed; inset: auto 50% 22px auto; transform: translateX(50%); z-index: 78; width: min(620px, calc(100vw - 24px)); max-height: 72vh; overflow-y: auto; background: #fffaf3; border: 4px solid #8b5b2e; border-radius: 14px; padding: 18px; box-shadow: 0 22px 60px #0008; color: #17403a; }
 .quran-reading-card h3 { margin: 0 0 2px; }
 .quran-reading-meta { margin: 0 0 12px; color: #4c6b62; font-size: 12px; }
+.quran-reading-error { margin: 9px 0; color: #a33d30; font-size: 11px; font-weight: 800; }
 .quran-ayah { padding: 10px 0; border-top: 1px solid #eadfc8; }
+.quran-ayah-line { display: flex; align-items: center; gap: 9px; }
+.quran-ayah-line .quran-ayah-ar { flex: 1; }
+.quran-ayah-audio { width: 36px; height: 36px; flex: 0 0 36px; border: 1px solid #bfe0d6; border-radius: 50%; background: #fff; color: #17856f; display: grid; place-items: center; cursor: pointer; }
+.quran-ayah-audio.playing { border-color: #e4a936; background: #e4a936; color: #fff; }
 .quran-ayah-ar { font-size: 24px; line-height: 1.8; text-align: right; }
 .quran-ayah-latin { color: #4c6b62; font-size: 12px; }
 .quran-reading-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
@@ -211,6 +235,7 @@ const HIJAIYAH_CSS = `
   .quran-garden-controls { grid-template-columns: 1fr; }
   .quran-read-btn { justify-self: stretch; }
 }
+${QURAN_MEMORY_CSS}
 `;
 
 function useInjectStyles() {
@@ -253,7 +278,7 @@ function isLetterUnlocked(index: number, evidence: HijaiyahEvidence): boolean {
   return !!evidence.letters[prev.id]?.completed;
 }
 
-type View = 'map' | 'intro' | 'match' | 'result' | 'collection' | 'garden';
+type View = 'map' | 'intro' | 'match' | 'result' | 'collection' | 'garden' | 'memoryArena' | 'pathDetail' | 'iqraReader' | 'juz30Reader';
 
 interface Point {
   x: number;
@@ -269,6 +294,7 @@ interface LineSeg {
 
 interface GardenSurah {
   id: string;
+  number: number;
   name: string;
   meaning: string;
   garden: string;
@@ -279,9 +305,44 @@ interface GardenSurah {
 const GARDEN_KEY = 'brightoria.quran.garden.v1';
 const quranPath = quranItemsByIsland('quran');
 
+function QuranPathDetail({ item, onBack }: { item: QuranPathItem; onBack: () => void }) {
+  return (
+    <div className="quran-path-detail">
+      <section className={'quran-path-detail-hero ' + item.tier}>
+        <span className="quran-path-badge">
+          {item.tier === 'premium' && <Lock size={11} />}
+          {item.badge}
+        </span>
+        <h3>{item.title}</h3>
+        <p>{item.focus}</p>
+        <div className="quran-path-sample hijaiyah-arabic">{item.sample}</div>
+        <span className="quran-path-detail-source">{item.sourceNote} Konten ini masih draft untuk review akademik Bright Academy.</span>
+      </section>
+      <div className="quran-path-lesson-grid">
+        {item.lessons.map((lesson) => (
+          <article key={lesson.id} className="quran-path-lesson">
+            <h4>{lesson.title}</h4>
+            {lesson.arabic && <div className="quran-path-lesson-arabic hijaiyah-arabic">{lesson.arabic}</div>}
+            <div className="quran-path-lesson-meta">
+              {lesson.latin && <span><b>Bacaan:</b> {lesson.latin}</span>}
+              {lesson.meaning && <span><b>Makna:</b> {lesson.meaning}</span>}
+              <span><b>Catatan:</b> {lesson.note}</span>
+            </div>
+            <div className="quran-path-practice">Latihan: {lesson.practice}</div>
+          </article>
+        ))}
+      </div>
+      <div className="quran-path-detail-actions">
+        <button className="hijaiyah-ghost-btn" onClick={onBack}>Kembali ke peta</button>
+      </div>
+    </div>
+  );
+}
+
 const gardenSurahs: GardenSurah[] = [
   {
     id: 'al-ikhlas',
+    number: 112,
     name: 'Al-Ikhlas',
     meaning: 'Keikhlasan',
     garden: 'Taman Tauhid',
@@ -295,6 +356,7 @@ const gardenSurahs: GardenSurah[] = [
   },
   {
     id: 'al-falaq',
+    number: 113,
     name: 'Al-Falaq',
     meaning: 'Waktu Subuh',
     garden: 'Kebun Cahaya',
@@ -309,6 +371,7 @@ const gardenSurahs: GardenSurah[] = [
   },
   {
     id: 'an-nas',
+    number: 114,
     name: 'An-Nas',
     meaning: 'Manusia',
     garden: 'Taman Perlindungan',
@@ -324,6 +387,7 @@ const gardenSurahs: GardenSurah[] = [
   },
   {
     id: 'al-kawthar',
+    number: 108,
     name: 'Al-Kawthar',
     meaning: 'Nikmat Banyak',
     garden: 'Kolam Syukur',
@@ -336,6 +400,7 @@ const gardenSurahs: GardenSurah[] = [
   },
   {
     id: 'al-asr',
+    number: 103,
     name: 'Al-Asr',
     meaning: 'Waktu',
     garden: 'Taman Waktu',
@@ -348,6 +413,7 @@ const gardenSurahs: GardenSurah[] = [
   },
   {
     id: 'quraysh',
+    number: 106,
     name: 'Quraisy',
     meaning: 'Suku Quraisy',
     garden: 'Pasar Amanah',
@@ -361,6 +427,7 @@ const gardenSurahs: GardenSurah[] = [
   },
   {
     id: 'al-fil',
+    number: 105,
     name: 'Al-Fil',
     meaning: 'Gajah',
     garden: 'Bukit Kisah',
@@ -674,18 +741,20 @@ function MatchStage({
 }
 
 function QuranGardenAdventure({
-  ttsAvailable,
   onBack,
   onCompleteGarden,
 }: {
-  ttsAvailable: boolean;
   onBack: () => void;
   onCompleteGarden: () => void;
 }) {
   const [doneIds, setDoneIds] = useState<string[]>(() => loadGardenProgress());
   const [player, setPlayer] = useState<Point>({ x: 12, y: 52 });
   const [readingId, setReadingId] = useState<string | null>(null);
+  const [playingAyah, setPlayingAyah] = useState<number | null>(null);
+  const [audioError, setAudioError] = useState('');
   const [pressed, setPressed] = useState<Partial<Record<'up' | 'down' | 'left' | 'right', boolean>>>({});
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioSequenceRef = useRef(0);
 
   const doneSet = useMemo(() => new Set(doneIds), [doneIds]);
   const nearSurah = useMemo(() => {
@@ -763,6 +832,14 @@ function QuranGardenAdventure({
     return () => window.clearInterval(tick);
   }, [pressed]);
 
+  useEffect(() => {
+    return () => {
+      audioSequenceRef.current += 1;
+      audioRef.current?.pause();
+      audioRef.current = null;
+    };
+  }, []);
+
   function setDirection(dir: 'up' | 'down' | 'left' | 'right', isDown: boolean) {
     setPressed((prev) => ({ ...prev, [dir]: isDown }));
   }
@@ -774,6 +851,7 @@ function QuranGardenAdventure({
   }
 
   function completeReading(surah: GardenSurah) {
+    stopRecitation();
     const alreadyDone = doneSet.has(surah.id);
     const nextDone = alreadyDone ? doneIds : [...doneIds, surah.id];
     setDoneIds(nextDone);
@@ -785,8 +863,66 @@ function QuranGardenAdventure({
     }
   }
 
-  function speakSurah(surah: GardenSurah) {
-    speakArabic(surah.ayat.map((ayah) => ayah.arabic).join(' '));
+  function stopRecitation() {
+    audioSequenceRef.current += 1;
+    if (audioRef.current) {
+      audioRef.current.onended = null;
+      audioRef.current.onerror = null;
+      audioRef.current.pause();
+      audioRef.current.src = '';
+      audioRef.current = null;
+    }
+    setPlayingAyah(null);
+  }
+
+  function playGardenAyah(surah: GardenSurah, ayahIndex: number, sequenceId: number, continueSurah: boolean) {
+    if (sequenceId !== audioSequenceRef.current || !surah.ayat[ayahIndex]) {
+      setPlayingAyah(null);
+      return;
+    }
+    const audio = new Audio(getRecitationUrl(surah.number, ayahIndex + 1));
+    audio.preload = 'auto';
+    audioRef.current = audio;
+    setPlayingAyah(ayahIndex);
+    setAudioError('');
+    audio.onended = () => {
+      audioRef.current = null;
+      if (continueSurah && ayahIndex + 1 < surah.ayat.length && sequenceId === audioSequenceRef.current) {
+        playGardenAyah(surah, ayahIndex + 1, sequenceId, true);
+      } else {
+        setPlayingAyah(null);
+      }
+    };
+    audio.onerror = () => {
+      audioRef.current = null;
+      setPlayingAyah(null);
+      setAudioError('Rekaman belum dapat diputar. Coba ketuk tombol dengarkan sekali lagi.');
+    };
+    audio.play().catch(() => {
+      audioRef.current = null;
+      setPlayingAyah(null);
+      setAudioError('Browser belum mengizinkan suara. Ketuk tombol dengarkan sekali lagi.');
+    });
+  }
+
+  function playWholeSurah(surah: GardenSurah) {
+    if (playingAyah !== null) {
+      stopRecitation();
+      return;
+    }
+    stopRecitation();
+    const sequenceId = audioSequenceRef.current;
+    playGardenAyah(surah, 0, sequenceId, true);
+  }
+
+  function playOneAyah(surah: GardenSurah, ayahIndex: number) {
+    if (playingAyah === ayahIndex) {
+      stopRecitation();
+      return;
+    }
+    stopRecitation();
+    const sequenceId = audioSequenceRef.current;
+    playGardenAyah(surah, ayahIndex, sequenceId, false);
   }
 
   return (
@@ -874,17 +1010,26 @@ function QuranGardenAdventure({
           </p>
           {readingSurah.ayat.map((ayah, index) => (
             <div className="quran-ayah" key={`${readingSurah.id}-${index}`}>
-              <div className="quran-ayah-ar hijaiyah-arabic">{ayah.arabic}</div>
+              <div className="quran-ayah-line">
+                <div className="quran-ayah-ar hijaiyah-arabic">{ayah.arabic}</div>
+                <button
+                  type="button"
+                  className={'quran-ayah-audio' + (playingAyah === index ? ' playing' : '')}
+                  onClick={() => playOneAyah(readingSurah, index)}
+                  title={`Dengarkan ayat ${index + 1}`}
+                >
+                  <Volume2 size={16} />
+                </button>
+              </div>
               <div className="quran-ayah-latin">{ayah.latin}</div>
             </div>
           ))}
+          {audioError && <p className="quran-reading-error">{audioError}</p>}
           <div className="quran-reading-actions">
-            {ttsAvailable && (
-              <button className="hijaiyah-ghost-btn" onClick={() => speakSurah(readingSurah)}>
-                <Volume2 size={16} /> Dengarkan
-              </button>
-            )}
-            <button className="hijaiyah-ghost-btn" onClick={() => setReadingId(null)}>
+            <button className="hijaiyah-ghost-btn" onClick={() => playWholeSurah(readingSurah)}>
+              <Volume2 size={16} /> {playingAyah === null ? 'Dengarkan surat' : 'Hentikan audio'}
+            </button>
+            <button className="hijaiyah-ghost-btn" onClick={() => { stopRecitation(); setReadingId(null); }}>
               Tutup
             </button>
             <button className="hijaiyah-primary-btn" style={{ maxWidth: 'none' }} onClick={() => completeReading(readingSurah)}>
@@ -910,6 +1055,7 @@ export default function QuranGame({
   const [view, setView] = useState<View>('map');
   const [evidence, setEvidence] = useState<HijaiyahEvidence>(() => loadEvidence());
   const [activeLetterId, setActiveLetterId] = useState<string | null>(null);
+  const [activePathId, setActivePathId] = useState<string | null>(null);
   const [confettiTick, setConfettiTick] = useState(0);
   const [lastResult, setLastResult] = useState<{ stars: 0 | 1 | 2 | 3; mistakes: number } | null>(null);
   const [matchKey, setMatchKey] = useState(0);
@@ -918,6 +1064,7 @@ export default function QuranGame({
   const totalWords = letters.length * 4;
 
   const activeLetter = letters.find((l) => l.id === activeLetterId) ?? null;
+  const activePathItem = activePathId ? quranPath.find((item) => item.id === activePathId) ?? null : null;
   const activeProgress = activeLetterId ? evidence.letters[activeLetterId] : undefined;
 
   // Tutorial demo HANYA muncul jika huruf ini belum pernah diselesaikan.
@@ -956,6 +1103,20 @@ export default function QuranGame({
   function backToMap() {
     setView('map');
     setActiveLetterId(null);
+    setActivePathId(null);
+  }
+
+  function openPathDetail(item: QuranPathItem) {
+    setActivePathId(item.id);
+    if (item.id === 'iqra-1-free') {
+      setView('iqraReader');
+      return;
+    }
+    if (item.id === 'juz30-starter-free') {
+      setView('juz30Reader');
+      return;
+    }
+    setView('pathDetail');
   }
 
   function handleSpeak(text: string, e?: React.MouseEvent) {
@@ -965,7 +1126,7 @@ export default function QuranGame({
 
   return (
     <div className="hijaiyah-overlay">
-      <div className={'hijaiyah-shell' + (view === 'garden' ? ' garden' : '')}>
+      <div className={'hijaiyah-shell' + (view === 'garden' || view === 'memoryArena' || view === 'iqraReader' || view === 'juz30Reader' ? ' garden' : '')}>
         <Confetti trigger={confettiTick} />
 
         <header className="hijaiyah-head">
@@ -976,10 +1137,14 @@ export default function QuranGame({
               {(view === 'intro' || view === 'match' || view === 'result') && `Huruf ${activeLetter?.name}`}
               {view === 'collection' && 'Koleksi Kosakata'}
               {view === 'garden' && 'Taman Pixel Juz 30'}
+              {view === 'memoryArena' && "Arena Hafalan Qur'an"}
+              {view === 'pathDetail' && (activePathItem?.title ?? 'Jalur Materi Qur\'an')}
+              {view === 'iqraReader' && "Iqra' Jilid 1"}
+              {view === 'juz30Reader' && 'Mushaf Juz 30'}
             </h2>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {(view === 'intro' || view === 'match' || view === 'garden') && (
+            {(view === 'intro' || view === 'match' || view === 'garden' || view === 'memoryArena' || view === 'pathDetail' || view === 'iqraReader' || view === 'juz30Reader') && (
               <button className="hijaiyah-ghost-small" onClick={backToMap}>
                 Peta
               </button>
@@ -1003,14 +1168,25 @@ export default function QuranGame({
         {view === 'map' && (
           <div>
         <ModelPreview url={modelUrls.quran} image="/assets/worlds/01_taman_alquran.webp" label="Pulau Quran 3D" />
-            <div className="quran-garden-cta">
-              <div>
-                <h3>Taman Pixel Juz 30</h3>
-                <p>Jelajahi taman islami, temukan papan surat pendek, lalu baca pelan-pelan.</p>
+            <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
+              <div className="quran-garden-cta" style={{ margin: 0 }}>
+                <div>
+                  <h3>Arena Hafalan Qur'an</h3>
+                  <p>Sambung ayat, susun urutan, tebak surat, dan kenali bacaan qari dalam ronde singkat.</p>
+                </div>
+                <button className="hijaiyah-primary-btn" style={{ maxWidth: 210 }} onClick={() => setView('memoryArena')}>
+                  Masuk arena <ChevronRight size={16} />
+                </button>
               </div>
-              <button className="hijaiyah-primary-btn" style={{ maxWidth: 210 }} onClick={() => setView('garden')}>
-                Jelajah taman <ChevronRight size={16} />
-              </button>
+              <div className="quran-garden-cta" style={{ margin: 0 }}>
+                <div>
+                  <h3>Taman Pixel Juz 30</h3>
+                  <p>Jelajahi taman islami, temukan papan surat pendek, lalu baca pelan-pelan.</p>
+                </div>
+                <button className="hijaiyah-primary-btn" style={{ maxWidth: 210 }} onClick={() => setView('garden')}>
+                  Jelajah taman <ChevronRight size={16} />
+                </button>
+              </div>
             </div>
             <section className="quran-path-section" aria-label="Jalur materi Taman Al-Qur'an">
               <div className="quran-path-head">
@@ -1019,7 +1195,7 @@ export default function QuranGame({
               </div>
               <div className="quran-path-grid">
                 {quranPath.map((item) => (
-                  <article key={item.id} className={'quran-path-card ' + item.tier}>
+                  <button key={item.id} type="button" className={'quran-path-card ' + item.tier} onClick={() => openPathDetail(item)}>
                     <span className="quran-path-badge">
                       {item.tier === 'premium' && <Lock size={11} />}
                       {item.badge}
@@ -1028,7 +1204,8 @@ export default function QuranGame({
                     <p>{item.subtitle}</p>
                     <div className="quran-path-sample hijaiyah-arabic">{item.sample}</div>
                     <span className="quran-path-focus">{item.focus}</span>
-                  </article>
+                    <span className="quran-path-cta">{item.cta} <ChevronRight size={13} /></span>
+                  </button>
                 ))}
               </div>
             </section>
@@ -1064,9 +1241,26 @@ export default function QuranGame({
           </div>
         )}
 
+        {view === 'pathDetail' && activePathItem && (
+          <QuranPathDetail item={activePathItem} onBack={backToMap} />
+        )}
+
+        {view === 'iqraReader' && <IqraReader onBack={backToMap} />}
+
+        {view === 'juz30Reader' && <Juz30Reader onBack={backToMap} />}
+
+        {view === 'memoryArena' && (
+          <QuranMemoryArena
+            onBack={backToMap}
+            onComplete={(xp) => {
+              onXpEarned(xp);
+              setConfettiTick((n) => n + 1);
+            }}
+          />
+        )}
+
         {view === 'garden' && (
           <QuranGardenAdventure
-            ttsAvailable={ttsAvailable}
             onBack={backToMap}
             onCompleteGarden={() => {
               onXpEarned(20);

@@ -1,3 +1,38 @@
+## 2026-10-16 - Arena Hafalan Qur'an
+
+- Menambahkan `QuranMemoryArena.tsx` sebagai mode permainan baru di Pulau Al-Qur'an.
+- Mengadaptasi pola mekanik dari repository `Qur-an-Learning-Adventure-Platform` menjadi empat tantangan Brightoria: sambung ayat, susun tiga ayat, tebak surat, dan pilih ayat dari audio.
+- Menghubungkan permainan ke dataset Juz 30 dan 30 MP3 murattal lokal yang sudah ada, dengan lima ronde per sesi dan fallback pesan audio yang aman.
+- Menambahkan skor, streak, ketepatan, XP penyelesaian, SFX dekoratif, serta progres lokal terpisah di `brightoria.quran.memoryArena.v1` tanpa mengubah evidence Hijaiyah.
+- Konten tetap draft sampai divalidasi tim tahsin/tahfidz Bright Academy.
+
+## 2026-10-15 - Audio surat pendek dibuat lokal dan selalu tersedia
+
+- Memperbaiki Taman Pixel Juz 30 yang sebelumnya hanya menampilkan tombol `Dengarkan` jika perangkat memiliki voice Arab untuk Web Speech API.
+- Menambahkan 30 MP3 murattal lokal Misyari Rasyid Al-Afasi untuk seluruh ayat dari tujuh surat Taman Pixel: Al-Asr, Al-Fil, Quraisy, Al-Kausar, Al-Ikhlas, Al-Falaq, dan An-Nas.
+- Menambahkan kontrol audio per ayat dan pemutaran satu surat berurutan, termasuk state sedang diputar, tombol berhenti, pesan error in-game, dan cleanup audio saat panel ditutup.
+- `quranReaderData.ts` memprioritaskan audio lokal untuk tujuh surat tersebut; surat Juz 30 lain tetap menggunakan URL audio qari dari data repository referensi.
+- Tidak ada dependency baru dan tidak ada musik latar.
+
+## 2026-10-15 - Iqra dan Mushaf Juz 30 lengkap dengan audio
+
+- Menginspeksi ulang data `iqraBook1Data.ts`, `verifiedJuz30AndCore.json`, dan pola audio qari pada repository `Qur-an-Learning-Adventure-Platform`.
+- Menambahkan `QuranReaders.tsx` untuk pembaca Iqra' Jilid 1 lengkap 32 halaman dan Mushaf Juz 30 lengkap 37 surat.
+- Menambahkan data ayat lokal `public/assets/data/juz30.json`; pembaca menampilkan semua ayat, transliterasi, dan arti Indonesia tanpa mengandalkan ringkasan kartu.
+- Menambahkan audio murattal Misyari Rasyid Al-Afasi per ayat dan mode putar surat berurutan. Audio dihentikan saat berganti surat, kembali ke peta, atau komponen dilepas.
+- Menambahkan pencarian surat serta progres lokal per halaman/surat tanpa mengubah evidence, mastery, atau XP game Hijaiyah.
+- Tidak ada dependency baru dan tidak ada musik latar. Audio qari membutuhkan koneksi internet.
+- Seluruh materi dan pembagian akses tetap draft hingga disahkan tim tahsin/tahfidz Bright Academy.
+
+## 2026-10-14 - Materi Qur'an Learning Adventure dibuat interaktif
+
+- Mengubah kartu `Jalur Materi Qur'an`, `Mufrodat Qur'an`, dan `Materi Adab Qur'ani` dari panel statis menjadi tombol yang bisa dibuka.
+- Menambahkan detail lesson per materi: contoh Arab, transliterasi, makna, catatan guru, dan latihan/praktik anak.
+- Memperbaiki data Arab pada `quranAdventureContent.ts` agar memakai Unicode Arab yang benar, bukan teks mojibake.
+- Kartu premium dibuka sebagai preview materi saja; belum ada backend payment/auth dan tidak ada klaim akses premium sungguhan.
+- Tidak ada perubahan evidence/mastery/XP, tidak ada dependency baru, dan tidak ada musik latar.
+- Seluruh materi hasil adaptasi tetap draft dan perlu validasi akademik Bright Academy sebelum rilis resmi.
+
 ## 2026-10-14 - Integrasi Materi Qur'an Learning Adventure
 
 - Menginspeksi repository referensi `wahyubudiprastowo/Qur-an-Learning-Adventure-Platform` dan memilih materi yang cocok untuk struktur pulau Brightoria.

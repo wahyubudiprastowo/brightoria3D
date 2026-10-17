@@ -1,3 +1,34 @@
+## 2026-10-16 - Arena Hafalan Qur'an
+
+- Menambahkan mini-game `Arena Hafalan Qur'an` ke Pulau Al-Qur'an dengan empat mode: Sambung Ayat, Susun Urutan Ayat, Tebak Nama Surat, serta Simak dan Pilih.
+- Setiap mode memiliki lima ronde, skor, streak, ketepatan, umpan balik jawaban, hasil akhir, XP, dan rekor terbaik berbasis localStorage.
+- Menggunakan teks surat pendek dari dataset Juz 30 existing serta audio murattal lokal untuk mode simak, tanpa dependency baru dan tanpa musik latar.
+- Materi tetap draft dan perlu validasi tim tahsin/tahfidz Bright Academy sebelum rilis resmi.
+
+## 2026-10-15 - Audio surat pendek dibuat lokal dan selalu tersedia
+
+- Mengganti audio Taman Pixel yang bergantung pada Web Speech API dengan rekaman murattal qari asli.
+- Menambahkan 30 file audio lokal untuk seluruh ayat Al-Asr, Al-Fil, Quraisy, Al-Kausar, Al-Ikhlas, Al-Falaq, dan An-Nas.
+- Menambahkan tombol dengarkan per ayat dan tombol putar satu surat berurutan di panel Taman Pixel.
+- Pembaca Juz 30 otomatis memakai audio lokal untuk tujuh surat tersebut dan tetap memakai sumber qari daring untuk surat lainnya.
+- Tidak ada musik latar; audio hanya diputar setelah tindakan pengguna.
+
+## 2026-10-15 - Iqra dan Mushaf Juz 30 lengkap dengan audio
+
+- Mengganti detail contoh Iqra yang pendek menjadi pembaca Iqra' Jilid 1 lengkap 32 halaman berdasarkan data repository referensi.
+- Menambahkan Mushaf Juz 30 lengkap: 37 surat dari An-Naba sampai An-Nas dengan seluruh ayat, transliterasi, dan arti Indonesia.
+- Menambahkan audio murattal qari per ayat serta tombol putar satu surat berurutan; audio berhenti aman saat berpindah surat atau keluar dari pembaca.
+- Menambahkan pencarian surat, penanda halaman/surat selesai, dan penyimpanan progres lokal yang terpisah dari evidence Hijaiyah.
+- Audio membutuhkan internet. Materi dan pemetaan akses tetap draft sampai divalidasi tim tahsin/tahfidz Bright Academy.
+
+## 2026-10-14 - Materi Qur'an Learning Adventure dibuat interaktif
+
+- Mengubah kartu `Jalur Materi Qur'an`, `Mufrodat Qur'an`, dan `Materi Adab Qur'ani` dari overlay statis menjadi tombol yang bisa dibuka.
+- Menambahkan halaman detail materi untuk tiap kartu, berisi lesson, contoh Arab, transliterasi, makna, catatan, dan latihan/praktik harian.
+- Memperbaiki data materi Qur'an agar teks Arab tampil sebagai Unicode yang benar, bukan karakter rusak.
+- Kartu premium sekarang tetap bisa dibuka sebagai preview materi, tanpa mengaktifkan payment/auth palsu.
+- Semua materi baru tetap draft dan perlu validasi akademik Bright Academy sebelum rilis resmi.
+
 ## 2026-10-14 - Integrasi Materi Qur'an Learning Adventure
 
 - Mengambil bahan terkurasi dari repository `Qur-an-Learning-Adventure-Platform` dan memetakannya ke pulau Brightoria yang sesuai.

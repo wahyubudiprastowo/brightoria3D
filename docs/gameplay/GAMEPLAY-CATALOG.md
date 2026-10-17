@@ -169,6 +169,11 @@ sebagai free trial, dan kamus Qur'an lanjutan berbasis akar kata/tema sebagai
 premium. Materi ditempatkan di Oasis karena fokusnya adalah bahasa/kosakata,
 bukan tilawah/tajwid.
 
+Revisi lanjutan pada tanggal yang sama membuat kartu jalur ini bisa diklik:
+anak dapat membuka detail lesson berisi contoh Arab, bacaan latin, makna,
+catatan guru, dan latihan kosakata. Premium ditampilkan sebagai preview materi,
+bukan aktivasi pembayaran.
+
 Konten ini masih berupa kurasi draft dari sumber referensi pengguna dan perlu
 validasi guru Bahasa Arab/Qur'an Bright Academy sebelum rilis resmi.
 
@@ -191,8 +196,27 @@ bentuk juice tersendiri sejak Patch 09 — tidak diubah.
 - Versi awal berisi 7 pos surat: Al-Ikhlas, Al-Falaq, An-Nas, Al-Kawthar, Al-Asr, Quraisy, dan Al-Fil.
 - Progress bacaan disimpan terpisah dari evidence Hijaiyah supaya mastery huruf tidak berubah.
 - TTS Arab dan SFX pendek tersedia; tidak ada musik latar.
+- Patch 2026-10-15 mengganti TTS surat dengan rekaman murattal lokal untuk
+  ketujuh surat taman. Setiap ayat memiliki tombol dengarkan dan satu surat
+  dapat diputar berurutan tanpa bergantung pada voice Arab perangkat.
 - Visual map memakai aset pixel PNG lokal dari user: rumah, platform rumput, air, jembatan, pagar, papan kayu, pohon, semak, ayam, dan sapi.
 - Teks Arab/latin/urutan materi tetap draft sampai divalidasi tim akademik/tahsin Bright Academy.
+
+### Mode tambahan: Arena Hafalan Qur'an (Patch 2026-10-16)
+
+- Arena berisi empat mekanik dari pola belajar repository referensi:
+  `Sambung Ayat`, `Susun Urutan Ayat`, `Tebak Nama Surat`, dan
+  `Simak dan Pilih`.
+- Setiap sesi terdiri dari lima ronde dengan skor, streak, ketepatan,
+  umpan balik jawaban, hasil akhir, XP, dan rekor terbaik per mode yang
+  tersimpan lokal di `brightoria.quran.memoryArena.v1`.
+- Soal baca, susun, dan tebak mengambil data surat pendek dari dataset Juz
+  30. Mode simak memakai murattal qari lokal agar tidak bergantung pada Web
+  Speech API atau koneksi saat tujuh surat pilihan dimainkan.
+- Efek suara hanya SFX pendek dan murattal setelah tindakan anak; tidak ada
+  musik latar.
+- Pemilihan materi dan mekanik hafalan masih draft dan wajib divalidasi tim
+  tahsin/tahfidz Bright Academy sebelum rilis resmi.
 
 ### Materi tambahan: Jalur Iqra, Juz 30, dan Tajwid (Patch 2026-10-14)
 
@@ -203,6 +227,18 @@ Tilawah 30 Juz.
 
 Pembagian ini mengikuti fungsi pulau: Taman Al-Qur'an untuk membaca,
 tilawah, tajwid, dan hafalan; Oasis Bahasa Arab untuk mufrodat/kosakata.
+Revisi lanjutan pada tanggal yang sama membuat setiap kartu jalur bisa dibuka
+menjadi detail materi berisi beberapa lesson, contoh Arab, transliterasi,
+makna, catatan, dan latihan sederhana.
+
+Patch 2026-10-15 mengganti dua kartu utama dari ringkasan contoh menjadi materi
+yang benar-benar dapat dipelajari. `Iqra' Jilid 1` kini membuka 32 halaman
+latihan lengkap dari data repository referensi. `Mushaf Juz 30 Lengkap` membuka
+37 surat dari An-Naba sampai An-Nas dengan seluruh ayat, transliterasi, arti
+Indonesia, audio qari per ayat, dan mode putar satu surat berurutan. Pencarian
+surat dan progres lokal halaman/surat tersedia tanpa mengubah evidence Hijaiyah.
+Audio qari membutuhkan internet; tidak ada musik latar.
+
 Materi tetap draft hingga divalidasi tim tahsin/tahfidz Bright Academy.
 
 ---
@@ -224,6 +260,9 @@ Materi tetap draft hingga divalidasi tim tahsin/tahfidz Bright Academy.
 - Patch 2026-10-14 menambahkan panel `Materi Adab Qur'ani` dari repository
   referensi `Qur-an-Learning-Adventure-Platform`: praktik harian santri sebagai
   free trial dan hikmah surat/asbabun nuzul sebagai premium.
+- Revisi lanjutan pada tanggal yang sama membuat kartu `Materi Adab Qur'ani`
+  bisa diklik untuk membuka lesson praktik harian/hikmah surat lengkap dengan
+  bacaan Arab, makna, catatan, dan tugas kecil anak.
 - Progress simulator disimpan terpisah di `brightoria.adab.dailySimulator.v1` agar koleksi kisah lama tetap aman.
 - Reward XP ringan diberikan saat misi lokasi pertama kali selesai; tidak ada musik latar.
 - Konten skenario tetap draft dan perlu validasi tim karakter/akademik Bright Academy sebelum rilis final.

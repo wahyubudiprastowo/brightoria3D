@@ -25,7 +25,7 @@ import ModelPreview from '../../components/world3d/ModelPreview';
 import { modelUrls } from '../../components/world3d/LocalModel';
 import ArabicMarketGame from './ArabicMarketGame';
 import ArabicHandNumbersGame from './ArabicHandNumbersGame';
-import { quranItemsByIsland } from '../quran/quranAdventureContent';
+import { quranItemsByIsland, type QuranPathItem } from '../quran/quranAdventureContent';
 
 /**
  * ArabicGame.tsx â€” Patch 25 (URUTAN ALUR DIPERBAIKI + tema per-pos untuk
@@ -166,7 +166,9 @@ const OASIS_CSS = `
 .oasis-quran-vocab-head h3 { margin: 0; font-size: 16px; }
 .oasis-quran-vocab-head small { color: #4c6b62; font-weight: 800; }
 .oasis-quran-vocab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
-.oasis-quran-vocab-card { border: 1px solid #cdeadf; background: linear-gradient(150deg,#ffffff,#e9f7ef); border-radius: 16px; padding: 13px; box-shadow: 0 8px 18px #17403a12; color: #17403a; }
+.oasis-quran-vocab-card { border: 1px solid #cdeadf; background: linear-gradient(150deg,#ffffff,#e9f7ef); border-radius: 16px; padding: 13px; box-shadow: 0 8px 18px #17403a12; color: #17403a; text-align: left; cursor: pointer; font: inherit; width: 100%; transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
+.oasis-quran-vocab-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px #17403a1c; border-color: #60c7ad; }
+.oasis-quran-vocab-card:focus-visible { outline: 3px solid #68d6bd; outline-offset: 2px; }
 .oasis-quran-vocab-card.premium { background: linear-gradient(150deg,#fff8e6,#f7ead0); border-color: #efd09a; }
 .oasis-quran-vocab-badge { display: inline-flex; align-items: center; gap: 5px; width: fit-content; border-radius: 999px; padding: 4px 8px; margin-bottom: 8px; font-size: 10px; font-weight: 900; background: #dff3ea; color: #126153; }
 .oasis-quran-vocab-card.premium .oasis-quran-vocab-badge { background: #ffe6b7; color: #8a5a12; }
@@ -174,6 +176,19 @@ const OASIS_CSS = `
 .oasis-quran-vocab-card p { margin: 0 0 8px; font-size: 11px; color: #4c6b62; line-height: 1.35; }
 .oasis-quran-vocab-sample { border-radius: 12px; background: #fffaf3; border: 1px solid #eadfc8; padding: 8px; text-align: center; font-size: 18px; color: #17403a; }
 .oasis-quran-vocab-focus { display: block; margin-top: 8px; font-size: 11px; color: #4c6b62; line-height: 1.35; }
+.oasis-quran-vocab-cta { display: inline-flex; align-items: center; gap: 4px; margin-top: 9px; font-size: 11px; font-weight: 900; color: #0f7c68; }
+.oasis-quran-vocab-detail { display: grid; gap: 12px; color: #17403a; }
+.oasis-quran-vocab-hero { border: 1px solid #cdeadf; border-radius: 18px; padding: 16px; background: linear-gradient(135deg,#f8fff9,#fff7df); }
+.oasis-quran-vocab-hero.premium { border-color: #efd09a; background: linear-gradient(135deg,#fff8e6,#f7ead0); }
+.oasis-quran-vocab-hero h3 { margin: 8px 0 4px; font-size: 22px; }
+.oasis-quran-vocab-hero p { margin: 0 0 10px; color: #4c6b62; line-height: 1.45; }
+.oasis-quran-vocab-source { display: block; font-size: 11px; color: #5b756d; }
+.oasis-quran-vocab-lessons { display: grid; gap: 10px; }
+.oasis-quran-vocab-lesson { border: 1px solid #dceee7; border-radius: 16px; padding: 14px; background: #ffffffd8; }
+.oasis-quran-vocab-lesson h4 { margin: 0 0 8px; font-size: 15px; }
+.oasis-quran-vocab-lesson-arabic { margin: 0 0 8px; padding: 10px; border-radius: 12px; background: #fffaf3; border: 1px solid #eadfc8; text-align: center; font-size: 24px; line-height: 1.5; }
+.oasis-quran-vocab-lesson-meta { display: grid; gap: 5px; font-size: 12px; color: #4c6b62; line-height: 1.45; }
+.oasis-quran-vocab-practice { margin-top: 10px; border-radius: 12px; padding: 10px; background: #e9f7ef; color: #126153; font-size: 12px; font-weight: 800; line-height: 1.45; }
 
 .oasis-intro { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 8px 4px 4px; }
 .oasis-mascot-big { width: 120px !important; max-width: 120px !important; height: auto !important; object-fit: contain; margin-bottom: 4px; animation: oasis-bob 3s ease-in-out infinite; }
@@ -337,7 +352,7 @@ function shuffleArr<T>(arr: T[]): T[] {
   return copy;
 }
 
-type View = 'map' | 'intro' | 'learn' | 'match' | 'session' | 'result' | 'collection' | 'market' | 'handNumbers';
+type View = 'map' | 'intro' | 'learn' | 'match' | 'session' | 'result' | 'collection' | 'market' | 'handNumbers' | 'quranVocabDetail';
 
 interface LearnCard {
   emoji: string;
@@ -389,6 +404,38 @@ function isStopUnlocked(index: number, evidence: ArabicEvidence): boolean {
   return !!prevProgress && prevProgress.stars >= 1;
 }
 
+function QuranVocabDetail({ item, onBack }: { item: QuranPathItem; onBack: () => void }) {
+  return (
+    <div className="oasis-quran-vocab-detail">
+      <section className={'oasis-quran-vocab-hero ' + item.tier}>
+        <span className="oasis-quran-vocab-badge">
+          {item.tier === 'premium' && <Lock size={11} />}
+          {item.badge}
+        </span>
+        <h3>{item.title}</h3>
+        <p>{item.focus}</p>
+        <div className="oasis-quran-vocab-sample oasis-arabic-text">{item.sample}</div>
+        <span className="oasis-quran-vocab-source">{item.sourceNote} Konten ini masih draft untuk review akademik Bright Academy.</span>
+      </section>
+      <div className="oasis-quran-vocab-lessons">
+        {item.lessons.map((lesson) => (
+          <article key={lesson.id} className="oasis-quran-vocab-lesson">
+            <h4>{lesson.title}</h4>
+            {lesson.arabic && <div className="oasis-quran-vocab-lesson-arabic oasis-arabic-text">{lesson.arabic}</div>}
+            <div className="oasis-quran-vocab-lesson-meta">
+              {lesson.latin && <span><b>Bacaan:</b> {lesson.latin}</span>}
+              {lesson.meaning && <span><b>Makna:</b> {lesson.meaning}</span>}
+              <span><b>Catatan:</b> {lesson.note}</span>
+            </div>
+            <div className="oasis-quran-vocab-practice">Latihan: {lesson.practice}</div>
+          </article>
+        ))}
+      </div>
+      <button className="oasis-ghost-btn" onClick={onBack}>Kembali ke peta</button>
+    </div>
+  );
+}
+
 export default function ArabicGame({
   onExit,
   onXpEarned,
@@ -402,6 +449,7 @@ export default function ArabicGame({
   const [view, setView] = useState<View>('map');
   const [evidence, setEvidence] = useState<ArabicEvidence>(() => loadEvidence());
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
+  const [activeQuranVocabId, setActiveQuranVocabId] = useState<string | null>(null);
 
   const [learnCards, setLearnCards] = useState<LearnCard[]>([]);
   const [learnIndex, setLearnIndex] = useState(0);
@@ -625,6 +673,13 @@ export default function ArabicGame({
     arabicSfx.click();
     setView('map');
     setActiveLessonId(null);
+    setActiveQuranVocabId(null);
+  }
+
+  function openQuranVocabDetail(item: QuranPathItem) {
+    arabicSfx.click();
+    setActiveQuranVocabId(item.id);
+    setView('quranVocabDetail');
   }
 
   function tryLocked() {
@@ -638,6 +693,7 @@ export default function ArabicGame({
 
   const currentQuestion = session[qIndex];
   const activeLesson = curriculum.find((l) => l.id === activeLessonId);
+  const activeQuranVocab = activeQuranVocabId ? quranVocabPath.find((item) => item.id === activeQuranVocabId) ?? null : null;
   const activeAccent = activeLesson ? getAccent(activeLesson.lessonNumber) : ACCENTS[0];
   const activeProgress = activeLessonId ? evidence.stops[activeLessonId] : undefined;
   const collectedCount = evidence.collectedWords.length;
@@ -675,11 +731,12 @@ export default function ArabicGame({
                 {view === 'collection' && 'Buku Koleksi Kosakata'}
                 {view === 'market' && 'Pasar Kata Arab'}
                 {view === 'handNumbers' && 'AI Angka Arab & Surat'}
+                {view === 'quranVocabDetail' && (activeQuranVocab?.title ?? 'Mufrodat Qur\'an')}
               </h2>
             </div>
           </div>
           <div className="oasis-head-actions">
-            {(view === 'session' || view === 'intro' || view === 'learn' || view === 'match' || view === 'market' || view === 'handNumbers') && (
+            {(view === 'session' || view === 'intro' || view === 'learn' || view === 'match' || view === 'market' || view === 'handNumbers' || view === 'quranVocabDetail') && (
               <button className="oasis-ghost-small" onClick={backToMap}>
                 Peta
               </button>
@@ -746,7 +803,7 @@ export default function ArabicGame({
               </div>
               <div className="oasis-quran-vocab-grid">
                 {quranVocabPath.map((item) => (
-                  <article key={item.id} className={'oasis-quran-vocab-card ' + item.tier}>
+                  <button key={item.id} type="button" className={'oasis-quran-vocab-card ' + item.tier} onClick={() => openQuranVocabDetail(item)}>
                     <span className="oasis-quran-vocab-badge">
                       {item.tier === 'premium' && <Lock size={11} />}
                       {item.badge}
@@ -755,7 +812,8 @@ export default function ArabicGame({
                     <p>{item.subtitle}</p>
                     <div className="oasis-quran-vocab-sample oasis-arabic-text">{item.sample}</div>
                     <span className="oasis-quran-vocab-focus">{item.focus}</span>
-                  </article>
+                    <span className="oasis-quran-vocab-cta">{item.cta} <ChevronRight size={13} /></span>
+                  </button>
                 ))}
               </div>
             </section>
@@ -797,6 +855,10 @@ export default function ArabicGame({
               })}
             </div>
           </div>
+        )}
+
+        {view === 'quranVocabDetail' && activeQuranVocab && (
+          <QuranVocabDetail item={activeQuranVocab} onBack={backToMap} />
         )}
 
         {view === 'market' && (

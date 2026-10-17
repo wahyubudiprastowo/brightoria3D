@@ -5,7 +5,7 @@ import { adabHadithLessons, hadithById, type HadithLesson } from './hadithLesson
 import { chapters, type StoryChapter, type StoryChoice } from './scenarios';
 import { computeMastery, loadEvidence, recordChoice, saveEvidence, type AdabEvidence } from './evidence';
 import { Confetti, usePunch } from '../juice';
-import { quranItemsByIsland } from '../quran/quranAdventureContent';
+import { quranItemsByIsland, type QuranPathItem } from '../quran/quranAdventureContent';
 
 /**
  * AdabGame.tsx — Patch 26. Mekanik "Kisah Pilihan" (branching story) untuk
@@ -108,7 +108,9 @@ const ADAB_CSS = `
 .adab-quran-path-head h3 { margin: 0; font-size: 16px; }
 .adab-quran-path-head small { color: #8a5230; font-weight: 800; }
 .adab-quran-path-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
-.adab-quran-path-card { border: 1px solid #f3d9c0; background: linear-gradient(150deg,#fffdf8,#ffe6d2); border-radius: 16px; padding: 13px; color: #6b2f12; box-shadow: 0 8px 18px #c8684514; }
+.adab-quran-path-card { border: 1px solid #f3d9c0; background: linear-gradient(150deg,#fffdf8,#ffe6d2); border-radius: 16px; padding: 13px; color: #6b2f12; box-shadow: 0 8px 18px #c8684514; text-align: left; cursor: pointer; font: inherit; width: 100%; transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
+.adab-quran-path-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px #c8684520; border-color: #d9966c; }
+.adab-quran-path-card:focus-visible { outline: 3px solid #f4b58f; outline-offset: 2px; }
 .adab-quran-path-card.premium { background: linear-gradient(150deg,#fff8e6,#f7ead0); border-color: #efd09a; }
 .adab-quran-path-badge { display: inline-flex; align-items: center; gap: 5px; width: fit-content; border-radius: 999px; padding: 4px 8px; margin-bottom: 8px; font-size: 10px; font-weight: 900; background: #fbe6da; color: #a15321; }
 .adab-quran-path-card.premium .adab-quran-path-badge { background: #ffe6b7; color: #8a5a12; }
@@ -116,6 +118,19 @@ const ADAB_CSS = `
 .adab-quran-path-card p { margin: 0 0 8px; font-size: 11px; color: #8a5230; line-height: 1.35; }
 .adab-quran-path-sample { border-radius: 12px; background: #fffaf3; border: 1px solid #eadfc8; padding: 8px; font-size: 12px; color: #6b2f12; }
 .adab-quran-path-focus { display: block; margin-top: 8px; font-size: 11px; color: #8a5230; line-height: 1.35; }
+.adab-quran-path-cta { display: inline-flex; align-items: center; gap: 4px; margin-top: 9px; font-size: 11px; font-weight: 900; color: #a15321; }
+.adab-quran-detail { display: grid; gap: 12px; color: #6b2f12; }
+.adab-quran-detail-hero { border: 1px solid #f3d9c0; border-radius: 18px; padding: 16px; background: linear-gradient(135deg,#fff8ec,#ffe2ca); }
+.adab-quran-detail-hero.premium { border-color: #efd09a; background: linear-gradient(135deg,#fff8e6,#f7ead0); }
+.adab-quran-detail-hero h3 { margin: 8px 0 4px; font-size: 22px; }
+.adab-quran-detail-hero p { margin: 0 0 10px; color: #8a5230; line-height: 1.45; }
+.adab-quran-detail-source { display: block; font-size: 11px; color: #8a5230; }
+.adab-quran-lessons { display: grid; gap: 10px; }
+.adab-quran-lesson { border: 1px solid #f3d9c0; border-radius: 16px; padding: 14px; background: #ffffffd8; }
+.adab-quran-lesson h4 { margin: 0 0 8px; font-size: 15px; }
+.adab-quran-lesson-arabic { margin: 0 0 8px; padding: 10px; border-radius: 12px; background: #fffaf3; border: 1px solid #eadfc8; text-align: center; font-size: 22px; line-height: 1.5; }
+.adab-quran-lesson-meta { display: grid; gap: 5px; font-size: 12px; color: #8a5230; line-height: 1.45; }
+.adab-quran-practice { margin-top: 10px; border-radius: 12px; padding: 10px; background: #fbe6da; color: #8a3f18; font-size: 12px; font-weight: 800; line-height: 1.45; }
 .adab-sim-shell { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; min-height: 520px; }
 .adab-village-map { position: relative; min-height: 520px; overflow: hidden; border-radius: 22px; border: 3px solid #d9a35f; background:
   radial-gradient(circle at 14% 18%, #bce68f 0 10%, transparent 10.5%),
@@ -271,7 +286,39 @@ function isChapterUnlocked(index: number, evidence: AdabEvidence): boolean {
   return !!evidence.chapters[prev.id]?.completed;
 }
 
-type View = 'map' | 'story' | 'outcome' | 'collection' | 'simulator';
+function AdabQuranDetail({ item, onBack }: { item: QuranPathItem; onBack: () => void }) {
+  return (
+    <div className="adab-quran-detail">
+      <section className={'adab-quran-detail-hero ' + item.tier}>
+        <span className="adab-quran-path-badge">
+          {item.tier === 'premium' && <Lock size={11} />}
+          {item.badge}
+        </span>
+        <h3>{item.title}</h3>
+        <p>{item.focus}</p>
+        <div className="adab-quran-path-sample">{item.sample}</div>
+        <span className="adab-quran-detail-source">{item.sourceNote} Konten ini masih draft untuk review akademik Bright Academy.</span>
+      </section>
+      <div className="adab-quran-lessons">
+        {item.lessons.map((lesson) => (
+          <article key={lesson.id} className="adab-quran-lesson">
+            <h4>{lesson.title}</h4>
+            {lesson.arabic && <div className="adab-quran-lesson-arabic">{lesson.arabic}</div>}
+            <div className="adab-quran-lesson-meta">
+              {lesson.latin && <span><b>Bacaan:</b> {lesson.latin}</span>}
+              {lesson.meaning && <span><b>Makna:</b> {lesson.meaning}</span>}
+              <span><b>Hikmah:</b> {lesson.note}</span>
+            </div>
+            <div className="adab-quran-practice">Praktik: {lesson.practice}</div>
+          </article>
+        ))}
+      </div>
+      <button className="adab-book-btn" onClick={onBack}>Kembali ke peta</button>
+    </div>
+  );
+}
+
+type View = 'map' | 'story' | 'outcome' | 'collection' | 'simulator' | 'quranAdabDetail';
 
 type SimQuality = 'best' | 'good' | 'needsWork';
 
@@ -395,6 +442,7 @@ export default function AdabGame({
   const [pickedChoice, setPickedChoice] = useState<StoryChoice | null>(null);
   const [confettiTick, setConfettiTick] = useState(0);
   const [activeLocationId, setActiveLocationId] = useState<string | null>(null);
+  const [activeAdabPathId, setActiveAdabPathId] = useState<string | null>(null);
   const [simDone, setSimDone] = useState<string[]>(() => loadSimDone());
   const [simFeedback, setSimFeedback] = useState<{ quality: SimQuality; text: string } | null>(null);
   const outcomePunch = usePunch(pickedChoice?.id ?? 'idle');
@@ -403,6 +451,7 @@ export default function AdabGame({
   const totalOutcomes = chapters.length * 3;
 
   const activeChapter = chapters.find((c) => c.id === activeChapterId) ?? null;
+  const activeAdabPath = activeAdabPathId ? adabQuranPath.find((item) => item.id === activeAdabPathId) ?? null : null;
   const activeProgress = activeChapterId ? evidence.chapters[activeChapterId] : undefined;
   const activeMission = activeLocationId ? (simMissions.find((mission) => mission.locationId === activeLocationId) ?? null) : null;
 
@@ -432,6 +481,12 @@ export default function AdabGame({
     setView('map');
     setActiveChapterId(null);
     setPickedChoice(null);
+    setActiveAdabPathId(null);
+  }
+
+  function openAdabPathDetail(item: QuranPathItem) {
+    setActiveAdabPathId(item.id);
+    setView('quranAdabDetail');
   }
 
   function retryChapter() {
@@ -471,10 +526,11 @@ export default function AdabGame({
               {view === 'map' && 'Kisah Pilihan — 8 Bab Kehidupan Sehari-hari'}
               {(view === 'story' || view === 'outcome') && activeChapter?.title}
               {view === 'collection' && 'Buku Kisah'}
+              {view === 'quranAdabDetail' && (activeAdabPath?.title ?? 'Materi Adab Qur\'ani')}
             </h2>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {(view === 'story' || view === 'outcome') && (
+            {(view === 'story' || view === 'outcome' || view === 'quranAdabDetail') && (
               <button className="adab-book-btn" onClick={backToMap}>
                 Peta
               </button>
@@ -514,7 +570,7 @@ export default function AdabGame({
               </div>
               <div className="adab-quran-path-grid">
                 {adabQuranPath.map((item) => (
-                  <article key={item.id} className={'adab-quran-path-card ' + item.tier}>
+                  <button key={item.id} type="button" className={'adab-quran-path-card ' + item.tier} onClick={() => openAdabPathDetail(item)}>
                     <span className="adab-quran-path-badge">
                       {item.tier === 'premium' && <Lock size={11} />}
                       {item.badge}
@@ -523,7 +579,8 @@ export default function AdabGame({
                     <p>{item.subtitle}</p>
                     <div className="adab-quran-path-sample">{item.sample}</div>
                     <span className="adab-quran-path-focus">{item.focus}</span>
-                  </article>
+                    <span className="adab-quran-path-cta">{item.cta} <ChevronRight size={13} /></span>
+                  </button>
                 ))}
               </div>
             </section>
@@ -575,6 +632,10 @@ export default function AdabGame({
               setSimFeedback(null);
             } : backToMap}
           />
+        )}
+
+        {view === 'quranAdabDetail' && activeAdabPath && (
+          <AdabQuranDetail item={activeAdabPath} onBack={backToMap} />
         )}
 
         {view === 'story' && activeChapter && (
