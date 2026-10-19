@@ -1,3 +1,11 @@
+## 2026-10-19 - Premium gate dan pilihan paket
+
+- Mengunci materi Premium di Taman Al-Qur'an, Oasis Bahasa Arab, dan Kampung Adab untuk akun tanpa entitlement aktif.
+- Menambahkan modal upgrade responsif dengan paket 1 bulan, 3 bulan, 1 tahun, dan lifetime sesuai harga acuan produk.
+- Tombol pembayaran hanya meneruskan ke checkout resmi yang dikonfigurasi melalui `VITE_PREMIUM_CHECKOUT_URL`; jika belum tersedia, materi tetap terkunci dan UI tidak menyimulasikan transaksi berhasil.
+- Menambahkan pemeriksaan ulang entitlement setelah pembayaran serta penanda visual yang jelas untuk kartu Premium terkunci/aktif.
+- Materi kurikulum tetap draft dan perlu validasi akademik Bright Academy.
+
 ## 2026-10-16 - Arena Hafalan Qur'an
 
 - Menambahkan mini-game `Arena Hafalan Qur'an` ke Pulau Al-Qur'an dengan empat mode: Sambung Ayat, Susun Urutan Ayat, Tebak Nama Surat, serta Simak dan Pilih.
@@ -26,7 +34,7 @@
 - Mengubah kartu `Jalur Materi Qur'an`, `Mufrodat Qur'an`, dan `Materi Adab Qur'ani` dari overlay statis menjadi tombol yang bisa dibuka.
 - Menambahkan halaman detail materi untuk tiap kartu, berisi lesson, contoh Arab, transliterasi, makna, catatan, dan latihan/praktik harian.
 - Memperbaiki data materi Qur'an agar teks Arab tampil sebagai Unicode yang benar, bukan karakter rusak.
-- Kartu premium sekarang tetap bisa dibuka sebagai preview materi, tanpa mengaktifkan payment/auth palsu.
+- Pada versi tanggal ini kartu premium masih bisa dibuka sebagai preview; perilaku tersebut kemudian diganti oleh Premium gate pada 2026-10-19.
 - Semua materi baru tetap draft dan perlu validasi akademik Bright Academy sebelum rilis resmi.
 
 ## 2026-10-14 - Integrasi Materi Qur'an Learning Adventure

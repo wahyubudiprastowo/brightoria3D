@@ -6,6 +6,8 @@ import { chapters, type StoryChapter, type StoryChoice } from './scenarios';
 import { computeMastery, loadEvidence, recordChoice, saveEvidence, type AdabEvidence } from './evidence';
 import { Confetti, usePunch } from '../juice';
 import { quranItemsByIsland, type QuranPathItem } from '../quran/quranAdventureContent';
+import { PremiumUpgradeModal } from '../../subscription/PremiumUpgradeModal';
+import { hasPremiumAccess } from '../../subscription/premiumAccess';
 
 /**
  * AdabGame.tsx — Patch 26. Mekanik "Kisah Pilihan" (branching story) untuk
@@ -443,6 +445,8 @@ export default function AdabGame({
   const [confettiTick, setConfettiTick] = useState(0);
   const [activeLocationId, setActiveLocationId] = useState<string | null>(null);
   const [activeAdabPathId, setActiveAdabPathId] = useState<string | null>(null);
+  const [premiumActive, setPremiumActive] = useState(() => hasPremiumAccess());
+  const [premiumTarget, setPremiumTarget] = useState<QuranPathItem | null>(null);
   const [simDone, setSimDone] = useState<string[]>(() => loadSimDone());
   const [simFeedback, setSimFeedback] = useState<{ quality: SimQuality; text: string } | null>(null);
   const outcomePunch = usePunch(pickedChoice?.id ?? 'idle');
@@ -485,6 +489,10 @@ export default function AdabGame({
   }
 
   function openAdabPathDetail(item: QuranPathItem) {
+    if (item.tier === 'premium' && !premiumActive) {
+      setPremiumTarget(item);
+      return;
+    }
     setActiveAdabPathId(item.id);
     setView('quranAdabDetail');
   }
@@ -570,16 +578,24 @@ export default function AdabGame({
               </div>
               <div className="adab-quran-path-grid">
                 {adabQuranPath.map((item) => (
-                  <button key={item.id} type="button" className={'adab-quran-path-card ' + item.tier} onClick={() => openAdabPathDetail(item)}>
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={'adab-quran-path-card ' + item.tier + (item.tier === 'premium' && !premiumActive ? ' premium-locked' : '')}
+                    onClick={() => openAdabPathDetail(item)}
+                    aria-label={item.tier === 'premium' && !premiumActive ? `${item.title}, terkunci Premium` : item.title}
+                  >
                     <span className="adab-quran-path-badge">
                       {item.tier === 'premium' && <Lock size={11} />}
-                      {item.badge}
+                      {item.tier === 'premium' && premiumActive ? 'Premium aktif' : item.badge}
                     </span>
                     <h4>{item.title}</h4>
                     <p>{item.subtitle}</p>
                     <div className="adab-quran-path-sample">{item.sample}</div>
                     <span className="adab-quran-path-focus">{item.focus}</span>
-                    <span className="adab-quran-path-cta">{item.cta} <ChevronRight size={13} /></span>
+                    <span className="adab-quran-path-cta">
+                      {item.tier === 'premium' && !premiumActive ? 'Buka dengan Premium' : item.cta} <ChevronRight size={13} />
+                    </span>
                   </button>
                 ))}
               </div>
@@ -711,6 +727,21 @@ export default function AdabGame({
           </div>
         )}
       </div>
+      <PremiumUpgradeModal
+        open={premiumTarget !== null}
+        featureId={premiumTarget?.id ?? 'adab-premium'}
+        featureTitle={premiumTarget?.title ?? "Materi Premium Adab Qur'ani"}
+        onClose={() => setPremiumTarget(null)}
+        onAccessVerified={() => {
+          const verifiedItem = premiumTarget;
+          setPremiumActive(true);
+          setPremiumTarget(null);
+          if (verifiedItem) {
+            setActiveAdabPathId(verifiedItem.id);
+            setView('quranAdabDetail');
+          }
+        }}
+      />
     </div>
   );
 }

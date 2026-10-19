@@ -242,9 +242,24 @@ interface World {
 }
 ```
 
+## Premium Access Gate (19 Oktober 2026)
+
+- `src/subscription/premiumAccess.ts` menjadi sumber paket, validasi cache
+  entitlement, intent checkout, dan pembentukan URL checkout resmi.
+- `src/subscription/PremiumUpgradeModal.tsx` menampilkan empat paket harga dan
+  dipakai bersama oleh `QuranGame`, `ArabicGame`, dan `AdabGame`.
+- `VITE_PREMIUM_CHECKOUT_URL` adalah konfigurasi opsional untuk handoff ke
+  checkout resmi. Jika kosong atau tidak valid, aplikasi mempertahankan status
+  terkunci dan menjelaskan bahwa pembayaran belum terhubung.
+- Repository ini belum memiliki backend verifikasi pembayaran. Karena konten
+  Premium masih dibundel di frontend, gate saat ini adalah kontrol UX, bukan
+  batas keamanan server. Produksi wajib memindahkan materi berbayar ke API
+  terautentikasi dan menerbitkan entitlement dari server setelah transaksi sah.
+
 ## Yang BELUM ada di kode
 
-Sama seperti sebelumnya: tidak ada backend, auth, payment, integrasi
-meeting, test otomatis/CI-CD. Build Android belum pernah dites end-to-end.
+Frontend Premium gate dan handoff checkout sudah ada, tetapi belum ada backend,
+auth, payment gateway/verifikasi entitlement, integrasi meeting, atau test
+otomatis/CI-CD. Build Android belum pernah dites end-to-end.
 Kurikulum di `GAMEPLAY-CATALOG.md` adalah draft, belum disahkan tim
 akademik Bright Academy.

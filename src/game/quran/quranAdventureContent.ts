@@ -59,16 +59,16 @@ export const quranPathItems: QuranPathItem[] = [
     ],
   },
   {
-    id: 'iqra-2-6-premium', island: 'quran', tier: 'premium', title: "Iqra' Jilid 2-6", subtitle: 'Kasrah, dhammah, tanwin, mad, waqaf, dan gharib', badge: 'Premium', focus: 'Latihan bertahap dari harakat i/u sampai hukum nun sukun, tanda waqaf, dan persiapan mushaf.', sample: 'بِ - بُ - بًا - بَا - مَنْ آمَنَ', sourceNote: "Mengikuti pembagian pro: akses Iqra' 1 sampai 6 lengkap.", cta: 'Lihat preview premium',
+    id: 'iqra-2-6-premium', island: 'quran', tier: 'premium', title: "Iqra' Jilid 2-6", subtitle: 'Kasrah, dhammah, tanwin, mad, waqaf, dan gharib', badge: 'Premium', focus: 'Latihan bertahap dari harakat i/u sampai hukum nun sukun, tanda waqaf, dan persiapan mushaf.', sample: 'بِ - بُ - بًا - بَا - مَنْ آمَنَ', sourceNote: "Mengikuti pembagian pro: akses Iqra' 1 sampai 6 lengkap.", cta: 'Buka materi Iqra',
     lessons: [
-      { id: 'iqra-2-kasrah', title: 'Kasrah dan dhammah', arabic: 'بِ بُ تِ تُ', latin: 'bi, bu, ti, tu', meaning: 'Mengenal bunyi pendek i dan u.', note: 'Ini preview materi lanjutan. Akses penuh disiapkan untuk mode premium.', practice: 'Baca pasangan bi-bu, ti-tu, lalu bedakan posisi tanda harakatnya.' },
+      { id: 'iqra-2-kasrah', title: 'Kasrah dan dhammah', arabic: 'بِ بُ تِ تُ', latin: 'bi, bu, ti, tu', meaning: 'Mengenal bunyi pendek i dan u.', note: 'Materi Premium lanjutan untuk mengenali harakat secara bertahap.', practice: 'Baca pasangan bi-bu, ti-tu, lalu bedakan posisi tanda harakatnya.' },
       { id: 'iqra-4-mad', title: 'Mad pendek-panjang', arabic: 'بَ - بَا', latin: 'ba - baa', meaning: 'Membedakan bunyi pendek dan panjang.', note: 'Anak mulai belajar tidak semua huruf dibaca dengan durasi sama.', practice: 'Tepuk satu kali untuk ba pendek, dua kali untuk baa panjang.' },
     ],
   },
   {
-    id: 'quran-30juz-premium', island: 'quran', tier: 'premium', title: 'Tilawah 30 Juz', subtitle: 'Jelajah mushaf penuh dengan panduan ayat', badge: 'Premium', focus: 'Mushaf lengkap, hafalan/murojaah lebih luas, dan materi lanjutan setelah Juz 30.', sample: 'الفاتحة - البقرة - آل عمران', sourceNote: 'Diadaptasi dari planFeatures: pro membuka cakupan 30 juz penuh.', cta: 'Lihat preview tilawah',
+    id: 'quran-30juz-premium', island: 'quran', tier: 'premium', title: 'Tilawah 30 Juz', subtitle: 'Jelajah mushaf penuh dengan panduan ayat', badge: 'Premium', focus: 'Mushaf lengkap, hafalan/murojaah lebih luas, dan materi lanjutan setelah Juz 30.', sample: 'الفاتحة - البقرة - آل عمران', sourceNote: 'Diadaptasi dari planFeatures: pro membuka cakupan 30 juz penuh.', cta: 'Buka materi tilawah',
     lessons: [
-      { id: 'tilawah-fatihah', title: 'Al-Fatihah: pembuka tilawah', arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', latin: 'Bismillahir rahmanir rahim', meaning: 'Dengan nama Allah Yang Maha Pengasih, Maha Penyayang.', note: 'Preview jalur tilawah: anak diarahkan membaca tartil dan memahami adab memulai bacaan.', practice: 'Baca basmalah dengan tenang sebelum memulai latihan hari ini.' },
+      { id: 'tilawah-fatihah', title: 'Al-Fatihah: pembuka tilawah', arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', latin: 'Bismillahir rahmanir rahim', meaning: 'Dengan nama Allah Yang Maha Pengasih, Maha Penyayang.', note: 'Jalur Premium mengarahkan anak membaca tartil dan memahami adab memulai bacaan.', practice: 'Baca basmalah dengan tenang sebelum memulai latihan hari ini.' },
       { id: 'tilawah-murojaah', title: 'Rencana murojaah', arabic: 'مُرَاجَعَة', latin: "muroja'ah", meaning: 'Mengulang hafalan agar tetap kuat.', note: 'Mode penuh dapat diarahkan menjadi jadwal hafalan dan pengulangan ayat.', practice: 'Pilih satu surat yang sudah hafal, ulangi satu kali dengan suara pelan.' },
     ],
   },
@@ -82,9 +82,9 @@ export const quranPathItems: QuranPathItem[] = [
     ],
   },
   {
-    id: 'quran-vocab-premium', island: 'arabic', tier: 'premium', title: "Kamus Qur'an Lanjutan", subtitle: 'Akar kata dan arti pilihan dari lebih banyak surah', badge: 'Premium', focus: 'Mufrodat Al-Fatihah, Ayat Kursi, Al-Mulk, dan tema pilihan seperti syukur, cahaya, petunjuk, hati.', sample: 'الْكِتَابُ - نُورٌ - الْهُدَى - الشُّكْرُ', sourceNote: 'Diadaptasi dari kamus mufrodat dan level penjelajah 114 surah.', cta: 'Lihat preview kamus',
+    id: 'quran-vocab-premium', island: 'arabic', tier: 'premium', title: "Kamus Qur'an Lanjutan", subtitle: 'Akar kata dan arti pilihan dari lebih banyak surah', badge: 'Premium', focus: 'Mufrodat Al-Fatihah, Ayat Kursi, Al-Mulk, dan tema pilihan seperti syukur, cahaya, petunjuk, hati.', sample: 'الْكِتَابُ - نُورٌ - الْهُدَى - الشُّكْرُ', sourceNote: 'Diadaptasi dari kamus mufrodat dan level penjelajah 114 surah.', cta: 'Buka kamus lanjutan',
     lessons: [
-      { id: 'vocab-kitab', title: 'Al-Kitab', arabic: 'الْكِتَابُ', latin: 'Al-Kitab', meaning: 'Kitab.', note: 'Preview premium untuk kosakata yang lebih luas lintas surah.', practice: 'Cari kata yang artinya kitab, lalu hubungkan dengan mushaf Al-Quran.' },
+      { id: 'vocab-kitab', title: 'Al-Kitab', arabic: 'الْكِتَابُ', latin: 'Al-Kitab', meaning: 'Kitab.', note: 'Materi Premium untuk kosakata yang lebih luas lintas surah.', practice: 'Cari kata yang artinya kitab, lalu hubungkan dengan mushaf Al-Quran.' },
       { id: 'vocab-nur', title: 'Nur', arabic: 'نُورٌ', latin: 'Nur', meaning: 'Cahaya.', note: 'Kata tema yang bisa dipakai untuk mengenalkan makna petunjuk dan kebaikan.', practice: 'Sebutkan satu perbuatan baik yang bisa menjadi cahaya hari ini.' },
       { id: 'vocab-shukr', title: 'Syukr', arabic: 'الشُّكْرُ', latin: 'Asy-Syukr', meaning: 'Rasa syukur.', note: 'Kosakata ini bisa disambungkan ke adab harian dan akhlak.', practice: 'Ucapkan terima kasih kepada orang yang membantumu hari ini.' },
     ],
@@ -98,7 +98,7 @@ export const quranPathItems: QuranPathItem[] = [
     ],
   },
   {
-    id: 'adab-quran-premium', island: 'adab', tier: 'premium', title: 'Akhlak dari Kisah Surat', subtitle: 'Hikmah anak dari tafsir dan asbabun nuzul', badge: 'Premium', focus: 'Al-Fil tentang tawakkal, Quraisy tentang syukur, Ad-Duha tentang harapan, Al-Asr tentang waktu.', sample: 'Syukur, sabar, amanah, sayang sesama, dan cinta ilmu.', sourceNote: 'Diadaptasi dari tafsirData dan asbabNuzulData, tetap perlu validasi akademik.', cta: 'Lihat preview hikmah',
+    id: 'adab-quran-premium', island: 'adab', tier: 'premium', title: 'Akhlak dari Kisah Surat', subtitle: 'Hikmah anak dari tafsir dan asbabun nuzul', badge: 'Premium', focus: 'Al-Fil tentang tawakkal, Quraisy tentang syukur, Ad-Duha tentang harapan, Al-Asr tentang waktu.', sample: 'Syukur, sabar, amanah, sayang sesama, dan cinta ilmu.', sourceNote: 'Diadaptasi dari tafsirData dan asbabNuzulData, tetap perlu validasi akademik.', cta: 'Buka materi hikmah',
     lessons: [
       { id: 'hikmah-fil', title: 'Al-Fil: tawakkal', arabic: 'أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ', latin: "Alam tara kayfa fa'ala rabbuk", meaning: 'Tidakkah engkau memperhatikan bagaimana Tuhanmu bertindak.', note: 'Untuk anak, hikmahnya adalah percaya kepada pertolongan Allah sambil tetap berbuat baik.', practice: 'Ceritakan satu hal sulit, lalu sebutkan ikhtiar baik yang bisa dilakukan.' },
       { id: 'hikmah-quraisy', title: 'Quraisy: syukur atas nikmat', arabic: 'فَلْيَعْبُدُوا رَبَّ هَٰذَا الْبَيْتِ', latin: "Falya'budu rabba hadzal bait", meaning: 'Maka hendaklah mereka menyembah Tuhan pemilik rumah ini.', note: 'Anak diajak melihat nikmat aman, makanan, keluarga, dan belajar.', practice: 'Sebutkan dua nikmat hari ini dan satu cara mensyukurinya.' },

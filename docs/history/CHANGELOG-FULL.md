@@ -1,3 +1,11 @@
+## 2026-10-19 - Premium gate dan pilihan paket
+
+- Mengunci materi Premium di Taman Al-Qur'an, Oasis Bahasa Arab, dan Kampung Adab untuk akun tanpa entitlement aktif.
+- Menambahkan modal upgrade responsif dengan empat pilihan paket: 1 bulan Rp49.000, 3 bulan Rp99.000, 1 tahun Rp299.000, dan lifetime Rp1.199.000.
+- Checkout hanya dibuka melalui `VITE_PREMIUM_CHECKOUT_URL`; tanpa URL resmi atau entitlement terverifikasi, akses tidak berubah.
+- Menambahkan penyimpanan intent checkout dan pemeriksaan ulang akses tanpa payment/auth palsu.
+- Tidak ada perubahan evidence, mastery, XP, musik latar, atau status draft materi.
+
 ## 2026-10-16 - Arena Hafalan Qur'an
 
 - Menambahkan `QuranMemoryArena.tsx` sebagai mode permainan baru di Pulau Al-Qur'an.
@@ -29,7 +37,7 @@
 - Mengubah kartu `Jalur Materi Qur'an`, `Mufrodat Qur'an`, dan `Materi Adab Qur'ani` dari panel statis menjadi tombol yang bisa dibuka.
 - Menambahkan detail lesson per materi: contoh Arab, transliterasi, makna, catatan guru, dan latihan/praktik anak.
 - Memperbaiki data Arab pada `quranAdventureContent.ts` agar memakai Unicode Arab yang benar, bukan teks mojibake.
-- Kartu premium dibuka sebagai preview materi saja; belum ada backend payment/auth dan tidak ada klaim akses premium sungguhan.
+- Pada versi tanggal ini kartu premium dibuka sebagai preview; perilaku tersebut kemudian diganti oleh Premium gate pada 2026-10-19.
 - Tidak ada perubahan evidence/mastery/XP, tidak ada dependency baru, dan tidak ada musik latar.
 - Seluruh materi hasil adaptasi tetap draft dan perlu validasi akademik Bright Academy sebelum rilis resmi.
 

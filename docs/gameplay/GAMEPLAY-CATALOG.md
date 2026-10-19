@@ -1,3 +1,9 @@
+> **Akses Premium (19 Oktober 2026):** materi bertier `premium` di Taman
+> Al-Qur'an, Oasis Bahasa Arab, dan Kampung Adab tidak lagi dapat dibuka
+> sebagai preview oleh akun Free. Klik kartu membuka pilihan paket 1 bulan,
+> 3 bulan, 1 tahun, atau lifetime. Tanpa checkout resmi dan entitlement aktif,
+> detail materi tetap terkunci. Gate ini tidak mengubah status draft konten.
+
 > **Checkpoint 20 September 2026:** status lama di bawah adalah riwayat patch, bukan
 > inventaris terkini. Audit kode/startup, daftar model terpasang, ukuran aktual,
 > dan batas validasi tersedia di [GLB-ASSETS.md](../technical/GLB-ASSETS.md).
@@ -171,8 +177,8 @@ bukan tilawah/tajwid.
 
 Revisi lanjutan pada tanggal yang sama membuat kartu jalur ini bisa diklik:
 anak dapat membuka detail lesson berisi contoh Arab, bacaan latin, makna,
-catatan guru, dan latihan kosakata. Premium ditampilkan sebagai preview materi,
-bukan aktivasi pembayaran.
+catatan guru, dan latihan kosakata. Sejak 19 Oktober 2026, detail Premium
+hanya terbuka untuk entitlement aktif; akun Free melihat modal pilihan paket.
 
 Konten ini masih berupa kurasi draft dari sumber referensi pengguna dan perlu
 validasi guru Bahasa Arab/Qur'an Bright Academy sebelum rilis resmi.
@@ -239,6 +245,9 @@ Indonesia, audio qari per ayat, dan mode putar satu surat berurutan. Pencarian
 surat dan progres lokal halaman/surat tersedia tanpa mengubah evidence Hijaiyah.
 Audio qari membutuhkan internet; tidak ada musik latar.
 
+Sejak 19 Oktober 2026, `Iqra' Jilid 2-6` dan `Tilawah 30 Juz` dikunci oleh
+Premium gate. Materi free trial tetap dapat dibuka tanpa pembelian.
+
 Materi tetap draft hingga divalidasi tim tahsin/tahfidz Bright Academy.
 
 ---
@@ -263,6 +272,8 @@ Materi tetap draft hingga divalidasi tim tahsin/tahfidz Bright Academy.
 - Revisi lanjutan pada tanggal yang sama membuat kartu `Materi Adab Qur'ani`
   bisa diklik untuk membuka lesson praktik harian/hikmah surat lengkap dengan
   bacaan Arab, makna, catatan, dan tugas kecil anak.
+- Sejak 19 Oktober 2026, detail `Akhlak dari Kisah Surat` hanya dapat dibuka
+  oleh entitlement Premium aktif; akun Free diarahkan ke pilihan paket.
 - Progress simulator disimpan terpisah di `brightoria.adab.dailySimulator.v1` agar koleksi kisah lama tetap aman.
 - Reward XP ringan diberikan saat misi lokasi pertama kali selesai; tidak ada musik latar.
 - Konten skenario tetap draft dan perlu validasi tim karakter/akademik Bright Academy sebelum rilis final.

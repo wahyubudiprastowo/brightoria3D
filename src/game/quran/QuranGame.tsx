@@ -17,6 +17,8 @@ import { quranItemsByIsland, type QuranPathItem } from './quranAdventureContent'
 import { IqraReader, Juz30Reader } from './QuranReaders';
 import { getRecitationUrl } from './quranReaderData';
 import { QuranMemoryArena, QURAN_MEMORY_CSS } from './QuranMemoryArena';
+import { PremiumUpgradeModal } from '../../subscription/PremiumUpgradeModal';
+import { hasPremiumAccess } from '../../subscription/premiumAccess';
 
 /**
  * QuranGame.tsx — Patch 30 (PERBAIKAN UX BESAR atas Patch 28/29).
@@ -1056,6 +1058,8 @@ export default function QuranGame({
   const [evidence, setEvidence] = useState<HijaiyahEvidence>(() => loadEvidence());
   const [activeLetterId, setActiveLetterId] = useState<string | null>(null);
   const [activePathId, setActivePathId] = useState<string | null>(null);
+  const [premiumActive, setPremiumActive] = useState(() => hasPremiumAccess());
+  const [premiumTarget, setPremiumTarget] = useState<QuranPathItem | null>(null);
   const [confettiTick, setConfettiTick] = useState(0);
   const [lastResult, setLastResult] = useState<{ stars: 0 | 1 | 2 | 3; mistakes: number } | null>(null);
   const [matchKey, setMatchKey] = useState(0);
@@ -1107,6 +1111,10 @@ export default function QuranGame({
   }
 
   function openPathDetail(item: QuranPathItem) {
+    if (item.tier === 'premium' && !premiumActive) {
+      setPremiumTarget(item);
+      return;
+    }
     setActivePathId(item.id);
     if (item.id === 'iqra-1-free') {
       setView('iqraReader');
@@ -1195,16 +1203,24 @@ export default function QuranGame({
               </div>
               <div className="quran-path-grid">
                 {quranPath.map((item) => (
-                  <button key={item.id} type="button" className={'quran-path-card ' + item.tier} onClick={() => openPathDetail(item)}>
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={'quran-path-card ' + item.tier + (item.tier === 'premium' && !premiumActive ? ' premium-locked' : '')}
+                    onClick={() => openPathDetail(item)}
+                    aria-label={item.tier === 'premium' && !premiumActive ? `${item.title}, terkunci Premium` : item.title}
+                  >
                     <span className="quran-path-badge">
                       {item.tier === 'premium' && <Lock size={11} />}
-                      {item.badge}
+                      {item.tier === 'premium' && premiumActive ? 'Premium aktif' : item.badge}
                     </span>
                     <h4>{item.title}</h4>
                     <p>{item.subtitle}</p>
                     <div className="quran-path-sample hijaiyah-arabic">{item.sample}</div>
                     <span className="quran-path-focus">{item.focus}</span>
-                    <span className="quran-path-cta">{item.cta} <ChevronRight size={13} /></span>
+                    <span className="quran-path-cta">
+                      {item.tier === 'premium' && !premiumActive ? 'Buka dengan Premium' : item.cta} <ChevronRight size={13} />
+                    </span>
                   </button>
                 ))}
               </div>
@@ -1370,6 +1386,21 @@ export default function QuranGame({
           </div>
         )}
       </div>
+      <PremiumUpgradeModal
+        open={premiumTarget !== null}
+        featureId={premiumTarget?.id ?? 'quran-premium'}
+        featureTitle={premiumTarget?.title ?? 'Materi Premium Al-Qur\'an'}
+        onClose={() => setPremiumTarget(null)}
+        onAccessVerified={() => {
+          const verifiedItem = premiumTarget;
+          setPremiumActive(true);
+          setPremiumTarget(null);
+          if (verifiedItem) {
+            setActivePathId(verifiedItem.id);
+            setView('pathDetail');
+          }
+        }}
+      />
     </div>
   );
 }

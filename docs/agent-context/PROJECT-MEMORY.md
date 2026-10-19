@@ -1,3 +1,9 @@
+> **Checkpoint 19 Oktober 2026:** kartu Premium di Taman Al-Qur'an, Oasis
+> Bahasa Arab, dan Kampung Adab sekarang terkunci untuk akun Free. Klik kartu
+> membuka modal empat paket harga. Frontend tidak menyimulasikan pembayaran:
+> checkout membutuhkan `VITE_PREMIUM_CHECKOUT_URL`, sedangkan verifikasi
+> pembayaran/backend produksi masih belum tersedia di repository ini.
+
 > **Checkpoint 20 September 2026:** status lama di bawah adalah riwayat patch, bukan
 > inventaris terkini. Audit kode/startup, daftar model terpasang, ukuran aktual,
 > dan batas validasi tersedia di [GLB-ASSETS.md](../technical/GLB-ASSETS.md).
@@ -129,7 +135,9 @@ sama dengan disahkan secara akademik.
 [ADA] AppErrorBoundary, styles.css utama sebagai file tunggal
 [BELUM] Pembersihan repo (patches-maps, styles addon lama, ARCHITECTURE.md
         duplikat) — sudah direkomendasikan, belum dieksekusi
-[BELUM] Backend, auth, payment, integrasi meeting, test otomatis
+[ADA] Frontend Premium gate + modal empat paket di Quran/Arabic/Adab
+[BELUM] Backend, auth, verifikasi payment/entitlement, integrasi meeting,
+        test otomatis
 [BELUM] Build Android yang sudah dites end-to-end
 [BELUM] Validasi resmi tim akademik Bright Academy atas SEMUA konten
 ```

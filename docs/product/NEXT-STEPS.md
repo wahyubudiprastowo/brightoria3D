@@ -1,3 +1,8 @@
+> **Update 19 Oktober 2026:** frontend Premium gate dan modal empat paket
+> sudah selesai untuk Quran/Arabic/Adab. Prioritas produksi berikutnya adalah
+> backend checkout dan verifikasi entitlement; frontend tidak boleh membuka
+> materi hanya berdasarkan klaim pembayaran pengguna.
+
 > **Checkpoint 20 September 2026:** status lama di bawah adalah riwayat patch, bukan
 > inventaris terkini. Audit kode/startup, daftar model terpasang, ukuran aktual,
 > dan batas validasi tersedia di [GLB-ASSETS.md](../technical/GLB-ASSETS.md).
@@ -24,7 +29,8 @@
 [DONE] Dokumentasi disinkronkan ulang dengan kode aktual — Patch 10
 [BELUM] Eksekusi rekomendasi pembersihan repo (lihat AGENTS.md)
 [BELUM] Validasi resmi tim akademik Bright Academy atas SEMUA konten kurikulum
-[BELUM] Backend, auth, payment, integrasi meeting
+[DONE] Frontend Premium gate + modal paket untuk Quran/Arabic/Adab
+[BELUM] Backend, auth, payment gateway, verifikasi entitlement, integrasi meeting
 [BELUM] Build Android end-to-end
 ```
 

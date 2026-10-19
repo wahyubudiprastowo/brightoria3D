@@ -26,6 +26,8 @@ import { modelUrls } from '../../components/world3d/LocalModel';
 import ArabicMarketGame from './ArabicMarketGame';
 import ArabicHandNumbersGame from './ArabicHandNumbersGame';
 import { quranItemsByIsland, type QuranPathItem } from '../quran/quranAdventureContent';
+import { PremiumUpgradeModal } from '../../subscription/PremiumUpgradeModal';
+import { hasPremiumAccess } from '../../subscription/premiumAccess';
 
 /**
  * ArabicGame.tsx â€” Patch 25 (URUTAN ALUR DIPERBAIKI + tema per-pos untuk
@@ -450,6 +452,8 @@ export default function ArabicGame({
   const [evidence, setEvidence] = useState<ArabicEvidence>(() => loadEvidence());
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [activeQuranVocabId, setActiveQuranVocabId] = useState<string | null>(null);
+  const [premiumActive, setPremiumActive] = useState(() => hasPremiumAccess());
+  const [premiumTarget, setPremiumTarget] = useState<QuranPathItem | null>(null);
 
   const [learnCards, setLearnCards] = useState<LearnCard[]>([]);
   const [learnIndex, setLearnIndex] = useState(0);
@@ -678,6 +682,10 @@ export default function ArabicGame({
 
   function openQuranVocabDetail(item: QuranPathItem) {
     arabicSfx.click();
+    if (item.tier === 'premium' && !premiumActive) {
+      setPremiumTarget(item);
+      return;
+    }
     setActiveQuranVocabId(item.id);
     setView('quranVocabDetail');
   }
@@ -803,16 +811,24 @@ export default function ArabicGame({
               </div>
               <div className="oasis-quran-vocab-grid">
                 {quranVocabPath.map((item) => (
-                  <button key={item.id} type="button" className={'oasis-quran-vocab-card ' + item.tier} onClick={() => openQuranVocabDetail(item)}>
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={'oasis-quran-vocab-card ' + item.tier + (item.tier === 'premium' && !premiumActive ? ' premium-locked' : '')}
+                    onClick={() => openQuranVocabDetail(item)}
+                    aria-label={item.tier === 'premium' && !premiumActive ? `${item.title}, terkunci Premium` : item.title}
+                  >
                     <span className="oasis-quran-vocab-badge">
                       {item.tier === 'premium' && <Lock size={11} />}
-                      {item.badge}
+                      {item.tier === 'premium' && premiumActive ? 'Premium aktif' : item.badge}
                     </span>
                     <h4>{item.title}</h4>
                     <p>{item.subtitle}</p>
                     <div className="oasis-quran-vocab-sample oasis-arabic-text">{item.sample}</div>
                     <span className="oasis-quran-vocab-focus">{item.focus}</span>
-                    <span className="oasis-quran-vocab-cta">{item.cta} <ChevronRight size={13} /></span>
+                    <span className="oasis-quran-vocab-cta">
+                      {item.tier === 'premium' && !premiumActive ? 'Buka dengan Premium' : item.cta} <ChevronRight size={13} />
+                    </span>
                   </button>
                 ))}
               </div>
@@ -1154,6 +1170,21 @@ export default function ArabicGame({
           </div>
         )}
       </div>
+      <PremiumUpgradeModal
+        open={premiumTarget !== null}
+        featureId={premiumTarget?.id ?? 'arabic-premium'}
+        featureTitle={premiumTarget?.title ?? "Materi Premium Bahasa Arab"}
+        onClose={() => setPremiumTarget(null)}
+        onAccessVerified={() => {
+          const verifiedItem = premiumTarget;
+          setPremiumActive(true);
+          setPremiumTarget(null);
+          if (verifiedItem) {
+            setActiveQuranVocabId(verifiedItem.id);
+            setView('quranVocabDetail');
+          }
+        }}
+      />
     </div>
   );
 }
