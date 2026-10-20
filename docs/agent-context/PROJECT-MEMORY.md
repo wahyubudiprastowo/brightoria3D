@@ -1,3 +1,10 @@
+> **Checkpoint 19 Oktober 2026 - Portal Admin Lokal:** Brightoria sekarang
+> memiliki portal admin responsif di `#/admin` untuk membaca profil dan progres
+> perangkat aktif, status Premium, intent checkout, inventaris konten, audit
+> evidence, draft pengumuman, serta kesiapan sistem melalui sembilan tab admin.
+> Gerbang sesi lokal bukan autentikasi produksi; data pengguna
+> global, assign Premium, pembayaran, dan keamanan akun tetap menunggu backend.
+
 > **Checkpoint 19 Oktober 2026:** kartu Premium di Taman Al-Qur'an, Oasis
 > Bahasa Arab, dan Kampung Adab sekarang terkunci untuk akun Free. Klik kartu
 > membuka modal empat paket harga. Frontend tidak menyimulasikan pembayaran:

@@ -256,10 +256,33 @@ interface World {
   batas keamanan server. Produksi wajib memindahkan materi berbayar ke API
   terautentikasi dan menerbitkan entitlement dari server setelah transaksi sah.
 
+## Portal Admin Lokal (19 Oktober 2026)
+
+- `src/admin/AdminPortal.tsx` adalah shell dashboard fullscreen yang dibuka dari
+  Ruang Orang Tua, deep link `#/admin`, atau `Ctrl+Shift+A`.
+- `src/admin/adminData.ts` membaca sumber data lokal yang sudah ada: identitas
+  perangkat, evidence/mastery enam dunia, entitlement Premium, intent checkout,
+  dan ringkasan key localStorage. Modul ini tidak membuat data siswa atau
+  transaksi sintetis.
+- Portal menyediakan sembilan tab: Pendaftaran & Pengguna, Tracking Pembayaran,
+  Deteksi Transfer Palsu, Keamanan Akun, Subscription Aktif, Afiliasi, Audit
+  Log, Pengumuman, dan Laporan. Tab yang membutuhkan backend menampilkan batas
+  kesiapan secara eksplisit dan tidak membentuk data sintetis.
+- Visualisasi memakai SVG ringan dari evidence enam dunia tanpa dependency baru.
+  Draft pengumuman disimpan lokal dan belum disiarkan. Laporan dapat diekspor
+  sebagai JSON; verification ID tidak diekspor utuh.
+- Kunci sesi memakai `sessionStorage` dan hanya mencegah tampilan terbuka tanpa
+  sengaja pada perangkat bersama. Mekanisme ini bukan autentikasi atau otorisasi
+  produksi.
+- Operasi sensitif seperti assign Premium, pengguna lintas perangkat, payment
+  verification, fraud detection, password reset, dan audit log sengaja tidak
+  disimulasikan. Fitur tersebut harus datang dari API terautentikasi dengan RBAC.
+
 ## Yang BELUM ada di kode
 
-Frontend Premium gate dan handoff checkout sudah ada, tetapi belum ada backend,
-auth, payment gateway/verifikasi entitlement, integrasi meeting, atau test
+Frontend Premium gate, handoff checkout, dan portal admin lokal sudah ada,
+tetapi belum ada backend, auth admin produksi, data lintas perangkat, payment
+gateway/verifikasi entitlement, integrasi meeting, atau test
 otomatis/CI-CD. Build Android belum pernah dites end-to-end.
 Kurikulum di `GAMEPLAY-CATALOG.md` adalah draft, belum disahkan tim
 akademik Bright Academy.

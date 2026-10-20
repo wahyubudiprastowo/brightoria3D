@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   BookOpen,
   ChevronRight,
@@ -17,6 +17,7 @@ import WorldScene from './components/WorldScene';
 import OnboardingTour from './components/OnboardingTour';
 import { worlds, type World } from './data/worlds';
 import { initialProgress, loadProgress, addXp, type Progress } from './game/progress';
+import { AdminPortal } from './admin/AdminPortal';
 
 // --- Numeria (3D arithmetic bridge) ---
 import NumeriaGame from './game/numeria/NumeriaGame';
@@ -82,6 +83,12 @@ const objectiveText: Record<string, string> = {
 
 const TOUR_KEY = 'brightoria.onboarding.v1';
 
+function isAdminRoute(): boolean {
+  if (typeof window === 'undefined') return false;
+  const hash = window.location.hash.toLowerCase();
+  return hash === '#/admin' || hash === '#admin';
+}
+
 export default function App() {
   const [worldList, setWorldList] = useState<World[]>(worlds);
   const [selected, setSelected] = useState<World>(worlds[0]);
@@ -91,6 +98,7 @@ export default function App() {
   const [progress, setProgress] = useState<Progress>(initialProgress);
   const [tourStep, setTourStep] = useState(0);
   const [showTour, setShowTour] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(isAdminRoute);
 
   useEffect(() => {
     setProgress(loadProgress());
@@ -101,6 +109,34 @@ export default function App() {
       setShowTour(true);
     }
   }, []);
+
+  const openAdmin = useCallback(() => {
+    setAdminOpen(true);
+    if (!isAdminRoute()) window.location.hash = '/admin';
+  }, []);
+
+  const closeAdmin = useCallback(() => {
+    setAdminOpen(false);
+    if (isAdminRoute()) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  }, []);
+
+  useEffect(() => {
+    const syncAdminRoute = () => setAdminOpen(isAdminRoute());
+    const openFromShortcut = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'a') {
+        event.preventDefault();
+        openAdmin();
+      }
+    };
+    window.addEventListener('hashchange', syncAdminRoute);
+    window.addEventListener('keydown', openFromShortcut);
+    return () => {
+      window.removeEventListener('hashchange', syncAdminRoute);
+      window.removeEventListener('keydown', openFromShortcut);
+    };
+  }, [openAdmin]);
 
   function refreshMastery() {
     setWorldList(withDynamicMastery(worlds));
@@ -262,6 +298,7 @@ export default function App() {
       ) : (
         <Parent
           worlds={worldList}
+          onOpenAdmin={openAdmin}
           onReplay={(id) => {
             const w = worlds.find((x) => x.id === id);
             if (w) {
@@ -290,6 +327,7 @@ export default function App() {
           <span>Profil</span>
         </button>
       </nav>
+      <AdminPortal open={adminOpen} onClose={closeAdmin} />
     </main>
   );
 }
@@ -297,9 +335,11 @@ export default function App() {
 function Parent({
   worlds: worldList,
   onReplay,
+  onOpenAdmin,
 }: {
   worlds: World[];
   onReplay: (id: string) => void;
+  onOpenAdmin: () => void;
 }) {
   // Kumpulkan evidence & mastery semua dunia
   const all = [
@@ -332,7 +372,10 @@ function Parent({
           <h1>Perkembangan Alya</h1>
           <p>Penjelasan kemampuan, bukan hanya angka.</p>
         </div>
-        <button className="outline">Ganti profil anak</button>
+        <div className="parent-head-actions">
+          <button className="outline">Ganti profil anak</button>
+          <button className="outline parent-admin-button" onClick={onOpenAdmin}><ShieldCheck size={16} /> Portal Admin</button>
+        </div>
       </div>
       <div className="grid">
         <article className="summary">

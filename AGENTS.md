@@ -80,10 +80,11 @@ saat diagnosis.
         - english -> EnglishGame.tsx      (3D Letter-Builder puzzle R3F & 12 Island Harbor, Patch 31, TTS audio)
 [ADA] Juice kit: src/game/juice.tsx — confetti, streak, count-up, punch
 [ADA] Sound effects synthesizer: src/game/sound.ts (Web Audio API, SFX pendek, non-loop)
+[ADA] Portal admin lokal: src/admin/*, rute #/admin, agregasi progres perangkat, dan ekspor JSON
 [ADA] AppErrorBoundary tingkat aplikasi
 [ADA] Chunk vendor terpisah; audit 2026-09-20: three ~1.175 MB, lucide ~13 KB, app ~486 KB (sebelum gzip)
 [CATATAN] Masih ada file .bak dan skrip patch lama; jangan menganggap seluruh repo bebas artefak
-[BELUM] Backend, auth, payment, integrasi meeting, test otomatis CI/CD
+[BELUM] Backend, auth admin produksi, data lintas perangkat, payment, integrasi meeting, test otomatis CI/CD
 [BELUM] Build Android Capacitor yang sudah dites end-to-end pada perangkat fisik
 [BELUM] Validasi resmi tim akademik Bright Academy atas SEMUA konten kurikulum
 ```

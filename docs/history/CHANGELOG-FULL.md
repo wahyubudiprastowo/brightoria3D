@@ -1,3 +1,13 @@
+## 2026-10-19 - Portal Admin lokal Brightoria
+
+- Menambahkan `src/admin/AdminPortal.tsx` sebagai dashboard fullscreen yang mengikuti tampilan operasional Brightoria tanpa menyalin data pengguna, pembayaran, atau peringatan palsu dari repository referensi.
+- Menambahkan `src/admin/adminData.ts` untuk mengagregasi identitas perangkat, evidence enam dunia, mastery, percobaan, entitlement Premium, intent checkout, dan ringkasan localStorage yang memang tersedia.
+- Portal dapat dibuka melalui tombol `Portal Admin` di Ruang Orang Tua, deep link `#/admin`, dan pintasan `Ctrl+Shift+A`.
+- Sembilan tab tersedia mengikuti struktur portal referensi: Pendaftaran & Pengguna, Tracking Pembayaran, Deteksi Transfer Palsu, Keamanan Akun, Subscription Aktif, Afiliasi, Audit Log, Pengumuman, dan Laporan.
+- Menambahkan grafik evidence enam dunia, pencarian profil lokal, katalog paket, audit timestamp evidence, serta penyimpanan draft pengumuman lokal. Admin juga dapat memperbarui snapshot, menyalin tautan, mengunci sesi, dan mengekspor laporan JSON yang tidak memuat verification ID penuh.
+- Gerbang sesi berbasis `sessionStorage` hanya berfungsi sebagai privasi layar lokal dan secara eksplisit bukan autentikasi produksi. Assign Premium manual, data lintas perangkat, payment verification, fraud detection, dan password management tetap dinonaktifkan sampai backend terautentikasi tersedia.
+- Tidak ada perubahan pada peta 3D, evidence/mastery/XP game, dependency, atau kebijakan tanpa musik latar. Seluruh materi kurikulum tetap draft.
+
 ## 2026-10-19 - Premium gate dan pilihan paket
 
 - Mengunci materi Premium di Taman Al-Qur'an, Oasis Bahasa Arab, dan Kampung Adab untuk akun tanpa entitlement aktif.

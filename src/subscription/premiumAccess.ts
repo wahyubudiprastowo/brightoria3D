@@ -20,7 +20,7 @@ export interface PremiumEntitlement {
   verificationId: string;
 }
 
-interface CheckoutIntent {
+export interface CheckoutIntent {
   planId: PremiumPlanId;
   featureId: string;
   createdAt: string;
@@ -113,6 +113,20 @@ export function saveCheckoutIntent(planId: PremiumPlanId, featureId: string): vo
     localStorage.setItem(CHECKOUT_INTENT_KEY, JSON.stringify(intent));
   } catch {
     // Embedded previews may disable storage; checkout can still continue.
+  }
+}
+
+export function readCheckoutIntent(): CheckoutIntent | null {
+  try {
+    const raw = localStorage.getItem(CHECKOUT_INTENT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<CheckoutIntent>;
+    if (!isPlanId(parsed.planId) || typeof parsed.featureId !== 'string' || typeof parsed.createdAt !== 'string') {
+      return null;
+    }
+    return parsed as CheckoutIntent;
+  } catch {
+    return null;
   }
 }
 

@@ -1,3 +1,12 @@
+## 2026-10-19 - Portal Admin lokal Brightoria
+
+- Menambahkan portal admin responsif yang dapat dibuka dari Ruang Orang Tua, rute `#/admin`, atau pintasan `Ctrl+Shift+A`.
+- Menampilkan ringkasan profil lokal, status Premium, progres enam dunia, jumlah percobaan, mastery rata-rata, inventaris konten, dan kesiapan sistem dari data perangkat yang benar-benar tersedia.
+- Menambahkan sembilan tab operasional mengikuti struktur portal referensi: Pendaftaran & Pengguna, Tracking Pembayaran, Deteksi Transfer Palsu, Keamanan, Subscription, Afiliasi, Audit Log, Pengumuman, dan Laporan.
+- Menambahkan visualisasi evidence enam dunia, tabel profil lokal, pencarian, tracking checkout, audit aktivitas turunan, draft pengumuman lokal, refresh, ekspor JSON, salin tautan, serta kunci sesi.
+- Menonaktifkan aksi yang membutuhkan backend, termasuk pemberian Premium manual, manajemen pengguna global, pembayaran, dan keamanan akun produksi, agar UI tidak menyimulasikan kemampuan yang belum tersedia.
+- Portal tidak menambah musik latar atau dependency baru. Seluruh konten kurikulum tetap draft hingga divalidasi Bright Academy.
+
 ## 2026-10-19 - Premium gate dan pilihan paket
 
 - Mengunci materi Premium di Taman Al-Qur'an, Oasis Bahasa Arab, dan Kampung Adab untuk akun tanpa entitlement aktif.

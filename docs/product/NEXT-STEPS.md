@@ -1,3 +1,9 @@
+> **Update 19 Oktober 2026 - Portal Admin Lokal:** dashboard admin untuk data
+> perangkat aktif sudah tersedia di `#/admin` dengan sembilan tab operasional,
+> visualisasi evidence, audit lokal, dan draft pengumuman. Prioritas produksi berikutnya
+> adalah autentikasi admin berbasis server, penyimpanan lintas perangkat,
+> payment verification, audit log, dan role-based access control.
+
 > **Update 19 Oktober 2026:** frontend Premium gate dan modal empat paket
 > sudah selesai untuk Quran/Arabic/Adab. Prioritas produksi berikutnya adalah
 > backend checkout dan verifikasi entitlement; frontend tidak boleh membuka
@@ -30,7 +36,9 @@
 [BELUM] Eksekusi rekomendasi pembersihan repo (lihat AGENTS.md)
 [BELUM] Validasi resmi tim akademik Bright Academy atas SEMUA konten kurikulum
 [DONE] Frontend Premium gate + modal paket untuk Quran/Arabic/Adab
-[BELUM] Backend, auth, payment gateway, verifikasi entitlement, integrasi meeting
+[DONE] Portal admin lokal untuk progres, Premium, inventaris, dan kesiapan sistem
+[BELUM] Backend, auth admin produksi, data lintas perangkat, payment gateway,
+        verifikasi entitlement, audit log, dan integrasi meeting
 [BELUM] Build Android end-to-end
 ```
 
