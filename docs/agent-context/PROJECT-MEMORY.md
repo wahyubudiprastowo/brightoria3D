@@ -7,6 +7,10 @@
 > `#/admin` memakai autentikasi server terpisah. Google Identity siap di kode
 > tetapi belum aktif tanpa Client ID resmi.
 
+> **Akses Iqra 21 Oktober 2026:** Iqra' Jilid 2-6 gratis untuk akun terdaftar.
+> Tamu diarahkan ke Masuk/Daftar, bukan ke modal harga Premium. Tilawah 30 Juz
+> tetap Premium.
+
 > **Checkpoint 19 Oktober 2026:** kartu Premium di Taman Al-Qur'an, Oasis
 > Bahasa Arab, dan Kampung Adab sekarang terkunci untuk akun Free. Klik kartu
 > membuka modal empat paket harga. Frontend tidak menyimulasikan pembayaran:

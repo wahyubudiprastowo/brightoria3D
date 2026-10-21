@@ -39,6 +39,7 @@
 [DONE] Portal admin dengan autentikasi server, cookie HttpOnly, dan registry pengguna privat
 [DONE] Login pemain email/password serta pencatatan pulau yang dibuka lintas perangkat
 [DONE] Mode Tamu membuka peta, game dasar, Latihan, dan Ekspedisi; login dipindahkan ke fitur akun/lanjutan
+[DONE] Iqra' Jilid 2-6 gratis dengan account gate; Tilawah 30 Juz tetap Premium
 [BELUM] Aktivasi Google OAuth, recovery password, RBAC/2FA, sinkronisasi
         mastery, payment gateway, verifikasi entitlement, audit log, dan meeting
 [BELUM] Build Android end-to-end

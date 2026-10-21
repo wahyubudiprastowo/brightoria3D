@@ -128,7 +128,6 @@ export function PremiumUpgradeModal({
           <aside className="premium-benefits">
             <h3><Crown size={17} /> Yang terbuka dengan Premium</h3>
             {[
-              "Iqra' Jilid 2-6 dan latihan lanjutan",
               'Tilawah 30 juz dan materi murojaah luas',
               "Kamus Qur'an lanjutan lintas surat",
               'Hikmah surat dan praktik adab Qur\'ani',

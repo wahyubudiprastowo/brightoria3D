@@ -89,6 +89,7 @@ saat diagnosis.
 [ADA] Sound effects synthesizer: src/game/sound.ts (Web Audio API, SFX pendek, non-loop)
 [ADA] Portal admin terlindungi: rute #/admin, login server, cookie HttpOnly, registry pengguna privat, dan ekspor JSON
 [ADA] Mode Tamu untuk peta/game dasar/Latihan/Ekspedisi + login email/password saat fitur akun, penyimpanan, Profil, atau Orang Tua dibuka
+[ADA] Iqra' Jilid 2-6 gratis setelah login/daftar; Tilawah 30 Juz tetap Premium
 [ADA] AppErrorBoundary tingkat aplikasi
 [ADA] Chunk vendor terpisah; audit 2026-09-20: three ~1.175 MB, lucide ~13 KB, app ~486 KB (sebelum gzip)
 [CATATAN] Masih ada file .bak dan skrip patch lama; jangan menganggap seluruh repo bebas artefak

@@ -1,4 +1,4 @@
-export type AccessTier = 'free' | 'premium';
+export type AccessTier = 'free' | 'account' | 'premium';
 
 export interface QuranPathLesson {
   id: string;
@@ -59,9 +59,9 @@ export const quranPathItems: QuranPathItem[] = [
     ],
   },
   {
-    id: 'iqra-2-6-premium', island: 'quran', tier: 'premium', title: "Iqra' Jilid 2-6", subtitle: 'Kasrah, dhammah, tanwin, mad, waqaf, dan gharib', badge: 'Premium', focus: 'Latihan bertahap dari harakat i/u sampai hukum nun sukun, tanda waqaf, dan persiapan mushaf.', sample: 'بِ - بُ - بًا - بَا - مَنْ آمَنَ', sourceNote: "Mengikuti pembagian pro: akses Iqra' 1 sampai 6 lengkap.", cta: 'Buka materi Iqra',
+    id: 'iqra-2-6-account', island: 'quran', tier: 'account', title: "Iqra' Jilid 2-6", subtitle: 'Kasrah, dhammah, tanwin, mad, waqaf, dan gharib', badge: 'Gratis dengan Akun', focus: 'Latihan bertahap dari harakat i/u sampai hukum nun sukun, tanda waqaf, dan persiapan mushaf.', sample: 'بِ - بُ - بًا - بَا - مَنْ آمَنَ', sourceNote: "Materi gratis lanjutan untuk pemain yang sudah masuk atau mendaftar akun Brightoria.", cta: 'Buka materi Iqra',
     lessons: [
-      { id: 'iqra-2-kasrah', title: 'Kasrah dan dhammah', arabic: 'بِ بُ تِ تُ', latin: 'bi, bu, ti, tu', meaning: 'Mengenal bunyi pendek i dan u.', note: 'Materi Premium lanjutan untuk mengenali harakat secara bertahap.', practice: 'Baca pasangan bi-bu, ti-tu, lalu bedakan posisi tanda harakatnya.' },
+      { id: 'iqra-2-kasrah', title: 'Kasrah dan dhammah', arabic: 'بِ بُ تِ تُ', latin: 'bi, bu, ti, tu', meaning: 'Mengenal bunyi pendek i dan u.', note: 'Materi lanjutan gratis untuk mengenali harakat secara bertahap setelah masuk ke akun.', practice: 'Baca pasangan bi-bu, ti-tu, lalu bedakan posisi tanda harakatnya.' },
       { id: 'iqra-4-mad', title: 'Mad pendek-panjang', arabic: 'بَ - بَا', latin: 'ba - baa', meaning: 'Membedakan bunyi pendek dan panjang.', note: 'Anak mulai belajar tidak semua huruf dibaca dengan durasi sama.', practice: 'Tepuk satu kali untuk ba pendek, dua kali untuk baa panjang.' },
     ],
   },
@@ -109,6 +109,7 @@ export const quranPathItems: QuranPathItem[] = [
 ];
 
 export const quranFreeTrialItems = quranPathItems.filter((item) => item.tier === 'free');
+export const quranAccountItems = quranPathItems.filter((item) => item.tier === 'account');
 export const quranPremiumItems = quranPathItems.filter((item) => item.tier === 'premium');
 
 export const quranItemsByIsland = (island: QuranPathItem['island']) =>

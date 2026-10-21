@@ -1058,6 +1058,9 @@ export default function QuranGame({
   const [evidence, setEvidence] = useState<HijaiyahEvidence>(() => loadEvidence());
   const [activeLetterId, setActiveLetterId] = useState<string | null>(null);
   const [activePathId, setActivePathId] = useState<string | null>(null);
+  const [accountActive, setAccountActive] = useState(
+    () => document.documentElement.dataset.brightoriaAuthenticated === 'true',
+  );
   const [premiumActive, setPremiumActive] = useState(() => hasPremiumAccess());
   const [premiumTarget, setPremiumTarget] = useState<QuranPathItem | null>(null);
   const [confettiTick, setConfettiTick] = useState(0);
@@ -1074,6 +1077,14 @@ export default function QuranGame({
   // Tutorial demo HANYA muncul jika huruf ini belum pernah diselesaikan.
   const shouldShowDemo = activeLetterId ? !evidence.letters[activeLetterId]?.completed : false;
   const [demoShownThisSession, setDemoShownThisSession] = useState(false);
+
+  useEffect(() => {
+    const syncAccount = () => {
+      setAccountActive(document.documentElement.dataset.brightoriaAuthenticated === 'true');
+    };
+    window.addEventListener('brightoria:player-authenticated', syncAccount);
+    return () => window.removeEventListener('brightoria:player-authenticated', syncAccount);
+  }, []);
 
   function openIntro(letterId: string) {
     setActiveLetterId(letterId);
@@ -1111,6 +1122,10 @@ export default function QuranGame({
   }
 
   function openPathDetail(item: QuranPathItem) {
+    if (item.tier === 'account' && !accountActive) {
+      window.dispatchEvent(new CustomEvent('brightoria:request-auth', { detail: { mode: 'register' } }));
+      return;
+    }
     if (item.tier === 'premium' && !premiumActive) {
       setPremiumTarget(item);
       return;
@@ -1199,27 +1214,41 @@ export default function QuranGame({
             <section className="quran-path-section" aria-label="Jalur materi Taman Al-Qur'an">
               <div className="quran-path-head">
                 <h3>Jalur Materi Qur'an</h3>
-                <small>Free trial untuk mulai, premium untuk lanjutan.</small>
+                <small>Coba gratis, masuk untuk Iqra' 2-6, Premium untuk Tilawah 30 Juz.</small>
               </div>
               <div className="quran-path-grid">
                 {quranPath.map((item) => (
                   <button
                     key={item.id}
                     type="button"
-                    className={'quran-path-card ' + item.tier + (item.tier === 'premium' && !premiumActive ? ' premium-locked' : '')}
+                    className={'quran-path-card ' + item.tier
+                      + (item.tier === 'account' && !accountActive ? ' account-locked' : '')
+                      + (item.tier === 'premium' && !premiumActive ? ' premium-locked' : '')}
                     onClick={() => openPathDetail(item)}
-                    aria-label={item.tier === 'premium' && !premiumActive ? `${item.title}, terkunci Premium` : item.title}
+                    aria-label={item.tier === 'account' && !accountActive
+                      ? `${item.title}, gratis setelah masuk atau daftar`
+                      : item.tier === 'premium' && !premiumActive
+                        ? `${item.title}, terkunci Premium`
+                        : item.title}
                   >
                     <span className="quran-path-badge">
-                      {item.tier === 'premium' && <Lock size={11} />}
-                      {item.tier === 'premium' && premiumActive ? 'Premium aktif' : item.badge}
+                      {((item.tier === 'account' && !accountActive) || item.tier === 'premium') && <Lock size={11} />}
+                      {item.tier === 'account' && accountActive
+                        ? 'Akun aktif'
+                        : item.tier === 'premium' && premiumActive
+                          ? 'Premium aktif'
+                          : item.badge}
                     </span>
                     <h4>{item.title}</h4>
                     <p>{item.subtitle}</p>
                     <div className="quran-path-sample hijaiyah-arabic">{item.sample}</div>
                     <span className="quran-path-focus">{item.focus}</span>
                     <span className="quran-path-cta">
-                      {item.tier === 'premium' && !premiumActive ? 'Buka dengan Premium' : item.cta} <ChevronRight size={13} />
+                      {item.tier === 'account' && !accountActive
+                        ? 'Masuk / Daftar Gratis'
+                        : item.tier === 'premium' && !premiumActive
+                          ? 'Buka dengan Premium'
+                          : item.cta} <ChevronRight size={13} />
                     </span>
                   </button>
                 ))}

@@ -257,6 +257,8 @@ interface World {
 
 - `src/subscription/premiumAccess.ts` menjadi sumber paket, validasi cache
   entitlement, intent checkout, dan pembentukan URL checkout resmi.
+- `Iqra' Jilid 2-6` memakai tier `account`: gratis setelah sesi pemain sah dan
+  tidak masuk ke Premium checkout. `Tilawah 30 Juz` tetap bertier Premium.
 - `src/subscription/PremiumUpgradeModal.tsx` menampilkan empat paket harga dan
   dipakai bersama oleh `QuranGame`, `ArabicGame`, dan `AdabGame`.
 - `VITE_PREMIUM_CHECKOUT_URL` adalah konfigurasi opsional untuk handoff ke

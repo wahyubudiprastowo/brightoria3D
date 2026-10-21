@@ -228,8 +228,8 @@ bentuk juice tersendiri sejak Patch 09 — tidak diubah.
 
 Taman Al-Qur'an kini menampilkan panel jalur materi dari repository referensi
 `Qur-an-Learning-Adventure-Platform`. Free trial berisi Iqra' Jilid 1, Taman
-Juz 30 Starter, dan Tajwid Dasar. Premium diarahkan untuk Iqra' Jilid 2-6 dan
-Tilawah 30 Juz.
+Juz 30 Starter, dan Tajwid Dasar. Iqra' Jilid 2-6 gratis setelah pemain
+Masuk/Daftar, sedangkan Premium diarahkan untuk Tilawah 30 Juz.
 
 Pembagian ini mengikuti fungsi pulau: Taman Al-Qur'an untuk membaca,
 tilawah, tajwid, dan hafalan; Oasis Bahasa Arab untuk mufrodat/kosakata.
@@ -245,8 +245,10 @@ Indonesia, audio qari per ayat, dan mode putar satu surat berurutan. Pencarian
 surat dan progres lokal halaman/surat tersedia tanpa mengubah evidence Hijaiyah.
 Audio qari membutuhkan internet; tidak ada musik latar.
 
-Sejak 19 Oktober 2026, `Iqra' Jilid 2-6` dan `Tilawah 30 Juz` dikunci oleh
-Premium gate. Materi free trial tetap dapat dibuka tanpa pembelian.
+Sejak 21 Oktober 2026, `Iqra' Jilid 2-6` memakai account gate gratis: tamu
+diminta Masuk/Daftar, tetapi tidak memilih paket atau melakukan pembayaran.
+`Tilawah 30 Juz` tetap dikunci oleh Premium gate. Materi free trial tetap dapat
+dibuka tanpa akun dan tanpa pembelian.
 
 Materi tetap draft hingga divalidasi tim tahsin/tahfidz Bright Academy.
 

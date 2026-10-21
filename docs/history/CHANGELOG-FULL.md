@@ -347,6 +347,7 @@ terbukti bermanfaat dan tidak mengorbankan fitur apa pun.
 
 - Peta 3D dan enam game dasar dapat dicoba tanpa akun.
 - Latihan dan Ekspedisi kembali dimuat untuk pengunjung tamu, sementara Character Picker, insight Orang Tua, dan Tanya Bri tetap menunggu sesi pemain.
+- Iqra' Jilid 2-6 tidak lagi menjadi materi Premium; aksesnya gratis setelah pemain Masuk/Daftar dan tidak diarahkan ke checkout.
 - Login/daftar dipindahkan ke modal kontekstual dari header, Profil, Ruang Orang Tua, dan alur Premium.
 - Pengunjung tamu mendapat banner status yang ringkas; pemain terdaftar tetap memperoleh pencatatan aktivitas lintas perangkat.
 - Portal admin tetap memakai login username/password terpisah yang diverifikasi server dan tidak dapat diakses melalui sesi tamu.
