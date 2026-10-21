@@ -38,6 +38,7 @@
 [DONE] Frontend Premium gate + modal paket untuk Quran/Arabic/Adab
 [DONE] Portal admin dengan autentikasi server, cookie HttpOnly, dan registry pengguna privat
 [DONE] Login pemain email/password serta pencatatan pulau yang dibuka lintas perangkat
+[DONE] Mode Tamu membuka peta dan game dasar; login dipindahkan ke fitur lanjutan
 [BELUM] Aktivasi Google OAuth, recovery password, RBAC/2FA, sinkronisasi
         mastery, payment gateway, verifikasi entitlement, audit log, dan meeting
 [BELUM] Build Android end-to-end

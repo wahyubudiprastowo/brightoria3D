@@ -1377,6 +1377,27 @@ body:has(.adventure-shell) .bdp-fab {
 .player-account-chip button { width: 29px; height: 29px; flex: 0 0 auto; display: grid; place-items: center; border: 0; border-radius: 6px; background: #f3ece8; color: #8b2b40; }
 .player-account-chip button svg { width: 14px; }
 
+.guest-account-actions { min-width: 0; display: flex; align-items: center; gap: 7px; }
+.guest-account-actions > button { min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 1px solid #d7e3df; border-radius: 7px; background: #fff; color: #265b51; font-size: 10px; font-weight: 900; }
+.guest-account-actions > button svg { width: 14px; }
+.guest-account-actions > button.register { border-color: #a3153b; background: #a3153b; color: #fff; }
+.guest-status { padding: 5px 8px; border-radius: 999px; background: #edf3f1; color: #697b75; font-size: 8px; font-weight: 900; text-transform: uppercase; }
+
+.guest-trial-banner { min-height: 46px; display: flex; align-items: center; gap: 10px; padding: 7px 4vw; background: #fff3d4; border-bottom: 1px solid #e9c15d; color: #765015; }
+.guest-trial-banner > svg { width: 17px; flex: 0 0 auto; color: #c7830a; }
+.guest-trial-banner p { min-width: 0; flex: 1; margin: 0; font-size: 10px; line-height: 1.4; }
+.guest-trial-banner button { min-height: 31px; display: inline-flex; align-items: center; gap: 5px; padding: 0 11px; border: 0; border-radius: 7px; background: #8f1738; color: #fff; font-size: 9px; font-weight: 900; white-space: nowrap; }
+.guest-trial-banner button svg { width: 14px; }
+
+.player-auth-modal-backdrop { position: fixed; z-index: 10050; inset: 0; display: grid; place-items: center; padding: 20px; overflow-y: auto; background: #102821b8; backdrop-filter: blur(8px); }
+.player-auth-modal-frame { position: relative; width: min(470px, 100%); margin: auto; border: 1px solid #d8e5df; border-radius: 8px; overflow: hidden; box-shadow: 0 28px 80px #071c1752; }
+.player-auth-modal-close { position: absolute; z-index: 3; top: 13px; right: 13px; width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid #d8e2de; border-radius: 7px; background: #f4f7f5; color: #3d655d; }
+.player-auth-modal-close svg { width: 18px; }
+.player-auth-shell-modal { display: block; width: 100%; max-width: none; min-height: 0; overflow: visible; background: #fffdf8; }
+.player-auth-shell-modal .player-auth-scene { display: none; }
+.player-auth-shell-modal .player-auth-panel { min-height: 0; padding: 46px 34px 34px; border: 0; }
+.player-auth-shell-modal .player-auth-panel-head { padding-right: 32px; }
+
 .admin-login-form { width: 100%; display: grid; gap: 11px; margin-top: 5px; text-align: left; }
 .admin-login-form label { display: grid; gap: 5px; }
 .admin-login-form label > span { color: #526a64; font-size: 9px; font-weight: 900; text-transform: uppercase; }
@@ -1413,6 +1434,15 @@ body:has(.adventure-shell) .bdp-fab {
   .xp { display: none; }
   .mode button { padding: 8px; font-size: 0; }
   .mode button svg { width: 16px; }
+  .guest-account-actions { margin-left: auto; }
+  .guest-account-actions .guest-status { display: none; }
+  .guest-account-actions > button { width: 34px; padding: 0; justify-content: center; font-size: 0; }
+  .guest-trial-banner { align-items: flex-start; padding: 8px 12px; }
+  .guest-trial-banner p { font-size: 9px; }
+  .guest-trial-banner button { align-self: center; font-size: 0; }
+  .player-auth-modal-backdrop { align-items: start; padding: 12px; }
+  .player-auth-modal-frame { margin-top: 12px; }
+  .player-auth-shell-modal .player-auth-panel { padding: 48px 20px 28px; }
 }
 
 /* ---------- Brightoria Admin portal ---------- */

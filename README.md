@@ -26,8 +26,10 @@ npm run build
 
 ## Akun dan admin
 
-- Peta memerlukan login pemain melalui email. Login Google baru tampil aktif
-  setelah `GOOGLE_CLIENT_ID` dan `VITE_GOOGLE_CLIENT_ID` resmi dikonfigurasi.
+- Mode Tamu dapat membuka peta dan mencoba game dasar tanpa login. Login email
+  diminta saat pengguna ingin menyimpan aktivitas akun atau membuka fitur
+  lanjutan, Profil, dan Ruang Orang Tua. Login Google baru tampil aktif setelah
+  `GOOGLE_CLIENT_ID` dan `VITE_GOOGLE_CLIENT_ID` resmi dikonfigurasi.
 - Portal admin tersedia di `#/admin`; username/password dibaca dari secret
   `ADMIN_USERNAME` dan `ADMIN_PASSWORD` di Vercel.
 - `AUTH_SESSION_SECRET` dan private Blob store wajib tersedia. Jangan pernah

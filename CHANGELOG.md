@@ -357,3 +357,11 @@ Fondasi enam pulau 3D interaktif, landmark prosedural, dokumentasi agent.
 - Menunda pemuatan Character Picker, Orang Tua, Latihan, Ekspedisi, dan Tanya Bri sampai sesi pemain sah agar UI tersebut tidak menutupi login/admin.
 - Memverifikasi tampilan login desktop dan mobile, gerbang admin, penolakan sesi anonim, sesi admin sah, typecheck, dan build produksi.
 - Peta 3D, enam game, evidence/mastery/XP, Premium gate, dan kebijakan tanpa musik latar tidak diubah. Konten akademik tetap draft.
+
+## 2026-10-21 - Mode Tamu dan login kontekstual
+
+- Menghapus kewajiban login di halaman awal; peta 3D dan enam game dasar kini dapat dicoba sebagai tamu.
+- Menambahkan status Mode Tamu, tombol Masuk/Daftar di header, dan banner ajakan daftar yang tidak menutupi gameplay.
+- Login tampil sebagai modal saat pengguna memilih Profil, Ruang Orang Tua, atau melanjutkan fitur Premium.
+- Aktivitas pulau hanya dikirim ke registry server untuk pemain yang sudah login; progres tamu tetap lokal di perangkat.
+- Portal admin tetap memakai autentikasi server terpisah. Kontrak game, XP, mastery, kebijakan tanpa musik, dan status draft kurikulum tidak berubah.

@@ -342,3 +342,10 @@ terbukti bermanfaat dan tidak mengorbankan fitur apa pun.
 - Modul UI mandiri baru dimuat setelah sesi pemain sah agar Character Picker dan tombol permainan tidak menutupi login atau portal admin.
 - Validasi integrasi mencakup 401 anonim/salah, login admin 200, registrasi pemain, pemeriksaan sesi, activity write, dan pembacaan user dari admin. Record QA dihapus setelah tes.
 - Tidak ada perubahan peta 3D, game, evidence/mastery/XP, musik, atau status draft kurikulum.
+
+## 2026-10-21 - Mode Tamu dan login kontekstual
+
+- Peta 3D dan enam game dasar dapat dicoba tanpa akun.
+- Login/daftar dipindahkan ke modal kontekstual dari header, Profil, Ruang Orang Tua, dan alur Premium.
+- Pengunjung tamu mendapat banner status yang ringkas; pemain terdaftar tetap memperoleh pencatatan aktivitas lintas perangkat.
+- Modul UI mandiri tetap hanya dimuat setelah login, sedangkan gameplay utama tidak dikunci.

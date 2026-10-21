@@ -44,7 +44,15 @@ export function PremiumUpgradeModal({
 
   if (!open) return null;
 
+  function requireAccount(): boolean {
+    if (document.documentElement.dataset.brightoriaAuthenticated === 'true') return false;
+    window.dispatchEvent(new CustomEvent('brightoria:request-auth', { detail: { mode: 'register' } }));
+    setNotice('Daftar atau masuk terlebih dahulu untuk melanjutkan ke fitur Premium. Pilihan paket ini tetap terbuka setelah login.');
+    return true;
+  }
+
   function continueToCheckout() {
+    if (requireAccount()) return;
     saveCheckoutIntent(selectedPlan.id, featureId);
     const checkoutUrl = buildPremiumCheckoutUrl(selectedPlan.id, featureId);
     if (!checkoutUrl) {
@@ -56,6 +64,7 @@ export function PremiumUpgradeModal({
   }
 
   function checkAccess() {
+    if (requireAccount()) return;
     if (!hasPremiumAccess()) {
       setNotice('Pembayaran belum terverifikasi. Materi Premium masih terkunci agar akses tidak terbuka sebelum pembelian berhasil.');
       return;

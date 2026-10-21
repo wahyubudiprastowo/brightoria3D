@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Sparkles,
   UserRound,
+  X,
 } from 'lucide-react';
 import { worlds } from '../data/worlds';
 import { authenticateEmail, authenticateGoogle, type PlayerSession } from './playerSession';
@@ -26,12 +27,21 @@ declare global {
 interface PlayerAuthGateProps {
   onAuthenticated: (player: PlayerSession) => void;
   onOpenAdmin: () => void;
+  initialMode?: 'login' | 'register';
+  presentation?: 'page' | 'modal';
+  onClose?: () => void;
 }
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
-export function PlayerAuthGate({ onAuthenticated, onOpenAdmin }: PlayerAuthGateProps) {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+export function PlayerAuthGate({
+  onAuthenticated,
+  onOpenAdmin,
+  initialMode = 'login',
+  presentation = 'page',
+  onClose,
+}: PlayerAuthGateProps) {
+  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -75,6 +85,20 @@ export function PlayerAuthGate({ onAuthenticated, onOpenAdmin }: PlayerAuthGateP
     return () => { cancelled = true; };
   }, [onAuthenticated]);
 
+  useEffect(() => {
+    if (presentation !== 'modal') return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose?.();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [onClose, presentation]);
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -89,8 +113,8 @@ export function PlayerAuthGate({ onAuthenticated, onOpenAdmin }: PlayerAuthGateP
     }
   }
 
-  return (
-    <main className="player-auth-shell">
+  const content = (
+    <main className={`player-auth-shell${presentation === 'modal' ? ' player-auth-shell-modal' : ''}`}>
       <section className="player-auth-scene" aria-label="Pulau-pulau Brightoria">
         <div className="player-auth-brand"><span><Sparkles /></span><div><strong>Brightoria</strong><small>by Bright Academy</small></div></div>
         <div className="player-auth-copy">
@@ -131,5 +155,26 @@ export function PlayerAuthGate({ onAuthenticated, onOpenAdmin }: PlayerAuthGateP
       </section>
     </main>
   );
+
+  if (presentation === 'modal') {
+    return (
+      <div
+        className="player-auth-modal-backdrop"
+        role="presentation"
+        onMouseDown={(event) => {
+          if (event.currentTarget === event.target) onClose?.();
+        }}
+      >
+        <div className="player-auth-modal-frame" role="dialog" aria-modal="true" aria-labelledby="player-auth-title">
+          <button type="button" className="player-auth-modal-close" onClick={onClose} aria-label="Tutup login">
+            <X />
+          </button>
+          {content}
+        </div>
+      </div>
+    );
+  }
+
+  return content;
 }
 

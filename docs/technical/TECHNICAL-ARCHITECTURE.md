@@ -85,7 +85,9 @@ Brightoria memiliki 6 mini-game interaktif independen yang masing-masing mengelo
 
 ## Identity, Security & Service Boundaries
 
-- **Player gate**: `src/auth/PlayerAuthGate.tsx` memblokir peta sampai endpoint `/api/auth/session` mengembalikan sesi valid.
+- **Guest-first access**: peta dan game dasar langsung tersedia. `PlayerAuthGate.tsx`
+  tampil sebagai modal saat pengguna memilih Masuk/Daftar, Profil, Ruang Orang
+  Tua, atau melanjutkan fitur Premium.
 - **Email auth**: `/api/auth/email` menyimpan salt dan hash scrypt, tidak pernah password plaintext.
 - **Google-ready auth**: `/api/auth/google` memverifikasi Google ID token dan audience pada server; UI baru aktif jika Client ID resmi tersedia.
 - **Admin auth**: `/api/admin/login` membandingkan secret environment dan memberi cookie HttpOnly `SameSite=Strict` maksimal 8 jam. Kredensial tidak ada di bundle frontend.
@@ -281,8 +283,8 @@ interface World {
   sebagai JSON; verification ID tidak diekspor utuh.
 - Portal admin memakai login server terpisah dan cookie HttpOnly bertanda tangan;
   tidak ada lagi kunci admin di `sessionStorage` atau kredensial di bundle.
-- Modul UI permainan yang memasang dirinya ke `document.body` baru dimuat setelah
-  sesi pemain sah, sehingga layar login dan portal admin tidak tertutup overlay.
+- Modul UI lanjutan yang memasang dirinya ke `document.body` baru dimuat setelah
+  sesi pemain sah; peta dan enam game utama tetap dapat dipakai dalam Mode Tamu.
 - Operasi sensitif seperti assign Premium, payment verification, fraud detection,
   password reset, dan audit log belum tersedia. Fitur tersebut harus datang dari
   API terautentikasi dengan RBAC.

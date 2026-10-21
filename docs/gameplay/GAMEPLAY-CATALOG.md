@@ -319,8 +319,9 @@ src/game/<id-dunia>/
 Jika mekanik cukup sederhana (kuis pilihan ganda), pertimbangkan memakai
 mesin `src/game/quiz/QuizGame.tsx` yang sudah ada alih-alih menulis ulang
 dari nol — ini yang dilakukan Quran/Adab/English sejak Patch 07.
-> **Akses akun (20 Oktober 2026):** peta dan enam dunia sekarang memerlukan
-> sesi pemain. Registry server hanya mencatat identitas akun, waktu login, dan
-> pulau yang dibuka; kontrak evidence/mastery/XP setiap game tetap lokal dan
+> **Akses akun (21 Oktober 2026):** peta dan game dasar tersedia dalam Mode
+> Tamu. Login diminta untuk fitur lanjutan, Profil, Ruang Orang Tua, dan
+> penyimpanan aktivitas lintas perangkat. Registry server hanya mencatat
+> identitas akun, waktu login, dan pulau yang dibuka; kontrak evidence/mastery/XP setiap game tetap lokal dan
 > tidak berubah. Seluruh materi kurikulum tetap **draft** menunggu pengesahan
 > akademik Bright Academy.

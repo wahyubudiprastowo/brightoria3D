@@ -5,12 +5,14 @@ import {
   Gamepad2,
   Home,
   LockKeyhole,
+  LogIn,
   LogOut,
   Map,
   ShieldCheck,
   Sparkles,
   Target,
   UserRound,
+  UserPlus,
   UsersRound,
   X,
 } from 'lucide-react';
@@ -108,6 +110,7 @@ export default function App() {
   const [showTour, setShowTour] = useState(false);
   const [adminOpen, setAdminOpen] = useState(isAdminRoute);
   const [playerSession, setPlayerSession] = useState<PlayerSession | null | undefined>(undefined);
+  const [authRequest, setAuthRequest] = useState<'login' | 'register' | null>(null);
 
   useEffect(() => {
     setProgress(loadProgress());
@@ -130,13 +133,24 @@ export default function App() {
   useEffect(() => {
     const playerUiLocked = adminOpen || !playerSession;
     document.body.classList.toggle('brightoria-player-ui-locked', playerUiLocked);
+    document.documentElement.dataset.brightoriaAuthenticated = playerSession ? 'true' : 'false';
 
     if (playerSession && !adminOpen) {
       window.dispatchEvent(new Event('brightoria:player-authenticated'));
     }
   }, [adminOpen, playerSession]);
 
+  useEffect(() => {
+    const requestAuth = (event: Event) => {
+      const detail = (event as CustomEvent<{ mode?: 'login' | 'register' }>).detail;
+      setAuthRequest(detail?.mode === 'login' ? 'login' : 'register');
+    };
+    window.addEventListener('brightoria:request-auth', requestAuth);
+    return () => window.removeEventListener('brightoria:request-auth', requestAuth);
+  }, []);
+
   const openAdmin = useCallback(() => {
+    setAuthRequest(null);
     setAdminOpen(true);
     if (!isAdminRoute()) window.location.hash = '/admin';
   }, []);
@@ -170,10 +184,28 @@ export default function App() {
 
   /** Buka game sungguhan sesuai dunia terpilih. Semua dunia punya game. */
   function enterWorld() {
-    void recordWorldEntry(selected.id).catch((error) => {
-      console.warn('Aktivitas pulau belum dapat disimpan', error);
-    });
+    if (playerSession) {
+      void recordWorldEntry(selected.id).catch((error) => {
+        console.warn('Aktivitas pulau belum dapat disimpan', error);
+      });
+    }
     setGame(selected.id);
+  }
+
+  function openParentArea() {
+    if (!playerSession) {
+      setAuthRequest('login');
+      return;
+    }
+    setMode('parent');
+  }
+
+  function openProfile() {
+    if (!playerSession) {
+      setAuthRequest('register');
+      return;
+    }
+    window.dispatchEvent(new Event('brightoria:open-character-picker'));
   }
 
   async function signOut() {
@@ -213,14 +245,6 @@ export default function App() {
     return <main className="adventure-shell"><AdminPortal open onClose={closeAdmin} /></main>;
   }
 
-  if (playerSession === undefined) {
-    return <main className="player-auth-loading"><Sparkles /><span>Menyiapkan akun Brightoria...</span></main>;
-  }
-
-  if (!playerSession) {
-    return <PlayerAuthGate onAuthenticated={setPlayerSession} onOpenAdmin={openAdmin} />;
-  }
-
   return (
     <main className="adventure-shell">
       <header>
@@ -237,20 +261,36 @@ export default function App() {
           <span>LEVEL {progress.level}</span>
           <b>{progress.xp} XP</b>
         </div>
-        <div className="player-account-chip" title={playerSession.email}>
-          <UserRound />
-          <span><b>{playerSession.displayName}</b><small>{playerSession.email}</small></span>
-          <button type="button" onClick={signOut} aria-label="Keluar dari akun"><LogOut /></button>
-        </div>
+        {playerSession ? (
+          <div className="player-account-chip" title={playerSession.email}>
+            <UserRound />
+            <span><b>{playerSession.displayName}</b><small>{playerSession.email}</small></span>
+            <button type="button" onClick={signOut} aria-label="Keluar dari akun"><LogOut /></button>
+          </div>
+        ) : (
+          <div className="guest-account-actions" aria-label="Akun Brightoria">
+            <span className="guest-status">Tamu</span>
+            <button type="button" onClick={() => setAuthRequest('login')}><LogIn /> Masuk</button>
+            <button type="button" className="register" onClick={() => setAuthRequest('register')}><UserPlus /> Daftar</button>
+          </div>
+        )}
         <div className="mode">
           <button className={mode === 'child' ? 'chosen' : ''} onClick={() => setMode('child')}>
             Anak
           </button>
-          <button className={mode === 'parent' ? 'chosen' : ''} onClick={() => setMode('parent')}>
+          <button className={mode === 'parent' ? 'chosen' : ''} onClick={openParentArea}>
             <LockKeyhole size={14} /> Orang Tua
           </button>
         </div>
       </header>
+
+      {!playerSession && (
+        <section className="guest-trial-banner">
+          <Sparkles />
+          <p><b>Mode Tamu:</b> coba peta dan game dasar tanpa login. Daftar gratis untuk menyimpan aktivitas dan membuka fitur lanjutan.</p>
+          <button type="button" onClick={() => setAuthRequest('register')}>Daftar gratis <ChevronRight /></button>
+        </section>
+      )}
 
       {mode === 'child' ? (
         <>
@@ -325,7 +365,9 @@ export default function App() {
               <Target />
               <div>
                 <b>{objectiveText[selected.id] ?? 'Tantangan interaktif'}</b>
-                <small>Progres dan XP tersimpan otomatis. Jawaban benar pertama memberi +30 XP.</small>
+                <small>{playerSession
+                  ? 'Aktivitas akun tersimpan otomatis. Jawaban benar pertama memberi +30 XP.'
+                  : 'Game dasar dapat dicoba sebagai tamu. Progres sementara tersimpan di perangkat ini.'}</small>
               </div>
             </div>
             <button className="primary" onClick={enterWorld}>
@@ -352,7 +394,7 @@ export default function App() {
       ) : (
         <Parent
           worlds={worldList}
-          playerName={playerSession.displayName}
+          playerName={playerSession?.displayName ?? 'Anak'}
           onOpenAdmin={openAdmin}
           onReplay={(id) => {
             const w = worlds.find((x) => x.id === id);
@@ -373,15 +415,28 @@ export default function App() {
           <BookOpen />
           <span>Petualangan</span>
         </button>
-        <button onClick={() => setMode('parent')}>
+        <button onClick={openParentArea}>
           <UsersRound />
           <span>Orang Tua</span>
         </button>
-        <button onClick={() => window.dispatchEvent(new Event('brightoria:open-character-picker'))}>
+        <button onClick={openProfile}>
           <UserRound />
           <span>Profil</span>
         </button>
       </nav>
+      {authRequest && (
+        <PlayerAuthGate
+          key={authRequest}
+          presentation="modal"
+          initialMode={authRequest}
+          onClose={() => setAuthRequest(null)}
+          onOpenAdmin={openAdmin}
+          onAuthenticated={(player) => {
+            setPlayerSession(player);
+            setAuthRequest(null);
+          }}
+        />
+      )}
     </main>
   );
 }
