@@ -1,5 +1,12 @@
 # AGENTS.md — Mandatory Operating Contract (Updated Audit & Modernization)
 
+> **Checkpoint 20 Oktober 2026 — autentikasi & registry pengguna:** peta kini
+> berada di balik login pemain. Login email/password memakai Vercel Functions,
+> hash `scrypt`, cookie HttpOnly bertanda tangan, dan record privat Vercel Blob.
+> Portal `#/admin` memakai autentikasi server terpisah dan menampilkan akun serta
+> pulau yang pernah dibuka. Integrasi Google sudah disiapkan tetapi belum aktif
+> sampai OAuth Client ID resmi dikonfigurasi.
+
 Baca urutan ini dulu jika Anda agent baru tanpa riwayat chat:
 
 ```text
@@ -80,11 +87,12 @@ saat diagnosis.
         - english -> EnglishGame.tsx      (3D Letter-Builder puzzle R3F & 12 Island Harbor, Patch 31, TTS audio)
 [ADA] Juice kit: src/game/juice.tsx — confetti, streak, count-up, punch
 [ADA] Sound effects synthesizer: src/game/sound.ts (Web Audio API, SFX pendek, non-loop)
-[ADA] Portal admin lokal: src/admin/*, rute #/admin, agregasi progres perangkat, dan ekspor JSON
+[ADA] Portal admin terlindungi: rute #/admin, login server, cookie HttpOnly, registry pengguna privat, dan ekspor JSON
+[ADA] Login pemain email/password sebelum peta + pencatatan pulau yang dibuka lintas perangkat
 [ADA] AppErrorBoundary tingkat aplikasi
 [ADA] Chunk vendor terpisah; audit 2026-09-20: three ~1.175 MB, lucide ~13 KB, app ~486 KB (sebelum gzip)
 [CATATAN] Masih ada file .bak dan skrip patch lama; jangan menganggap seluruh repo bebas artefak
-[BELUM] Backend, auth admin produksi, data lintas perangkat, payment, integrasi meeting, test otomatis CI/CD
+[BELUM] Aktivasi Google OAuth, payment/entitlement server, reset password, 2FA, audit admin, integrasi meeting, test otomatis CI/CD
 [BELUM] Build Android Capacitor yang sudah dites end-to-end pada perangkat fisik
 [BELUM] Validasi resmi tim akademik Bright Academy atas SEMUA konten kurikulum
 ```

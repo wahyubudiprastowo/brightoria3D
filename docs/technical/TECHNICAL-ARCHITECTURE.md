@@ -15,6 +15,9 @@ React 19 + TypeScript + Vite 7
 Three.js + React Three Fiber 9 + Drei 10 — Peta dunia 3D & English 3D puzzle & Numeria 3D bridge
 lucide-react — Ikon UI
 Capacitor 8 — Packaging Android (web layer bundler)
+Vercel Functions — autentikasi dan activity API
+Vercel Blob (private) — registry pengguna lintas perangkat
+Node crypto — HMAC session token dan password hashing scrypt
 ```
 
 ## Arsitektur Enam Game Dunia
@@ -80,11 +83,17 @@ Brightoria memiliki 6 mini-game interaktif independen yang masing-masing mengelo
 
 ---
 
-## Security & Service Boundaries (Rencana Lanjutan)
+## Identity, Security & Service Boundaries
 
-- **Frontend Security**: Kunci rahasia API, OAuth client secret, token pembayaran, dan payout authority DILARANG disimpan di frontend. Tindakan parent-only memerlukan otorisasi server.
+- **Player gate**: `src/auth/PlayerAuthGate.tsx` memblokir peta sampai endpoint `/api/auth/session` mengembalikan sesi valid.
+- **Email auth**: `/api/auth/email` menyimpan salt dan hash scrypt, tidak pernah password plaintext.
+- **Google-ready auth**: `/api/auth/google` memverifikasi Google ID token dan audience pada server; UI baru aktif jika Client ID resmi tersedia.
+- **Admin auth**: `/api/admin/login` membandingkan secret environment dan memberi cookie HttpOnly `SameSite=Strict` maksimal 8 jam. Kredensial tidak ada di bundle frontend.
+- **Registry privat**: `api/_shared/users.js` menyimpan satu JSON per akun pada private Vercel Blob dengan optimistic concurrency (`ifMatch`). Endpoint admin tidak pernah mengirim hash/salt.
+- **Activity**: `/api/activity` mencatat jumlah dan waktu pembukaan enam pulau. Evidence/mastery/XP tetap localStorage per perangkat.
+- **Frontend Security**: Kunci rahasia API, OAuth client secret, token pembayaran, dan payout authority DILARANG disimpan di frontend.
 - **Service Boundaries (Future API)**:
-  - Identity & Family Management
+  - Password recovery, child/parent account linking, RBAC, 2FA, dan audit admin
   - Content & World Manifest
   - Learning Event & Mastery Engine
   - Tutor Marketplace & 1-on-1 Booking
@@ -256,14 +265,13 @@ interface World {
   batas keamanan server. Produksi wajib memindahkan materi berbayar ke API
   terautentikasi dan menerbitkan entitlement dari server setelah transaksi sah.
 
-## Portal Admin Lokal (19 Oktober 2026)
+## Portal Admin dan Identity Server (19-20 Oktober 2026)
 
 - `src/admin/AdminPortal.tsx` adalah shell dashboard fullscreen yang dibuka dari
   Ruang Orang Tua, deep link `#/admin`, atau `Ctrl+Shift+A`.
-- `src/admin/adminData.ts` membaca sumber data lokal yang sudah ada: identitas
-  perangkat, evidence/mastery enam dunia, entitlement Premium, intent checkout,
-  dan ringkasan key localStorage. Modul ini tidak membuat data siswa atau
-  transaksi sintetis.
+- `src/admin/adminData.ts` tetap membaca evidence/mastery dan data operasional
+  lokal, sedangkan tab pengguna memakai registry privat lintas perangkat dari
+  `/api/admin/users`.
 - Portal menyediakan sembilan tab: Pendaftaran & Pengguna, Tracking Pembayaran,
   Deteksi Transfer Palsu, Keamanan Akun, Subscription Aktif, Afiliasi, Audit
   Log, Pengumuman, dan Laporan. Tab yang membutuhkan backend menampilkan batas
@@ -271,18 +279,20 @@ interface World {
 - Visualisasi memakai SVG ringan dari evidence enam dunia tanpa dependency baru.
   Draft pengumuman disimpan lokal dan belum disiarkan. Laporan dapat diekspor
   sebagai JSON; verification ID tidak diekspor utuh.
-- Kunci sesi memakai `sessionStorage` dan hanya mencegah tampilan terbuka tanpa
-  sengaja pada perangkat bersama. Mekanisme ini bukan autentikasi atau otorisasi
-  produksi.
-- Operasi sensitif seperti assign Premium, pengguna lintas perangkat, payment
-  verification, fraud detection, password reset, dan audit log sengaja tidak
-  disimulasikan. Fitur tersebut harus datang dari API terautentikasi dengan RBAC.
+- Portal admin memakai login server terpisah dan cookie HttpOnly bertanda tangan;
+  tidak ada lagi kunci admin di `sessionStorage` atau kredensial di bundle.
+- Modul UI permainan yang memasang dirinya ke `document.body` baru dimuat setelah
+  sesi pemain sah, sehingga layar login dan portal admin tidak tertutup overlay.
+- Operasi sensitif seperti assign Premium, payment verification, fraud detection,
+  password reset, dan audit log belum tersedia. Fitur tersebut harus datang dari
+  API terautentikasi dengan RBAC.
 
 ## Yang BELUM ada di kode
 
-Frontend Premium gate, handoff checkout, dan portal admin lokal sudah ada,
-tetapi belum ada backend, auth admin produksi, data lintas perangkat, payment
-gateway/verifikasi entitlement, integrasi meeting, atau test
-otomatis/CI-CD. Build Android belum pernah dites end-to-end.
+Frontend Premium gate, handoff checkout, login email, auth admin server, dan
+registry pengguna lintas perangkat sudah ada. Yang belum tersedia adalah
+aktivasi Google OAuth, recovery password, RBAC/2FA, payment gateway/verifikasi
+entitlement, sinkronisasi evidence/mastery, integrasi meeting, audit log, dan
+test otomatis/CI-CD. Build Android belum pernah dites end-to-end.
 Kurikulum di `GAMEPLAY-CATALOG.md` adalah draft, belum disahkan tim
 akademik Bright Academy.

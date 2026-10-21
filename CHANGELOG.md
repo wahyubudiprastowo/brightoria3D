@@ -346,3 +346,14 @@ Numeria Fraction Bridge — mini-game pertama.
 
 ## 0.2.0 - Patch 02 / 0.1.0 - Patch 01
 Fondasi enam pulau 3D interaktif, landmark prosedural, dokumentasi agent.
+## 2026-10-20 - Login pemain, admin server, dan registry aktivitas
+
+- Mewajibkan login sebelum peta/pulau dapat diakses, dengan alur daftar dan masuk memakai email orang tua.
+- Menambahkan Vercel Functions untuk registrasi, login, pemeriksaan sesi, logout, dan pencatatan pulau yang dibuka.
+- Menyimpan password sebagai hash scrypt dengan salt unik; sesi pemain dan admin memakai cookie HttpOnly bertanda tangan dan `SameSite=Strict`.
+- Mengganti gerbang admin `sessionStorage` dengan verifikasi username/password server. Kredensial disimpan sebagai secret Vercel, bukan di source code.
+- Menambahkan private Vercel Blob registry agar admin dapat melihat nama, email, metode login, waktu aktivitas, jumlah login, dan pulau yang dicoba.
+- Menyiapkan Google Identity end-to-end di kode; aktivasi UI menunggu OAuth Client ID resmi Bright Academy.
+- Menunda pemuatan Character Picker, Orang Tua, Latihan, Ekspedisi, dan Tanya Bri sampai sesi pemain sah agar UI tersebut tidak menutupi login/admin.
+- Memverifikasi tampilan login desktop dan mobile, gerbang admin, penolakan sesi anonim, sesi admin sah, typecheck, dan build produksi.
+- Peta 3D, enam game, evidence/mastery/XP, Premium gate, dan kebijakan tanpa musik latar tidak diubah. Konten akademik tetap draft.

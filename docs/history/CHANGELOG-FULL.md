@@ -331,3 +331,14 @@ terbukti bermanfaat dan tidak mengorbankan fitur apa pun.
   tambah `ErrorBoundaryCanvas`.
 - **Patch 03c**: Badge "Game tersedia" vs "Segera hadir", dokumentasi
   master lengkap pertama kali dibuat.
+## 2026-10-20 - Login pemain, admin server, dan registry aktivitas
+
+- Menambahkan `src/auth/PlayerAuthGate.tsx` dan `src/auth/playerSession.ts` sebagai gerbang akun sebelum peta 3D.
+- Menambahkan API Vercel di `api/auth/*`, `api/admin/*`, dan `api/activity.js` dengan helper HMAC, scrypt, validasi same-origin, dan cookie HttpOnly.
+- Menambahkan private Vercel Blob `brightoria-users` dengan satu record per email dan optimistic concurrency untuk aktivitas pulau.
+- Portal admin sekarang membutuhkan username/password yang diverifikasi hanya pada server, lalu membaca registry pengguna tanpa mengekspos hash password.
+- Dashboard Pendaftaran & Pengguna menampilkan akun lintas perangkat dan pulau yang dicoba; grafik mastery tetap jujur berasal dari evidence perangkat aktif.
+- Menambahkan jalur Google Identity yang siap diaktifkan setelah OAuth Client ID resmi tersedia.
+- Modul UI mandiri baru dimuat setelah sesi pemain sah agar Character Picker dan tombol permainan tidak menutupi login atau portal admin.
+- Validasi integrasi mencakup 401 anonim/salah, login admin 200, registrasi pemain, pemeriksaan sesi, activity write, dan pembacaan user dari admin. Record QA dihapus setelah tes.
+- Tidak ada perubahan peta 3D, game, evidence/mastery/XP, musik, atau status draft kurikulum.

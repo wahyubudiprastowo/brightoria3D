@@ -1,8 +1,8 @@
-> **Update 19 Oktober 2026 - Portal Admin Lokal:** dashboard admin untuk data
-> perangkat aktif sudah tersedia di `#/admin` dengan sembilan tab operasional,
-> visualisasi evidence, audit lokal, dan draft pengumuman. Prioritas produksi berikutnya
-> adalah autentikasi admin berbasis server, penyimpanan lintas perangkat,
-> payment verification, audit log, dan role-based access control.
+> **Update 20 Oktober 2026 - Identity server:** login email/password, sesi
+> admin, registry pengguna private Blob, dan pencatatan pulau yang dibuka sudah
+> aktif. Prioritas identity berikutnya adalah memasang Google OAuth Client ID
+> resmi, recovery password, relasi orang tua-anak, RBAC/2FA, dan sinkronisasi
+> evidence/mastery lintas perangkat.
 
 > **Update 19 Oktober 2026:** frontend Premium gate dan modal empat paket
 > sudah selesai untuk Quran/Arabic/Adab. Prioritas produksi berikutnya adalah
@@ -33,15 +33,15 @@
        keempat implementasi game — Patch 10
 [DONE] AppErrorBoundary + styles.css file tunggal
 [DONE] Dokumentasi disinkronkan ulang dengan kode aktual — Patch 10
-[BELUM] Eksekusi rekomendasi pembersihan repo (lihat AGENTS.md)
+[DONE] Pembersihan repo utama sesuai kontrak AGENTS.md
 [BELUM] Validasi resmi tim akademik Bright Academy atas SEMUA konten kurikulum
 [DONE] Frontend Premium gate + modal paket untuk Quran/Arabic/Adab
-[DONE] Portal admin lokal untuk progres, Premium, inventaris, dan kesiapan sistem
-[BELUM] Backend, auth admin produksi, data lintas perangkat, payment gateway,
-        verifikasi entitlement, audit log, dan integrasi meeting
+[DONE] Portal admin dengan autentikasi server, cookie HttpOnly, dan registry pengguna privat
+[DONE] Login pemain email/password serta pencatatan pulau yang dibuka lintas perangkat
+[BELUM] Aktivasi Google OAuth, recovery password, RBAC/2FA, sinkronisasi
+        mastery, payment gateway, verifikasi entitlement, audit log, dan meeting
 [BELUM] Build Android end-to-end
 ```
-
 ## ⚠️ Koreksi penting dari roadmap Patch 09
 
 Dokumen Patch 09 sebelumnya merekomendasikan **"Patch 10: bangun mini-game
@@ -53,8 +53,10 @@ begitu saja.
 
 ## Prioritas segera
 
-1. **Verifikasi manual di browser** bahwa perbaikan Patch 10 bekerja sesuai
-   harapan:
+1. **Aktifkan Google OAuth resmi** dengan OAuth Client ID Bright Academy pada
+   environment Vercel dan origin produksi yang benar.
+2. **Verifikasi manual di browser** bahwa peta dan enam game tetap bekerja
+   setelah login:
    - Peta: putar dengan drag — pastikan pulau-pulau terlihat saling
      menyalip depan-belakang (efek paralaks), bukan sekadar bergeser datar.
    - Setiap dari 6 game: pastikan confetti muncul saat jawaban benar
@@ -62,10 +64,6 @@ begitu saja.
      muncul setelah 2 jawaban benar berturut-turut; pastikan tidak ada
      regresi pada evidence/mastery/XP (angka yang tersimpan harus identik
      dengan sebelum Patch 10).
-2. **Eksekusi pembersihan repo** yang direkomendasikan di `AGENTS.md`:
-   hapus `patches/patches-maps/`, tiga file `styles-*-addon.css`, dan
-   konsolidasikan `docs/technical/ARCHITECTURE.md` ke dalam
-   `TECHNICAL-ARCHITECTURE.md`.
 3. **Mulai proses validasi akademik** — ini sekarang jadi blocker utama
    sebelum konten dipakai siswa sungguhan, karena SEMUA 6 dunia sudah
    punya mekanik game yang berfungsi. Prioritaskan Al-Qur'an (paling
@@ -116,3 +114,4 @@ bukan hanya mastery agregat.
    terhadap kode aktual, jangan hanya menyalin klaim patch sebelumnya
 7. Efek juice (confetti/streak/punch/count-up) WAJIB tetap dekoratif murni
 ```
+

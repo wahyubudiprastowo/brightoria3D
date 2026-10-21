@@ -1,9 +1,9 @@
-> **Checkpoint 19 Oktober 2026 - Portal Admin Lokal:** Brightoria sekarang
-> memiliki portal admin responsif di `#/admin` untuk membaca profil dan progres
-> perangkat aktif, status Premium, intent checkout, inventaris konten, audit
-> evidence, draft pengumuman, serta kesiapan sistem melalui sembilan tab admin.
-> Gerbang sesi lokal bukan autentikasi produksi; data pengguna
-> global, assign Premium, pembayaran, dan keamanan akun tetap menunggu backend.
+> **Checkpoint 20 Oktober 2026 - Login pemain & admin server:** pemain wajib
+> masuk sebelum melihat peta. Email/password diverifikasi oleh Vercel Function,
+> password di-hash memakai scrypt, sesi memakai cookie HttpOnly bertanda tangan,
+> dan registry akun/aktivitas pulau tersimpan pada private Vercel Blob. Portal
+> `#/admin` memakai autentikasi server terpisah. Google Identity siap di kode
+> tetapi belum aktif tanpa Client ID resmi.
 
 > **Checkpoint 19 Oktober 2026:** kartu Premium di Taman Al-Qur'an, Oasis
 > Bahasa Arab, dan Kampung Adab sekarang terkunci untuk akun Free. Klik kartu
@@ -137,23 +137,24 @@ sama dengan disahkan secara akademik.
 [ADA] Peta 3D interaktif, formasi cincin dipulihkan (regresi Patch 08 fixed)
 [ADA] Fallback 2D jika WebGL gagal
 [ADA] ENAM dari enam dunia punya game sungguhan (lihat rincian di AGENTS.md)
-[ADA] Mesin kuis bersama QuizGame.tsx (quran/adab/english)
+[ADA] Gameplay spesifik: Numeria bridge, Digital sorter, Arabic safari,
+      Quran drag-line, Adab branching story, dan English letter-builder 3D
 [ADA] Juice kit (confetti/streak/count-up/punch) di semua game
 [ADA] AppErrorBoundary, styles.css utama sebagai file tunggal
-[BELUM] Pembersihan repo (patches-maps, styles addon lama, ARCHITECTURE.md
-        duplikat) — sudah direkomendasikan, belum dieksekusi
+[ADA] Pembersihan repo utama sudah dieksekusi; artefak `.bak`/skrip lama
+      yang tersisa tidak dipakai runtime
 [ADA] Frontend Premium gate + modal empat paket di Quran/Arabic/Adab
-[BELUM] Backend, auth, verifikasi payment/entitlement, integrasi meeting,
-        test otomatis
+[ADA] Backend minimal untuk login email, sesi admin, registry pengguna, dan
+      pencatatan pembukaan pulau lintas perangkat
+[BELUM] Aktivasi Google OAuth, reset password, 2FA, audit admin,
+        verifikasi payment/entitlement, integrasi meeting, test otomatis
 [BELUM] Build Android yang sudah dites end-to-end
 [BELUM] Validasi resmi tim akademik Bright Academy atas SEMUA konten
 ```
 
 ## 4. Untuk agent yang lanjut sekarang
 
-Baca `docs/product/NEXT-STEPS.md`. Prioritas: (1) konfirmasi dari user
-bahwa peta 3D dan juice kit terasa baik di browser sungguhan, (2) eksekusi
-rekomendasi pembersihan repo di `AGENTS.md`, (3) mulai proses validasi
-akademik konten kurikulum (semua dunia, bukan hanya yang mekaniknya
-selesai), (4) pertimbangkan menambah juice kit yang lebih dalam per-dunia
-(mis. animasi 3D lebih kaya di Numeria) jika user memintanya lagi.
+Baca `docs/product/NEXT-STEPS.md`. Prioritas: (1) aktifkan Google OAuth dengan
+Client ID resmi, (2) tambah recovery password dan relasi orang tua-anak,
+(3) mulai validasi akademik seluruh konten kurikulum, dan (4) bangun
+payment/entitlement server sebelum materi Premium dianggap terlindungi.

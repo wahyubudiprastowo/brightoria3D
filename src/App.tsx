@@ -5,6 +5,7 @@ import {
   Gamepad2,
   Home,
   LockKeyhole,
+  LogOut,
   Map,
   ShieldCheck,
   Sparkles,
@@ -18,6 +19,13 @@ import OnboardingTour from './components/OnboardingTour';
 import { worlds, type World } from './data/worlds';
 import { initialProgress, loadProgress, addXp, type Progress } from './game/progress';
 import { AdminPortal } from './admin/AdminPortal';
+import { PlayerAuthGate } from './auth/PlayerAuthGate';
+import {
+  getPlayerSession,
+  logoutPlayer,
+  recordWorldEntry,
+  type PlayerSession,
+} from './auth/playerSession';
 
 // --- Numeria (3D arithmetic bridge) ---
 import NumeriaGame from './game/numeria/NumeriaGame';
@@ -99,6 +107,7 @@ export default function App() {
   const [tourStep, setTourStep] = useState(0);
   const [showTour, setShowTour] = useState(false);
   const [adminOpen, setAdminOpen] = useState(isAdminRoute);
+  const [playerSession, setPlayerSession] = useState<PlayerSession | null | undefined>(undefined);
 
   useEffect(() => {
     setProgress(loadProgress());
@@ -109,6 +118,23 @@ export default function App() {
       setShowTour(true);
     }
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    getPlayerSession()
+      .then((session) => { if (active) setPlayerSession(session); })
+      .catch(() => { if (active) setPlayerSession(null); });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    const playerUiLocked = adminOpen || !playerSession;
+    document.body.classList.toggle('brightoria-player-ui-locked', playerUiLocked);
+
+    if (playerSession && !adminOpen) {
+      window.dispatchEvent(new Event('brightoria:player-authenticated'));
+    }
+  }, [adminOpen, playerSession]);
 
   const openAdmin = useCallback(() => {
     setAdminOpen(true);
@@ -144,7 +170,18 @@ export default function App() {
 
   /** Buka game sungguhan sesuai dunia terpilih. Semua dunia punya game. */
   function enterWorld() {
+    void recordWorldEntry(selected.id).catch((error) => {
+      console.warn('Aktivitas pulau belum dapat disimpan', error);
+    });
     setGame(selected.id);
+  }
+
+  async function signOut() {
+    try { await logoutPlayer(); }
+    catch (error) { console.warn('Logout server belum dapat diselesaikan', error); }
+    setGame(null);
+    setMode('child');
+    setPlayerSession(null);
   }
 
   function exitGame() {
@@ -172,6 +209,18 @@ export default function App() {
     setPanel(true);
   }
 
+  if (adminOpen) {
+    return <main className="adventure-shell"><AdminPortal open onClose={closeAdmin} /></main>;
+  }
+
+  if (playerSession === undefined) {
+    return <main className="player-auth-loading"><Sparkles /><span>Menyiapkan akun Brightoria...</span></main>;
+  }
+
+  if (!playerSession) {
+    return <PlayerAuthGate onAuthenticated={setPlayerSession} onOpenAdmin={openAdmin} />;
+  }
+
   return (
     <main className="adventure-shell">
       <header>
@@ -187,6 +236,11 @@ export default function App() {
         <div className="xp">
           <span>LEVEL {progress.level}</span>
           <b>{progress.xp} XP</b>
+        </div>
+        <div className="player-account-chip" title={playerSession.email}>
+          <UserRound />
+          <span><b>{playerSession.displayName}</b><small>{playerSession.email}</small></span>
+          <button type="button" onClick={signOut} aria-label="Keluar dari akun"><LogOut /></button>
         </div>
         <div className="mode">
           <button className={mode === 'child' ? 'chosen' : ''} onClick={() => setMode('child')}>
@@ -298,6 +352,7 @@ export default function App() {
       ) : (
         <Parent
           worlds={worldList}
+          playerName={playerSession.displayName}
           onOpenAdmin={openAdmin}
           onReplay={(id) => {
             const w = worlds.find((x) => x.id === id);
@@ -327,17 +382,18 @@ export default function App() {
           <span>Profil</span>
         </button>
       </nav>
-      <AdminPortal open={adminOpen} onClose={closeAdmin} />
     </main>
   );
 }
 
 function Parent({
   worlds: worldList,
+  playerName,
   onReplay,
   onOpenAdmin,
 }: {
   worlds: World[];
+  playerName: string;
   onReplay: (id: string) => void;
   onOpenAdmin: () => void;
 }) {
@@ -369,7 +425,7 @@ function Parent({
       <div className="parent-head">
         <div>
           <span className="eyebrow">Ruang Orang Tua</span>
-          <h1>Perkembangan Alya</h1>
+          <h1>Perkembangan {playerName}</h1>
           <p>Penjelasan kemampuan, bukan hanya angka.</p>
         </div>
         <div className="parent-head-actions">
@@ -414,7 +470,7 @@ function Parent({
               {lowest.label.toLowerCase()} dengan cara yang menyenangkan.
             </p>
           ) : (
-            <p>Belum ada data. Ajak Alya memainkan misi pertama, lalu pantau di sini.</p>
+            <p>Belum ada data. Ajak {playerName} memainkan misi pertama, lalu pantau di sini.</p>
           )}
         </article>
         <article className="wide">
