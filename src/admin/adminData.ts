@@ -14,6 +14,7 @@ import { computeMastery as numeriaMastery, loadEvidence as loadNumeria } from '.
 import { quranLevels } from '../game/quran/levels';
 import { computeMastery as quranMastery, loadEvidence as loadQuran } from '../game/quran/evidence';
 import { PREMIUM_PLANS, readCheckoutIntent, readPremiumEntitlement } from '../subscription/premiumAccess';
+import type { AdminUserRecord } from '../auth/playerSession';
 
 export interface AdminWorldMetric {
   id: string;
@@ -171,11 +172,25 @@ export function readAdminSnapshot(): AdminSnapshot {
   };
 }
 
-export function downloadAdminReport(snapshot: AdminSnapshot): void {
+export function downloadAdminReport(snapshot: AdminSnapshot, users: AdminUserRecord[] = []): void {
   const report = {
     product: 'Brightoria by Bright Academy',
-    scope: 'Data lokal perangkat ini saja',
+    scope: 'Registry akun server dan data pembelajaran lokal perangkat admin',
     generatedAt: snapshot.generatedAt,
+    registry: {
+      userCount: users.length,
+      users: users.map((user) => ({
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        authProvider: user.authProvider,
+        createdAt: user.createdAt,
+        lastLoginAt: user.lastLoginAt,
+        lastActiveAt: user.lastActiveAt,
+        loginCount: user.loginCount,
+        worlds: user.worlds,
+      })),
+    },
     profile: snapshot.profile,
     progress: snapshot.progress,
     worlds: snapshot.worlds,

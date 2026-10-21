@@ -90,6 +90,7 @@ saat diagnosis.
 [ADA] Portal admin terlindungi: rute #/admin, login server, cookie HttpOnly, registry pengguna privat, dan ekspor JSON
 [ADA] Portal admin selalu mengakhiri sesi lama dan meminta ulang username/password saat dibuka
 [ADA] Tombol mata password admin + `npm run dev:full` menjalankan Vercel Dev/API lokal
+[ADA] Portal admin faktual: ringkasan, registry pengguna, aktivitas pulau, inventaris materi/game, akses, status sistem, draft info, dan laporan; tanpa tab transaksi/afiliasi palsu
 [ADA] Mode Tamu untuk peta/game dasar/Latihan/Ekspedisi + login email/password saat fitur akun, penyimpanan, Profil, atau Orang Tua dibuka
 [ADA] Iqra' Jilid 2-6 gratis setelah login/daftar; Tilawah 30 Juz tetap Premium
 [ADA] AppErrorBoundary tingkat aplikasi

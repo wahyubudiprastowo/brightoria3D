@@ -369,3 +369,5 @@ Fondasi enam pulau 3D interaktif, landmark prosedural, dokumentasi agent.
 - Portal admin tetap memakai autentikasi server terpisah. Kontrak game, XP, mastery, kebijakan tanpa musik, dan status draft kurikulum tidak berubah.
 - Portal admin sekarang mengakhiri sesi admin lama saat dibuka dan selalu menampilkan formulir username/password sebelum dashboard.
 - Menambahkan tombol mata tampil/sembunyikan password admin, pesan API lokal yang lebih jelas, dan mengarahkan mode autentikasi lokal ke `npm run dev:full` agar endpoint `/api` ikut aktif.
+- Menyelaraskan portal admin dengan Brightoria aktual: mengganti tab pembayaran palsu, fraud, afiliasi, dan audit semu dengan Ringkasan, Aktivitas Pulau, Materi & Game, Akses & Premium, serta Status Sistem yang bersumber dari registry server dan evidence lokal.
+- Memisahkan label data lintas perangkat dan data perangkat aktif, berhenti mengasumsikan semua akun sebagai Free, serta memperluas ekspor laporan dengan registry akun dan pembukaan pulau.

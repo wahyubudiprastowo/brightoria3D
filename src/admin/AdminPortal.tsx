@@ -16,12 +16,13 @@ import {
   Eye,
   EyeOff,
   FileText,
+  Gamepad2,
   KeyRound,
   LockKeyhole,
+  MapPinned,
   Megaphone,
   RefreshCw,
   Search,
-  ShieldAlert,
   ShieldCheck,
   TrendingUp,
   UserCheck,
@@ -43,13 +44,12 @@ import {
 } from './adminData';
 
 type AdminTab =
+  | 'overview'
   | 'users'
-  | 'payments'
-  | 'fraud'
-  | 'security'
-  | 'subscriptions'
-  | 'affiliates'
-  | 'audit'
+  | 'activity'
+  | 'content'
+  | 'access'
+  | 'system'
   | 'broadcast'
   | 'reports';
 type ChartMetric = 'mastery' | 'attempts' | 'completed';
@@ -62,12 +62,18 @@ interface AdminPortalProps {
 const BROADCAST_DRAFT_KEY = 'brightoria.admin.broadcastDraft.v1';
 
 const contentInventory = [
-  ['Taman Al-Qur\'an', 'Hijaiyah, Iqra, Juz 30, hafalan', 'Draft akademik'],
-  ['Kampung Adab', 'Kisah Pilihan dan simulator 3D', 'Draft akademik'],
-  ['Pulau Numeria', 'Matematika kelas 1-6', 'Draft akademik'],
-  ['Oasis Bahasa Arab', 'Safari, pasar kata, AI gesture', 'Draft akademik'],
-  ['English Harbor', 'Letter Builder dan Harbor Run', 'Draft akademik'],
-  ['Benteng Digital', 'Cyber Safety Sorter', 'Draft akademik'],
+  { id: 'quran', world: 'Taman Al-Qur\'an', mechanic: "Hijaiyah Drag-Line, Iqra' 1-6, Mushaf Juz 30, Tajwid, dan Arena Hafalan", access: 'Free + akun + Premium', review: 'Draft tahsin/tahfidz' },
+  { id: 'adab', world: 'Kampung Adab', mechanic: 'Kisah Pilihan, Kampung 3D, 15 Hadits Hikmah, dan Adab Harian', access: 'Free + Premium', review: 'Draft karakter' },
+  { id: 'math', world: 'Pulau Numeria', mechanic: 'Penerbangan kelas 1-2, Katak kelas 3-4, dan Jembatan kelas 5-6', access: 'Free', review: 'Draft matematika SD' },
+  { id: 'arabic', world: 'Oasis Bahasa Arab', mechanic: "Safari 72 kartu, Pasar Kata, AI Angka/Surat, dan Mufrodat Qur'an", access: 'Free + Premium', review: 'Draft Bahasa Arab' },
+  { id: 'english', world: 'English Harbor', mechanic: '3D Letter Builder, Harbor Adventure, dan Word Harbor Run', access: 'Free', review: 'Draft CEFR Pre-A1/A1' },
+  { id: 'digital', world: 'Benteng Digital', mechanic: 'Cyber Safety Sorter dengan 10 misi adab digital Islami', access: 'Free', review: 'Draft literasi digital' },
+] as const;
+
+const accessInventory = [
+  { tier: 'Mode Tamu', tone: '#0e7490', items: 'Peta 3D, enam game dasar, Latihan, dan Ekspedisi', note: 'Bisa langsung dicoba tanpa akun.' },
+  { tier: 'Akun Gratis', tone: '#059669', items: "Iqra' Jilid 2-6, Profil, Ruang Orang Tua, dan riwayat pembukaan pulau", note: 'Memerlukan login atau daftar email.' },
+  { tier: 'Premium', tone: '#ca8a04', items: "Tilawah 30 Juz, Kamus Qur'an Lanjutan, dan Akhlak dari Kisah Surat", note: 'Masih memakai gate frontend; verifikasi pembayaran server belum tersedia.' },
 ] as const;
 
 function formatDate(value: string | null): string {
@@ -109,27 +115,6 @@ function StatCard({ icon, label, value, note, tone }: {
       <b>{value}</b>
       <small>{note}</small>
     </article>
-  );
-}
-
-function EmptyState({ icon, title, description, requirements }: {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  requirements: string[];
-}) {
-  return (
-    <section className="admin-section admin-empty-state">
-      <span className="admin-empty-icon">{icon}</span>
-      <div>
-        <span className="admin-scope-badge">Menunggu backend produksi</span>
-        <h3>{title}</h3>
-        <p>{description}</p>
-      </div>
-      <div className="admin-requirement-list">
-        {requirements.map((item) => <span key={item}><LockKeyhole /> {item}</span>)}
-      </div>
-    </section>
   );
 }
 
@@ -193,10 +178,69 @@ function ProgressChart({ worlds }: { worlds: AdminWorldMetric[] }) {
   );
 }
 
-function UsersDashboard({ snapshot, users, loading, openReports }: {
+function accountActivitySummary(users: AdminUserRecord[]) {
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const totalLogins = users.reduce((sum, user) => sum + user.loginCount, 0);
+  const totalOpens = users.reduce((sum, user) => sum + Object.values(user.worlds ?? {}).reduce((worldSum, activity) => worldSum + activity.opens, 0), 0);
+  const activeUsers = users.filter((user) => Date.parse(user.lastActiveAt) >= sevenDaysAgo).length;
+  const exploringUsers = users.filter((user) => Object.keys(user.worlds ?? {}).length > 0).length;
+  return { totalLogins, totalOpens, activeUsers, exploringUsers };
+}
+
+function OverviewDashboard({ snapshot, users, loading, registryError, openActivity, openReports }: {
   snapshot: AdminSnapshot;
   users: AdminUserRecord[];
   loading: boolean;
+  registryError: string | null;
+  openActivity: () => void;
+  openReports: () => void;
+}) {
+  const summary = accountActivitySummary(users);
+  const activityByWorld = snapshot.worlds.map((world) => {
+    const entries = users.map((user) => user.worlds?.[world.id]).filter(Boolean);
+    return {
+      ...world,
+      accountCount: entries.length,
+      opens: entries.reduce((sum, activity) => sum + activity.opens, 0),
+    };
+  });
+  const maximumOpens = Math.max(1, ...activityByWorld.map((world) => world.opens));
+  const recentUsers = [...users].sort((left, right) => right.lastActiveAt.localeCompare(left.lastActiveAt)).slice(0, 5);
+
+  return (
+    <div className="admin-tab-content">
+      <div className="admin-stat-grid">
+        <StatCard icon={<UsersRound />} label="Akun terdaftar" value={loading ? '...' : users.length} note="Registry privat server" tone="#0e7490" />
+        <StatCard icon={<UserCheck />} label="Aktif 7 hari" value={loading ? '...' : summary.activeUsers} note="Berdasarkan aktivitas akun" tone="#059669" />
+        <StatCard icon={<MapPinned />} label="Pembukaan pulau" value={loading ? '...' : summary.totalOpens} note="Akumulasi akun terdaftar" tone="#7c3aed" />
+        <StatCard icon={<BookOpenCheck />} label="Mastery perangkat" value={`${snapshot.averageMastery}%`} note={`${snapshot.startedWorlds} dari 6 dunia dimulai`} tone="#d97706" />
+        <StatCard icon={<Crown />} label="Akses perangkat" value={snapshot.subscription.active ? 'Premium' : 'Free'} note={snapshot.subscription.planName ?? 'Belum ada entitlement'} tone="#ca8a04" />
+      </div>
+      {registryError && <div className="admin-registry-warning" role="status"><AlertTriangle /><span><b>Registry server belum terbaca.</b>{registryError}</span></div>}
+      <section className="admin-section admin-overview-grid">
+        <div>
+          <div className="admin-section-title"><div><b>Aktivitas enam pulau</b><span>Pembukaan pulau oleh akun terdaftar</span></div><button type="button" className="admin-row-action" onClick={openActivity}>Lihat detail <MapPinned /></button></div>
+          <div className="admin-world-bars">{activityByWorld.map((world) => <div className="admin-world-bar" key={world.id}><div><b>{world.name}</b><span>{world.accountCount} akun pernah membuka</span></div><div className="admin-progress"><i style={{ width: `${world.opens ? Math.max(8, world.opens / maximumOpens * 100) : 0}%`, background: world.color }} /></div><strong>{world.opens}x</strong></div>)}</div>
+        </div>
+        <aside className="admin-priority">
+          <b>Kondisi Brightoria sekarang</b>
+          <div className="admin-priority-item"><span><ShieldCheck /></span><div><strong>Identitas dan aktivitas server aktif</strong><small>Login email, sesi admin, registry pengguna, dan pembukaan pulau sudah tersimpan privat.</small></div></div>
+          <div className="admin-priority-item"><span className="warn"><Database /></span><div><strong>Mastery masih per perangkat</strong><small>Nilai, XP, dan evidence game belum disinkronkan ke akun server.</small></div></div>
+          <div className="admin-priority-item"><span className="warn"><CreditCard /></span><div><strong>Pembayaran belum terhubung</strong><small>Premium masih berupa gate UI dan belum dapat diberikan manual dari portal.</small></div></div>
+        </aside>
+      </section>
+      <section className="admin-section">
+        <div className="admin-section-title"><div><b>Aktivitas akun terbaru</b><span>Lima akun terakhir yang menggunakan Brightoria</span></div><button type="button" className="admin-row-action" onClick={openReports}><FileText /> Buka laporan</button></div>
+        <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Pengguna</th><th>Pulau dicoba</th><th>Total login</th><th>Aktivitas terakhir</th></tr></thead><tbody>{loading ? <tr><td colSpan={4} className="admin-table-empty">Memuat registry pengguna...</td></tr> : recentUsers.length ? recentUsers.map((user) => <tr key={user.id}><td><b>{user.displayName}</b><small>{user.email}</small></td><td>{Object.keys(user.worlds ?? {}).length} dari 6</td><td>{user.loginCount} kali</td><td>{formatDate(user.lastActiveAt)}</td></tr>) : <tr><td colSpan={4} className="admin-table-empty">Belum ada akun pemain terdaftar.</td></tr>}</tbody></table></div>
+      </section>
+    </div>
+  );
+}
+
+function UsersDashboard({ users, loading, registryError, openReports }: {
+  users: AdminUserRecord[];
+  loading: boolean;
+  registryError: string | null;
   openReports: () => void;
 }) {
   const [query, setQuery] = useState('');
@@ -204,25 +248,18 @@ function UsersDashboard({ snapshot, users, loading, openReports }: {
   const filteredUsers = users.filter((user) => !needle
     || user.displayName.toLowerCase().includes(needle)
     || user.email.toLowerCase().includes(needle));
-  const totalWorldsOpened = users.reduce((sum, user) => sum + Object.keys(user.worlds ?? {}).length, 0);
-  const totalLogins = users.reduce((sum, user) => sum + user.loginCount, 0);
+  const summary = accountActivitySummary(users);
 
   return (
     <div className="admin-tab-content">
       <div className="admin-stat-grid">
         <StatCard icon={<UsersRound />} label="Total akun terdaftar" value={users.length} note="Registry privat Brightoria" tone="#0ea5e9" />
-        <StatCard icon={<Crown />} label="Santri Premium aktif" value={snapshot.subscription.active ? 1 : 0} note="Entitlement lokal valid" tone="#f59e0b" />
-        <StatCard icon={<UserCheck />} label="Login tercatat" value={totalLogins} note="Akumulasi login akun" tone="#10b981" />
-        <StatCard icon={<BookOpenCheck />} label="Pulau pernah dibuka" value={totalWorldsOpened} note="Akumulasi seluruh akun" tone="#7c3aed" />
-        <StatCard icon={<ShieldAlert />} label="Akun suspended" value={0} note="Belum ada akun ditangguhkan" tone="#e11d48" />
+        <StatCard icon={<UserCheck />} label="Aktif 7 hari" value={summary.activeUsers} note="Berdasarkan aktivitas akun" tone="#10b981" />
+        <StatCard icon={<Activity />} label="Login tercatat" value={summary.totalLogins} note="Akumulasi seluruh akun" tone="#2563eb" />
+        <StatCard icon={<BookOpenCheck />} label="Sudah menjelajah" value={summary.exploringUsers} note="Pernah membuka minimal satu pulau" tone="#7c3aed" />
+        <StatCard icon={<MapPinned />} label="Pembukaan pulau" value={summary.totalOpens} note="Akumulasi registry server" tone="#d97706" />
       </div>
-      <div className="admin-visual-switcher">
-        <b>Visualisasi aktivitas:</b>
-        <span className="active"><BarChart3 /> Pertumbuhan & Aktivitas</span>
-        <span><Activity /> Progres Dunia</span>
-        <em><i /> Registry server + evidence perangkat aktif</em>
-      </div>
-      <ProgressChart worlds={snapshot.worlds} />
+      {registryError && <div className="admin-registry-warning" role="status"><AlertTriangle /><span><b>Registry server belum terbaca.</b>{registryError}</span></div>}
       <section className="admin-section">
         <div className="admin-section-title">
           <div><b>Pengguna Brightoria</b><span>Akun email/Google dan aktivitas pembukaan pulau</span></div>
@@ -230,103 +267,109 @@ function UsersDashboard({ snapshot, users, loading, openReports }: {
         </div>
         <div className="admin-table-wrap">
           <table className="admin-table admin-user-table">
-            <thead><tr><th>Pengguna / Santri</th><th>Akses</th><th>Pulau dicoba</th><th>Login</th><th>Aktivitas terakhir</th><th>Aksi admin</th></tr></thead>
-            <tbody>{loading ? <tr><td colSpan={6} className="admin-table-empty">Memuat registry pengguna...</td></tr> : filteredUsers.length ? filteredUsers.map((user) => {
+            <thead><tr><th>Pengguna / Santri</th><th>Status akun</th><th>Pulau dicoba</th><th>Login</th><th>Aktivitas terakhir</th><th>Laporan</th></tr></thead>
+            <tbody>{loading ? <tr><td colSpan={6} className="admin-table-empty">Memuat registry pengguna...</td></tr> : registryError ? <tr><td colSpan={6} className="admin-table-empty">Registry server belum dapat ditampilkan.</td></tr> : filteredUsers.length ? filteredUsers.map((user) => {
               const worldEntries = Object.entries(user.worlds ?? {});
               return <tr key={user.id}>
                 <td><span className="admin-avatar">{user.displayName.slice(0, 1).toUpperCase()}</span><b>{user.displayName}</b><small>{user.email} / {user.authProvider === 'google' ? 'Google' : 'Email'}</small></td>
-                <td><span className="admin-status-chip free"><Check /> FREE</span><small>Terdaftar {formatDate(user.createdAt)}</small></td>
+                <td><span className="admin-status-chip verified"><Check /> Terdaftar</span><small>{user.authProvider === 'google' ? 'Google' : 'Email'} / {formatDate(user.createdAt)}</small></td>
                 <td><b>{worldEntries.length} dari 6 pulau</b><small>{worldEntries.length ? worldEntries.map(([id, activity]) => `${id} (${activity.opens}x)`).join(', ') : 'Belum membuka pulau'}</small></td>
                 <td><b>{user.loginCount} kali</b><small>Terakhir {formatDate(user.lastLoginAt)}</small></td>
                 <td><b>{formatDate(user.lastActiveAt)}</b><small>Aktivitas akun terbaru</small></td>
-                <td><button type="button" className="admin-row-action" onClick={openReports}><FileText /> Evidence lokal</button></td>
+                <td><button type="button" className="admin-row-action" onClick={openReports}><FileText /> Ringkasan</button></td>
               </tr>;
             }) : <tr><td colSpan={6} className="admin-table-empty">{needle ? 'Tidak ada pengguna yang cocok.' : 'Belum ada akun pemain terdaftar.'}</td></tr>}</tbody>
           </table>
         </div>
-        <p className="admin-inline-note"><ShieldCheck /> Registry server mencatat identitas akun dan pulau yang dibuka. Nilai mastery rinci masih berasal dari evidence perangkat aktif.</p>
+        <p className="admin-inline-note"><ShieldCheck /> Status Premium per akun belum tersedia di registry server, sehingga portal tidak menandai semua akun sebagai Free atau Premium. Mastery rinci juga masih berada di perangkat pemain.</p>
       </section>
     </div>
   );
 }
 
-function PaymentsDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
+function ActivityDashboard({ snapshot, users }: { snapshot: AdminSnapshot; users: AdminUserRecord[] }) {
+  const rows = snapshot.worlds.map((world) => {
+    const activities = users.map((user) => user.worlds?.[world.id]).filter(Boolean);
+    const latest = activities.reduce<string | null>((current, activity) => !current || activity.lastPlayedAt > current ? activity.lastPlayedAt : current, null);
+    return { ...world, accountCount: activities.length, opens: activities.reduce((sum, activity) => sum + activity.opens, 0), latest };
+  });
+  return (
+    <div className="admin-tab-content">
+      <ProgressChart worlds={snapshot.worlds} />
+      <section className="admin-section">
+        <div className="admin-section-title"><div><b>Aktivitas pulau akun terdaftar</b><span>Jumlah akun, pembukaan, dan waktu kunjungan terakhir dari registry server</span></div><span className="admin-scope-badge">Data lintas perangkat</span></div>
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead><tr><th>Pulau</th><th>Akun menjelajah</th><th>Total dibuka</th><th>Kunjungan terakhir</th><th>Mastery perangkat admin</th></tr></thead>
+            <tbody>{rows.map((world) => <tr key={world.id}><td><span className="admin-world-dot" style={{ background: world.color }} /><b>{world.name}</b><small>{world.subtitle}</small></td><td>{world.accountCount} akun</td><td>{world.opens} kali</td><td>{formatDate(world.latest)}</td><td><strong>{world.mastery}%</strong><small>Evidence lokal perangkat ini</small></td></tr>)}</tbody>
+          </table>
+        </div>
+        <p className="admin-inline-note"><Database /> Pembukaan pulau tersimpan di server. Mastery, jawaban, dan XP masih lokal sehingga kolom terakhir bukan agregat seluruh pengguna.</p>
+      </section>
+    </div>
+  );
+}
+
+function ContentDashboard() {
+  return (
+    <div className="admin-tab-content">
+      <section className="admin-section">
+        <div className="admin-section-title"><div><b>Inventaris materi dan permainan</b><span>Enam pulau yang tersedia pada build Brightoria saat ini</span></div><span className="admin-scope-badge">6 pulau aktif</span></div>
+        <div className="admin-content-grid">{contentInventory.map((item) => <article key={item.id}><span className={`admin-content-world world-${item.id}`}><Gamepad2 /></span><div><b>{item.world}</b><p>{item.mechanic}</p><div><span>{item.access}</span><em>{item.review}</em></div></div></article>)}</div>
+      </section>
+      <section className="admin-section admin-architecture-note"><BookOpenCheck /><div><b>Status akademik tetap draft</b><p>Mekanik game sudah dapat dimainkan, tetapi isi Al-Qur'an, Bahasa Arab, adab, matematika, Bahasa Inggris, dan literasi digital masih memerlukan review serta pengesahan tim akademik Bright Academy.</p></div></section>
+    </div>
+  );
+}
+
+function AccessDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
   const intent = snapshot.subscription.checkoutIntent;
   const intentPlan = intent ? PREMIUM_PLANS.find((plan) => plan.id === intent.planId) : null;
   return (
     <div className="admin-tab-content">
       <div className="admin-stat-grid admin-stat-grid-four">
-        <StatCard icon={<CreditCard />} label="Intent checkout" value={intent ? 1 : 0} note="Tersimpan pada browser" tone="#0f766e" />
-        <StatCard icon={<Clock3 />} label="Menunggu verifikasi" value={intent && !snapshot.subscription.active ? 1 : 0} note="Belum ada webhook server" tone="#d97706" />
-        <StatCard icon={<BadgeCheck />} label="Entitlement valid" value={snapshot.subscription.active ? 1 : 0} note="Cache Premium perangkat" tone="#16a34a" />
-        <StatCard icon={<Database />} label="Transaksi server" value="-" note="Backend belum terhubung" tone="#64748b" />
+        <StatCard icon={<Crown />} label="Status perangkat" value={snapshot.subscription.active ? 'Premium' : 'Free'} note={snapshot.subscription.planName ?? 'Tidak ada entitlement'} tone="#ca8a04" />
+        <StatCard icon={<CreditCard />} label="Intent checkout" value={intent ? 1 : 0} note={intentPlan?.shortName ?? 'Belum ada'} tone="#0f766e" />
+        <StatCard icon={<BadgeCheck />} label="Paket tersedia" value={PREMIUM_PLANS.length} note="Ditampilkan pada modal Premium" tone="#7c3aed" />
+        <StatCard icon={<Database />} label="Verifikasi server" value="Belum" note="Payment dan entitlement belum terhubung" tone="#64748b" />
       </div>
       <section className="admin-section">
-        <div className="admin-section-title"><div><b>Tracking pembayaran dan checkout</b><span>Hanya menampilkan intent nyata dari perangkat ini</span></div><span className="admin-scope-badge">1 perangkat lokal</span></div>
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead><tr><th>Referensi</th><th>Paket</th><th>Nominal</th><th>Dibuat</th><th>Status</th></tr></thead>
-            <tbody>{intent ? <tr><td><b>CHECKOUT-LOCAL</b><small>{intent.featureId}</small></td><td><b>{intentPlan?.name ?? intent.planId}</b></td><td>{intentPlan ? formatRupiah(intentPlan.priceIdr) : '-'}</td><td>{formatDate(intent.createdAt)}</td><td><span className={`admin-status-chip ${snapshot.subscription.active ? 'verified' : 'pending'}`}>{snapshot.subscription.active ? <Check /> : <Clock3 />}{snapshot.subscription.active ? 'Terverifikasi lokal' : 'Menunggu backend'}</span></td></tr> : <tr><td colSpan={5} className="admin-table-empty">Belum ada intent checkout pada perangkat ini.</td></tr>}</tbody>
-          </table>
-        </div>
+        <div className="admin-section-title"><div><b>Aturan akses Brightoria</b><span>Pembagian fitur yang benar pada aplikasi saat ini</span></div></div>
+        <div className="admin-access-grid">{accessInventory.map((item) => <article key={item.tier} style={{ '--admin-tone': item.tone } as CSSProperties}><span><LockKeyhole /></span><b>{item.tier}</b><p>{item.items}</p><small>{item.note}</small></article>)}</div>
       </section>
       <section className="admin-section">
-        <div className="admin-section-title"><div><b>Katalog paket Brightoria</b><span>Harga yang sama dengan modal Premium anak</span></div></div>
-        <div className="admin-plan-grid">{PREMIUM_PLANS.map((plan) => <article key={plan.id} className={plan.popular ? 'popular' : ''}><span>{plan.popular ? 'Paling populer' : 'Paket aktif'}</span><b>{plan.name}</b><strong>{formatRupiah(plan.priceIdr)}</strong><small>{plan.monthlyLabel}</small></article>)}</div>
+        <div className="admin-section-title"><div><b>Status akses perangkat admin</b><span>Informasi ini berasal dari browser yang sedang membuka portal, bukan seluruh akun</span></div><span className="admin-scope-badge">Perangkat aktif</span></div>
+        <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Profil lokal</th><th>Paket</th><th>Status</th><th>Diverifikasi</th><th>Berakhir</th></tr></thead><tbody><tr><td><b>{snapshot.profile.name}</b><small>Data perangkat ini</small></td><td>{snapshot.subscription.planName ?? 'Free'}</td><td><span className={`admin-status-chip ${snapshot.subscription.active ? 'verified' : 'free'}`}>{snapshot.subscription.active ? <Check /> : <LockKeyhole />}{snapshot.subscription.active ? 'Aktif' : 'Free'}</span></td><td>{formatDate(snapshot.subscription.verifiedAt)}</td><td>{snapshot.subscription.status === 'lifetime' ? 'Lifetime' : formatDate(snapshot.subscription.expiresAt)}</td></tr></tbody></table></div>
+        {intent && <p className="admin-inline-note"><Clock3 /> Intent terakhir: {intentPlan?.name ?? intent.planId} untuk {intent.featureId}, dibuat {formatDate(intent.createdAt)}. Belum berarti pembayaran berhasil.</p>}
+        <p className="admin-inline-note"><AlertTriangle /> Portal belum dapat menetapkan Premium. Fitur itu tetap dikunci sampai payment gateway, webhook, dan entitlement server resmi tersedia.</p>
+      </section>
+      <section className="admin-section">
+        <div className="admin-section-title"><div><b>Katalog paket yang tampil di game</b><span>Harga frontend saat ini</span></div></div>
+        <div className="admin-plan-grid">{PREMIUM_PLANS.map((plan) => <article key={plan.id} className={plan.popular ? 'popular' : ''}><span>{plan.popular ? 'Paling populer' : 'Tersedia'}</span><b>{plan.name}</b><strong>{formatRupiah(plan.priceIdr)}</strong><small>{plan.monthlyLabel}</small></article>)}</div>
       </section>
     </div>
   );
 }
 
-function SecurityDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
+function SystemDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
+  const googleConfigured = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim());
+  const checkoutConfigured = Boolean(import.meta.env.VITE_PREMIUM_CHECKOUT_URL?.trim());
   const checks = [
-    ['Sesi admin server', 'ready', 'Cookie HttpOnly bertanda tangan, berlaku maksimal 8 jam.'],
-    ['Penyimpanan progres', 'local', `${snapshot.storage.recordCount} record Brightoria tersimpan lokal.`],
-    ['Premium gate', 'ready', 'Konten terkunci sampai entitlement aktif.'],
-    ['Autentikasi admin', 'ready', 'Username dan password diverifikasi hanya pada server.'],
-    ['Password pengguna', 'ready', 'Password email disimpan sebagai hash scrypt dengan salt unik.'],
-    ['Audit keamanan', 'blocked', 'Audit aksi admin rinci dan 2FA belum tersedia.'],
+    ['Login email pemain', 'ready', 'Hash scrypt, salt unik, dan cookie sesi HttpOnly.'],
+    ['Login dan sesi admin', 'ready', 'Kredensial diverifikasi server dan login ulang diwajibkan.'],
+    ['Registry akun privat', 'ready', 'Akun dan pembukaan pulau tersimpan pada private Vercel Blob.'],
+    ['Evidence pembelajaran', 'local', `${snapshot.storage.recordCount} record (${snapshot.storage.approximateKb} KB) tersimpan pada perangkat ini.`],
+    ['Google OAuth', googleConfigured ? 'ready' : 'blocked', googleConfigured ? 'Client ID Google tersedia pada build ini.' : 'Kode siap, tetapi Client ID resmi belum dikonfigurasi.'],
+    ['Checkout Premium', checkoutConfigured ? 'local' : 'blocked', checkoutConfigured ? 'URL checkout tersedia, verifikasi entitlement server belum ada.' : 'Payment gateway, webhook, dan entitlement server belum tersedia.'],
+    ['Pemulihan akun', 'blocked', 'Reset password dan relasi orang tua-anak belum tersedia.'],
+    ['Keamanan lanjutan', 'blocked', 'RBAC, 2FA, dan audit aksi admin belum tersedia.'],
   ] as const;
   return (
     <div className="admin-tab-content">
-      <section className="admin-section admin-security-head"><ShieldCheck /><div><span className="admin-scope-badge">Security center Brightoria</span><h3>Keamanan akun dan sesi pengelola</h3><p>Status di bawah memisahkan kontrol yang sudah nyata dari fitur yang masih membutuhkan backend.</p></div></section>
-      <section className="admin-section">
-        <div className="admin-section-title"><div><b>Kontrol keamanan sistem</b><span>Status faktual aplikasi saat ini</span></div></div>
-        <div className="admin-system-grid">{checks.map(([label, status, detail]) => <article key={label} className={`admin-system-check ${status}`}><span>{status === 'ready' ? <Check /> : status === 'local' ? <Database /> : <AlertTriangle />}</span><div><b>{label}</b><small>{detail}</small></div><em>{status === 'ready' ? 'Siap' : status === 'local' ? 'Lokal' : 'Belum'}</em></article>)}</div>
-      </section>
-      <EmptyState icon={<KeyRound />} title="Kontrol akun lanjutan belum aktif" description="Login server dan hash password sudah aktif. Reset password, suspend akun, 2FA, dan audit aksi masih membutuhkan alur operasional resmi." requirements={['Reset password terverifikasi', 'Role-based access control', 'Audit log server', '2FA admin']} />
+      <section className="admin-section admin-security-head"><ShieldCheck /><div><span className="admin-scope-badge">Status sistem Brightoria</span><h3>Layanan yang aktif dan yang masih direncanakan</h3><p>Daftar ini mengikuti implementasi aktual, bukan simulasi fitur portal referensi.</p></div></section>
+      <section className="admin-section"><div className="admin-section-title"><div><b>Kesiapan layanan</b><span>Status faktual build yang sedang dibuka</span></div></div><div className="admin-system-grid">{checks.map(([label, status, detail]) => <article key={label} className={`admin-system-check ${status}`}><span>{status === 'ready' ? <Check /> : status === 'local' ? <Database /> : <AlertTriangle />}</span><div><b>{label}</b><small>{detail}</small></div><em>{status === 'ready' ? 'Aktif' : status === 'local' ? 'Terbatas' : 'Belum'}</em></article>)}</div></section>
     </div>
   );
-}
-
-function SubscriptionsDashboard({ snapshot, explainUnavailable }: { snapshot: AdminSnapshot; explainUnavailable: () => void }) {
-  return (
-    <div className="admin-tab-content">
-      <div className="admin-stat-grid admin-stat-grid-four">
-        <StatCard icon={<Crown />} label="Subscription aktif" value={snapshot.subscription.active ? 1 : 0} note={snapshot.subscription.planName ?? 'Tidak ada'} tone="#ca8a04" />
-        <StatCard icon={<Clock3 />} label="Paket bulanan" value={snapshot.subscription.active && snapshot.subscription.planName?.toLowerCase().includes('bulan') ? 1 : 0} note="Perangkat ini" tone="#0284c7" />
-        <StatCard icon={<TrendingUp />} label="Paket tahunan" value={snapshot.subscription.active && snapshot.subscription.planName?.toLowerCase().includes('tahun') ? 1 : 0} note="Perangkat ini" tone="#7c3aed" />
-        <StatCard icon={<BadgeCheck />} label="Lifetime" value={snapshot.subscription.status === 'lifetime' ? 1 : 0} note="Perangkat ini" tone="#059669" />
-      </div>
-      <section className="admin-section">
-        <div className="admin-section-title"><div><b>Subscription aktif pada perangkat</b><span>Entitlement lokal yang lolos validasi format dan masa aktif</span></div><button type="button" className="admin-primary-action" onClick={explainUnavailable}><Crown /> Assign Premium manual</button></div>
-        <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Profil</th><th>Paket</th><th>Status</th><th>Diverifikasi</th><th>Berakhir</th></tr></thead><tbody><tr><td><b>{snapshot.profile.name}</b><small>LOCAL-DEVICE</small></td><td>{snapshot.subscription.planName ?? 'Free'}</td><td><span className={`admin-status-chip ${snapshot.subscription.active ? 'verified' : 'free'}`}>{snapshot.subscription.active ? <Check /> : <LockKeyhole />}{snapshot.subscription.active ? 'Aktif' : 'Free'}</span></td><td>{formatDate(snapshot.subscription.verifiedAt)}</td><td>{snapshot.subscription.status === 'lifetime' ? 'Lifetime' : formatDate(snapshot.subscription.expiresAt)}</td></tr></tbody></table></div>
-        <p className="admin-inline-note"><ShieldCheck /> Assign Premium tetap dikunci sampai transaksi dapat diverifikasi oleh server Brightoria.</p>
-      </section>
-    </div>
-  );
-}
-
-function AuditDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
-  const events = useMemo(() => {
-    const activity = snapshot.worlds.filter((world) => world.updatedAt).map((world) => ({ at: world.updatedAt, source: world.name, action: `${world.attempts} percobaan / ${world.completed} unit selesai`, status: 'Evidence lokal' }));
-    return [
-      { at: snapshot.generatedAt as string | null, source: 'Portal Admin', action: 'Snapshot dashboard diperbarui', status: 'Sesi lokal' },
-      ...(snapshot.subscription.active ? [{ at: snapshot.subscription.verifiedAt, source: 'Premium Gate', action: `Entitlement ${snapshot.subscription.planName ?? 'Premium'} terbaca`, status: 'Cache lokal' }] : []),
-      ...activity,
-    ].sort((a, b) => new Date(b.at ?? 0).getTime() - new Date(a.at ?? 0).getTime());
-  }, [snapshot]);
-  return <div className="admin-tab-content"><section className="admin-section"><div className="admin-section-title"><div><b>Audit aktivitas lokal</b><span>Jejak ini diturunkan dari timestamp evidence, bukan log server</span></div><span className="admin-scope-badge">{events.length} event terbaca</span></div><div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Waktu</th><th>Sumber</th><th>Aktivitas</th><th>Cakupan</th></tr></thead><tbody>{events.map((event, index) => <tr key={`${event.source}-${index}`}><td>{formatDate(event.at)}</td><td><b>{event.source}</b></td><td>{event.action}</td><td><span className="admin-status-chip free">{event.status}</span></td></tr>)}</tbody></table></div></section></div>;
 }
 
 function BroadcastDashboard({ notify }: { notify: (message: string) => void }) {
@@ -355,12 +398,19 @@ function BroadcastDashboard({ notify }: { notify: (message: string) => void }) {
   );
 }
 
-function ReportsDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
+function ReportsDashboard({ snapshot, users }: { snapshot: AdminSnapshot; users: AdminUserRecord[] }) {
+  const summary = accountActivitySummary(users);
   return (
     <div className="admin-tab-content">
-      <section className="admin-section admin-report-head"><div><span className="admin-scope-badge">Laporan perangkat aktif</span><h3>Rekap perkembangan {snapshot.profile.name}</h3><p>Gunakan laporan ini sebagai bahan pendamping. Seluruh konten akademik masih draft.</p></div><button type="button" className="admin-primary-action" onClick={() => downloadAdminReport(snapshot)}><Download /> Ekspor JSON</button></section>
+      <section className="admin-section admin-report-head"><div><span className="admin-scope-badge">Registry server + perangkat aktif</span><h3>Laporan operasional Brightoria</h3><p>Ekspor memuat akun terdaftar, pembukaan pulau, dan evidence lokal perangkat ini. Seluruh konten akademik masih draft.</p></div><button type="button" className="admin-primary-action" onClick={() => downloadAdminReport(snapshot, users)}><Download /> Ekspor JSON</button></section>
+      <div className="admin-stat-grid admin-stat-grid-four">
+        <StatCard icon={<UsersRound />} label="Akun server" value={users.length} note="Registry privat" tone="#0e7490" />
+        <StatCard icon={<MapPinned />} label="Pembukaan pulau" value={summary.totalOpens} note="Akumulasi akun" tone="#7c3aed" />
+        <StatCard icon={<BookOpenCheck />} label="Unit lokal selesai" value={snapshot.totalCompleted} note="Evidence perangkat ini" tone="#059669" />
+        <StatCard icon={<Activity />} label="Percobaan lokal" value={snapshot.totalAttempts} note="Evidence perangkat ini" tone="#d97706" />
+      </div>
       <section className="admin-section"><div className="admin-section-title"><div><b>Progres per dunia</b><span>Mastery, penyelesaian, percobaan, dan aktivitas terakhir</span></div></div><div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Dunia</th><th>Mastery</th><th>Progres</th><th>Percobaan</th><th>Aktivitas terakhir</th></tr></thead><tbody>{snapshot.worlds.map((world) => <tr key={world.id}><td><span className="admin-world-dot" style={{ background: world.color }} /><b>{world.name}</b><small>{world.subtitle}</small></td><td><strong>{world.mastery}%</strong></td><td>{world.completed} / {world.total}</td><td>{world.attempts}</td><td>{formatDate(world.updatedAt)}</td></tr>)}</tbody></table></div></section>
-      <section className="admin-section"><div className="admin-section-title"><div><b>Status konten per pulau</b><span>Mekanik tersedia tidak berarti materi sudah disahkan</span></div></div><div className="admin-content-list">{contentInventory.map(([world, mechanic, status]) => <div key={world}><b>{world}</b><span>{mechanic}</span><em>{status}</em></div>)}</div></section>
+      <section className="admin-section"><div className="admin-section-title"><div><b>Status konten per pulau</b><span>Mekanik tersedia tidak berarti materi sudah disahkan</span></div></div><div className="admin-content-list">{contentInventory.map((item) => <div key={item.id}><b>{item.world}</b><span>{item.mechanic}</span><em>{item.review}</em></div>)}</div></section>
     </div>
   );
 }
@@ -374,7 +424,8 @@ export function AdminPortal({ open, onClose }: AdminPortalProps) {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [users, setUsers] = useState<AdminUserRecord[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
-  const [tab, setTab] = useState<AdminTab>('users');
+  const [usersError, setUsersError] = useState<string | null>(null);
+  const [tab, setTab] = useState<AdminTab>('overview');
   const [snapshot, setSnapshot] = useState<AdminSnapshot>(() => readAdminSnapshot());
   const [copied, setCopied] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -393,6 +444,7 @@ export function AdminPortal({ open, onClose }: AdminPortalProps) {
     if (!open) return;
     let active = true;
     setAccessState('checking');
+    setTab('overview');
     setPassword('');
     setShowPassword(false);
     setLoginError(null);
@@ -414,16 +466,15 @@ export function AdminPortal({ open, onClose }: AdminPortalProps) {
   }, [tab]);
 
   const tabDefinitions = useMemo(() => [
-    { id: 'users' as const, icon: <UsersRound />, label: 'Pendaftaran & Pengguna', count: String(users.length) },
-    { id: 'payments' as const, icon: <CreditCard />, label: 'Tracking Pembayaran', count: snapshot.subscription.checkoutIntent ? '1' : '0' },
-    { id: 'fraud' as const, icon: <ShieldAlert />, label: 'Deteksi Transfer Palsu' },
-    { id: 'security' as const, icon: <KeyRound />, label: 'Keamanan Akun & Password' },
-    { id: 'subscriptions' as const, icon: <Crown />, label: 'Subscription Aktif', count: snapshot.subscription.active ? '1' : '0' },
-    { id: 'affiliates' as const, icon: <TrendingUp />, label: 'Afiliasi' },
-    { id: 'audit' as const, icon: <Activity />, label: 'Audit Log' },
-    { id: 'broadcast' as const, icon: <Megaphone />, label: 'Pengumuman' },
+    { id: 'overview' as const, icon: <BarChart3 />, label: 'Ringkasan' },
+    { id: 'users' as const, icon: <UsersRound />, label: 'Pengguna', count: String(users.length) },
+    { id: 'activity' as const, icon: <MapPinned />, label: 'Aktivitas Pulau' },
+    { id: 'content' as const, icon: <Gamepad2 />, label: 'Materi & Game', count: '6' },
+    { id: 'access' as const, icon: <Crown />, label: 'Akses & Premium' },
+    { id: 'system' as const, icon: <ShieldCheck />, label: 'Status Sistem' },
+    { id: 'broadcast' as const, icon: <Megaphone />, label: 'Draft Info' },
     { id: 'reports' as const, icon: <FileText />, label: 'Laporan' },
-  ], [snapshot, users.length]);
+  ], [users.length]);
 
   if (!open) return null;
 
@@ -431,8 +482,9 @@ export function AdminPortal({ open, onClose }: AdminPortalProps) {
   async function refresh() {
     setSnapshot(readAdminSnapshot());
     setUsersLoading(true);
+    setUsersError(null);
     try { setUsers(await getAdminUsers()); showNotice('Registry server dan data perangkat berhasil diperbarui.'); }
-    catch (error) { showNotice(error instanceof Error ? error.message : 'Registry pengguna belum dapat dimuat.'); }
+    catch (error) { const message = error instanceof Error ? error.message : 'Registry pengguna belum dapat dimuat.'; setUsersError(message); showNotice(message); }
     finally { setUsersLoading(false); }
   }
   async function unlock(event: FormEvent<HTMLFormElement>) {
@@ -446,7 +498,9 @@ export function AdminPortal({ open, onClose }: AdminPortalProps) {
       setShowPassword(false);
       setSnapshot(readAdminSnapshot());
       setUsersLoading(true);
+      setUsersError(null);
       try { setUsers(await getAdminUsers()); }
+      catch (error) { setUsersError(error instanceof Error ? error.message : 'Registry pengguna belum dapat dimuat.'); }
       finally { setUsersLoading(false); }
     } catch (error) {
       setLoginError(error instanceof Error ? error.message : 'Login admin gagal.');
@@ -458,7 +512,8 @@ export function AdminPortal({ open, onClose }: AdminPortalProps) {
     try { await logoutAdmin(); } catch { /* Cookie lokal tetap dianggap terkunci. */ }
     setAccessState('locked');
     setUsers([]);
-    setTab('users');
+    setUsersError(null);
+    setTab('overview');
   }
   async function copyLink() {
     const link = `${window.location.origin}${window.location.pathname}#/admin`;
@@ -495,30 +550,28 @@ export function AdminPortal({ open, onClose }: AdminPortalProps) {
     <div className="admin-overlay">
       <section className="admin-shell" role="dialog" aria-modal="true" aria-label="Pusat Kendali Admin Brightoria">
         <div className="admin-topbar">
-          <div className="admin-title-block"><span className="admin-logo"><ShieldCheck /></span><div><div className="admin-title-line"><h2>Pusat Kendali Admin & Sistem Pengelola</h2><span>Master Portal</span><code>Direct Link: #/admin</code></div><p>Pusat monitoring profil, progres pembelajaran, Premium, laporan, dan kesiapan sistem Brightoria</p></div></div>
+          <div className="admin-title-block"><span className="admin-logo"><ShieldCheck /></span><div><div className="admin-title-line"><h2>Pusat Kendali Brightoria</h2><span>Admin Terverifikasi</span><code>Direct Link: #/admin</code></div><p>Monitoring akun, aktivitas enam pulau, materi, akses, dan kesiapan layanan Brightoria</p></div></div>
           <div className="admin-toolbar">
             <button type="button" onClick={copyLink} title="Salin link admin"><Clipboard /> <span>{copied ? 'Tersalin' : 'Link Standalone'}</span></button>
-            <button type="button" className="admin-toolbar-alert" onClick={() => setTab('security')} title="Lihat keterbatasan sistem"><Bell /> <span>Kontrol Lanjutan</span></button>
-            <button type="button" className="admin-toolbar-pro" onClick={() => showNotice('Assign Premium membutuhkan backend dan verifikasi transaksi resmi.')} title="Assign Premium manual"><Crown /> <span>Assign Premium</span></button>
+            <button type="button" className="admin-toolbar-alert" onClick={() => setTab('system')} title="Lihat status sistem"><Bell /> <span>Status Sistem</span></button>
             <button type="button" onClick={refresh} title="Segarkan data"><RefreshCw /> <span>Refresh</span></button>
             <button type="button" className="admin-toolbar-lock" onClick={lock} title="Kunci sesi"><LockKeyhole /> <span>Kunci Sesi</span></button>
             <button type="button" className="admin-close" onClick={onClose} aria-label="Tutup portal admin"><X /></button>
           </div>
         </div>
         {notice && <div className="admin-notice-toast"><Check /> {notice}</div>}
-        <div className="admin-alert-band"><AlertTriangle /><div><span className="admin-alert-label">Status Sistem Produksi</span><b>Login pemain, sesi admin, dan registry aktivitas sudah terhubung</b><small>Payment, reset password, 2FA, dan audit aksi admin masih menunggu layanan produksi lanjutan.</small></div><button type="button" onClick={() => setTab('security')}><ShieldCheck /> Lihat kesiapan</button></div>
+        <div className="admin-alert-band"><ShieldCheck /><div><span className="admin-alert-label">Status Brightoria Saat Ini</span><b>Enam pulau aktif, akun dan aktivitas pulau sudah tercatat di server</b><small>Mastery masih lokal; Google OAuth, payment, reset password, 2FA, dan audit admin belum aktif.</small></div><button type="button" onClick={() => setTab('system')}><ShieldCheck /> Lihat detail</button></div>
         <div className="admin-tabs" role="navigation" aria-label="Menu admin">{tabDefinitions.map((item) => <button type="button" key={item.id} className={`${tab === item.id ? 'active' : ''} admin-tab-${item.id}`} onClick={() => setTab(item.id)}>{item.icon}<span>{item.label}{item.count !== undefined ? ` (${item.count})` : ''}</span></button>)}</div>
         <div className="admin-scroll-area" ref={scrollAreaRef}>
-          {tab === 'users' && <UsersDashboard snapshot={snapshot} users={users} loading={usersLoading} openReports={() => setTab('reports')} />}
-          {tab === 'payments' && <PaymentsDashboard snapshot={snapshot} />}
-          {tab === 'fraud' && <EmptyState icon={<ShieldAlert />} title="Deteksi transfer palsu belum terhubung" description="Repository Brightoria belum memiliki transaksi bank, unggahan bukti transfer, atau mutasi server yang dapat dianalisis secara sah." requirements={['Payment gateway dan webhook', 'Penyimpanan bukti transfer', 'Mutasi bank terverifikasi', 'Audit keputusan admin']} />}
-          {tab === 'security' && <SecurityDashboard snapshot={snapshot} />}
-          {tab === 'subscriptions' && <SubscriptionsDashboard snapshot={snapshot} explainUnavailable={() => showNotice('Assign Premium manual dikunci sampai backend terautentikasi tersedia.')} />}
-          {tab === 'affiliates' && <EmptyState icon={<TrendingUp />} title="Program afiliasi belum tersedia" description="Brightoria saat ini belum mempunyai akun mitra, kode referral, atribusi pendaftaran, atau perhitungan komisi." requirements={['Database mitra', 'Referral attribution', 'Ledger komisi', 'Persetujuan dan payout']} />}
-          {tab === 'audit' && <AuditDashboard snapshot={snapshot} />}
+          {tab === 'overview' && <OverviewDashboard snapshot={snapshot} users={users} loading={usersLoading} registryError={usersError} openActivity={() => setTab('activity')} openReports={() => setTab('reports')} />}
+          {tab === 'users' && <UsersDashboard users={users} loading={usersLoading} registryError={usersError} openReports={() => setTab('reports')} />}
+          {tab === 'activity' && <ActivityDashboard snapshot={snapshot} users={users} />}
+          {tab === 'content' && <ContentDashboard />}
+          {tab === 'access' && <AccessDashboard snapshot={snapshot} />}
+          {tab === 'system' && <SystemDashboard snapshot={snapshot} />}
           {tab === 'broadcast' && <BroadcastDashboard notify={showNotice} />}
-          {tab === 'reports' && <ReportsDashboard snapshot={snapshot} />}
-          <div className="admin-footer-note"><Clock3 /> Data diperbarui {formatDate(snapshot.generatedAt)} / tanpa musik latar / konten akademik masih draft</div>
+          {tab === 'reports' && <ReportsDashboard snapshot={snapshot} users={users} />}
+          <div className="admin-footer-note"><Clock3 /> Data perangkat diperbarui {formatDate(snapshot.generatedAt)} / registry pengguna dari server / konten akademik masih draft</div>
         </div>
       </section>
     </div>

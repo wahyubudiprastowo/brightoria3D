@@ -276,13 +276,17 @@ interface World {
 - `src/admin/adminData.ts` tetap membaca evidence/mastery dan data operasional
   lokal, sedangkan tab pengguna memakai registry privat lintas perangkat dari
   `/api/admin/users`.
-- Portal menyediakan sembilan tab: Pendaftaran & Pengguna, Tracking Pembayaran,
-  Deteksi Transfer Palsu, Keamanan Akun, Subscription Aktif, Afiliasi, Audit
-  Log, Pengumuman, dan Laporan. Tab yang membutuhkan backend menampilkan batas
-  kesiapan secara eksplisit dan tidak membentuk data sintetis.
+- Portal menyediakan delapan tab yang sesuai implementasi aktual: Ringkasan,
+  Pengguna, Aktivitas Pulau, Materi & Game, Akses & Premium, Status Sistem,
+  Draft Info, dan Laporan. Modul transaksi, fraud, afiliasi, dan audit server
+  tidak ditampilkan sebagai fitur operasional karena sumber datanya belum ada.
+- Registry server menjadi sumber jumlah akun, login, serta pembukaan pulau.
+  Mastery, XP, evidence, checkout intent, dan entitlement diberi label jelas
+  sebagai data perangkat aktif karena belum disinkronkan ke akun server.
 - Visualisasi memakai SVG ringan dari evidence enam dunia tanpa dependency baru.
-  Draft pengumuman disimpan lokal dan belum disiarkan. Laporan dapat diekspor
-  sebagai JSON; verification ID tidak diekspor utuh.
+  Draft pengumuman disimpan lokal dan belum disiarkan. Laporan JSON mencakup
+  registry akun/pembukaan pulau dan snapshot evidence perangkat; verification ID
+  Premium tidak diekspor utuh.
 - Portal admin memakai login server terpisah dan cookie HttpOnly bertanda tangan;
   tidak ada lagi kunci admin di `sessionStorage` atau kredensial di bundle.
 - Saat portal dibuka, sesi admin lama diakhiri dan gerbang username/password

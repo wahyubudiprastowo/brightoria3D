@@ -10,6 +10,10 @@
 > admin lama diakhiri sebelum dashboard dapat ditampilkan.
 > `npm run dev:full` menjalankan Vercel Dev pada port 5174 agar API login
 > tersedia; `npm run dev` hanya untuk inspeksi UI tanpa autentikasi.
+> Portal admin kini hanya menampilkan kapabilitas aktual: akun dan pembukaan
+> pulau dari registry server, serta mastery/XP/Premium dari perangkat aktif.
+> Fitur tanpa backend seperti transaksi, fraud, afiliasi, dan audit server tidak
+> lagi dipresentasikan sebagai modul operasional.
 
 > **Akses Iqra 21 Oktober 2026:** Iqra' Jilid 2-6 gratis untuk akun terdaftar.
 > Tamu diarahkan ke Masuk/Daftar, bukan ke modal harga Premium. Tilawah 30 Juz

@@ -353,3 +353,5 @@ terbukti bermanfaat dan tidak mengorbankan fitur apa pun.
 - Portal admin tetap memakai login username/password terpisah yang diverifikasi server dan tidak dapat diakses melalui sesi tamu.
 - Setiap pembukaan portal admin kini mengakhiri cookie sesi lama terlebih dahulu, sehingga formulir username/password selalu muncul sebelum dashboard.
 - Form admin mendapat kontrol mata untuk memeriksa password. Untuk autentikasi lokal, `npm run dev:full` menjalankan Vercel Dev agar endpoint `/api` ikut aktif; `dev.bat` juga memakai mode lengkap ini.
+- Portal admin direkonsiliasi dengan fitur Brightoria yang benar-benar tersedia. Delapan tab aktif kini mencakup Ringkasan, Pengguna, Aktivitas Pulau, Materi & Game, Akses & Premium, Status Sistem, Draft Info, dan Laporan.
+- Tab transaksi, deteksi transfer palsu, afiliasi, dan audit semu dihapus karena belum memiliki sumber data. Portal membedakan registry server dari mastery/XP/Premium perangkat aktif dan tidak lagi menandai seluruh akun sebagai Free.
