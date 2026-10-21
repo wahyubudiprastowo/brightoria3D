@@ -362,6 +362,7 @@ Fondasi enam pulau 3D interaktif, landmark prosedural, dokumentasi agent.
 
 - Menghapus kewajiban login di halaman awal; peta 3D dan enam game dasar kini dapat dicoba sebagai tamu.
 - Menambahkan status Mode Tamu, tombol Masuk/Daftar di header, dan banner ajakan daftar yang tidak menutupi gameplay.
+- Mengembalikan tombol Latihan dan Ekspedisi untuk Mode Tamu; keduanya dapat dibuka tanpa login setelah tutorial ditutup.
 - Login tampil sebagai modal saat pengguna memilih Profil, Ruang Orang Tua, atau melanjutkan fitur Premium.
 - Aktivitas pulau hanya dikirim ke registry server untuk pemain yang sudah login; progres tamu tetap lokal di perangkat.
 - Portal admin tetap memakai autentikasi server terpisah. Kontrak game, XP, mastery, kebijakan tanpa musik, dan status draft kurikulum tidak berubah.

@@ -346,6 +346,7 @@ terbukti bermanfaat dan tidak mengorbankan fitur apa pun.
 ## 2026-10-21 - Mode Tamu dan login kontekstual
 
 - Peta 3D dan enam game dasar dapat dicoba tanpa akun.
+- Latihan dan Ekspedisi kembali dimuat untuk pengunjung tamu, sementara Character Picker, insight Orang Tua, dan Tanya Bri tetap menunggu sesi pemain.
 - Login/daftar dipindahkan ke modal kontekstual dari header, Profil, Ruang Orang Tua, dan alur Premium.
 - Pengunjung tamu mendapat banner status yang ringkas; pemain terdaftar tetap memperoleh pencatatan aktivitas lintas perangkat.
-- Modul UI mandiri tetap hanya dimuat setelah login, sedangkan gameplay utama tidak dikunci.
+- Portal admin tetap memakai login username/password terpisah yang diverifikasi server dan tidak dapat diakses melalui sesi tamu.

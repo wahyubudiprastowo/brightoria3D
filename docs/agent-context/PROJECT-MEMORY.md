@@ -1,5 +1,5 @@
 > **Checkpoint 21 Oktober 2026 - Mode Tamu & login lanjutan:** pemain dapat
-> membuka peta dan mencoba game dasar tanpa akun. Login email/password baru
+> membuka peta, mencoba game dasar, Latihan, dan Ekspedisi tanpa akun. Login email/password baru
 > diminta untuk penyimpanan aktivitas akun, Profil, Ruang Orang Tua, dan fitur
 > Premium/lanjutan. Kredensial diverifikasi oleh Vercel Function,
 > password di-hash memakai scrypt, sesi memakai cookie HttpOnly bertanda tangan,

@@ -8,31 +8,50 @@ import './styles.css';
 import './game/kidsUi';
 import './game/juice3d';
 
-let authenticatedModulesLoaded = false;
+let guestModulesPromise: Promise<void> | null = null;
+let authenticatedModulesPromise: Promise<void> | null = null;
 
-async function loadAuthenticatedModules() {
-  if (authenticatedModulesLoaded) return;
-  authenticatedModulesLoaded = true;
+function loadGuestModules(): Promise<void> {
+  if (guestModulesPromise) return guestModulesPromise;
 
-  try {
-    // Modul-modul ini membuat tombol/panel langsung di document.body. Muat
-    // hanya setelah sesi pemain terverifikasi agar layar login dan admin
-    // tidak tertutup UI permainan lama.
-    await import('./game/CharacterPicker');
-    await import('./game/ParentInsight');
+  guestModulesPromise = (async () => {
+    // Latihan dan Ekspedisi adalah bagian dari pengalaman coba gratis.
     await import('./game/DailyPractice');
     await import('./game/expedition/ExpeditionLauncher');
-    await import('./ai/AiCompanion');
     await import('./game/uiPolish');
     await import('./theme/brandHeader');
-    await import('./theme/playerBadge');
     await import('./theme/railButtons');
-    await import('./theme/uiRefine'); // PALING AKHIR: menang bila ada tumpang tindih
-  } catch (error) {
-    authenticatedModulesLoaded = false;
-    console.error('[Brightoria] Modul pemain gagal dimuat:', error);
-  }
+    await import('./theme/uiRefine');
+  })().catch((error) => {
+    guestModulesPromise = null;
+    console.error('[Brightoria] Modul Mode Tamu gagal dimuat:', error);
+  });
+
+  return guestModulesPromise;
 }
+
+function loadAuthenticatedModules(): Promise<void> {
+  if (authenticatedModulesPromise) return authenticatedModulesPromise;
+
+  authenticatedModulesPromise = (async () => {
+    await loadGuestModules();
+    // Modul identitas, insight orang tua, dan pendamping akun tetap dimuat
+    // hanya sesudah sesi pemain terverifikasi.
+    await import('./game/CharacterPicker');
+    await import('./game/ParentInsight');
+    await import('./ai/AiCompanion');
+    await import('./theme/playerBadge');
+  })().catch((error) => {
+    authenticatedModulesPromise = null;
+    console.error('[Brightoria] Modul pemain gagal dimuat:', error);
+  });
+
+  return authenticatedModulesPromise;
+}
+
+window.addEventListener('brightoria:guest-ready', () => {
+  void loadGuestModules();
+});
 
 window.addEventListener('brightoria:player-authenticated', () => {
   void loadAuthenticatedModules();

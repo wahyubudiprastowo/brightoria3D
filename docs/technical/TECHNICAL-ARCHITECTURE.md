@@ -283,8 +283,11 @@ interface World {
   sebagai JSON; verification ID tidak diekspor utuh.
 - Portal admin memakai login server terpisah dan cookie HttpOnly bertanda tangan;
   tidak ada lagi kunci admin di `sessionStorage` atau kredensial di bundle.
-- Modul UI lanjutan yang memasang dirinya ke `document.body` baru dimuat setelah
-  sesi pemain sah; peta dan enam game utama tetap dapat dipakai dalam Mode Tamu.
+- `DailyPractice` dan `ExpeditionLauncher` dimuat dalam Mode Tamu agar tombol
+  Latihan/Ekspedisi tetap tersedia. `CharacterPicker`, `ParentInsight`,
+  `AiCompanion`, dan badge pemain baru dimuat setelah sesi pemain sah.
+- Portal admin tetap memakai autentikasi username/password server yang terpisah
+  dari sesi pemain dan Mode Tamu.
 - Operasi sensitif seperti assign Premium, payment verification, fraud detection,
   password reset, dan audit log belum tersedia. Fitur tersebut harus datang dari
   API terautentikasi dengan RBAC.

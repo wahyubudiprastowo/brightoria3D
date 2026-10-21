@@ -133,8 +133,12 @@ export default function App() {
   useEffect(() => {
     const playerUiLocked = adminOpen || !playerSession;
     document.body.classList.toggle('brightoria-player-ui-locked', playerUiLocked);
+    document.body.classList.toggle('brightoria-admin-ui-locked', adminOpen);
     document.documentElement.dataset.brightoriaAuthenticated = playerSession ? 'true' : 'false';
 
+    if (!adminOpen) {
+      window.dispatchEvent(new Event('brightoria:guest-ready'));
+    }
     if (playerSession && !adminOpen) {
       window.dispatchEvent(new Event('brightoria:player-authenticated'));
     }

@@ -1978,7 +1978,19 @@ body:has(.adventure-shell) .bdp-fab {
 .brightoria-player-ui-locked :is(
   .bcp-overlay,
   .bpi-fab,
+  .bai-fab,
+  [data-brt-rail="ai"],
+  #brightoria-player-badge
+) {
+  display: none !important;
+}
+
+.brightoria-admin-ui-locked :is(
+  .bcp-overlay,
+  .bpi-fab,
+  .bdp-overlay,
   .bdp-fab,
+  .exp-overlay,
   .bexp-fab,
   .bai-fab,
   [data-brt-rail="ai"],
