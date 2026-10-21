@@ -351,3 +351,4 @@ terbukti bermanfaat dan tidak mengorbankan fitur apa pun.
 - Login/daftar dipindahkan ke modal kontekstual dari header, Profil, Ruang Orang Tua, dan alur Premium.
 - Pengunjung tamu mendapat banner status yang ringkas; pemain terdaftar tetap memperoleh pencatatan aktivitas lintas perangkat.
 - Portal admin tetap memakai login username/password terpisah yang diverifikasi server dan tidak dapat diakses melalui sesi tamu.
+- Setiap pembukaan portal admin kini mengakhiri cookie sesi lama terlebih dahulu, sehingga formulir username/password selalu muncul sebelum dashboard.

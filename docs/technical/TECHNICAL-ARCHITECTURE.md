@@ -285,6 +285,8 @@ interface World {
   sebagai JSON; verification ID tidak diekspor utuh.
 - Portal admin memakai login server terpisah dan cookie HttpOnly bertanda tangan;
   tidak ada lagi kunci admin di `sessionStorage` atau kredensial di bundle.
+- Saat portal dibuka, sesi admin lama diakhiri dan gerbang username/password
+  selalu ditampilkan. Sesi baru hanya dibuat setelah kredensial diverifikasi server.
 - `DailyPractice` dan `ExpeditionLauncher` dimuat dalam Mode Tamu agar tombol
   Latihan/Ekspedisi tetap tersedia. `CharacterPicker`, `ParentInsight`,
   `AiCompanion`, dan badge pemain baru dimuat setelah sesi pemain sah.

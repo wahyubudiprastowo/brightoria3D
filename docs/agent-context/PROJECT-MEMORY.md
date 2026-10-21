@@ -6,6 +6,8 @@
 > dan registry akun/aktivitas pulau tersimpan pada private Vercel Blob. Portal
 > `#/admin` memakai autentikasi server terpisah. Google Identity siap di kode
 > tetapi belum aktif tanpa Client ID resmi.
+> Setiap pembukaan portal admin selalu meminta ulang username/password; cookie
+> admin lama diakhiri sebelum dashboard dapat ditampilkan.
 
 > **Akses Iqra 21 Oktober 2026:** Iqra' Jilid 2-6 gratis untuk akun terdaftar.
 > Tamu diarahkan ke Masuk/Daftar, bukan ke modal harga Premium. Tilawah 30 Juz

@@ -367,3 +367,4 @@ Fondasi enam pulau 3D interaktif, landmark prosedural, dokumentasi agent.
 - Login tampil sebagai modal saat pengguna memilih Profil, Ruang Orang Tua, atau melanjutkan fitur Premium.
 - Aktivitas pulau hanya dikirim ke registry server untuk pemain yang sudah login; progres tamu tetap lokal di perangkat.
 - Portal admin tetap memakai autentikasi server terpisah. Kontrak game, XP, mastery, kebijakan tanpa musik, dan status draft kurikulum tidak berubah.
+- Portal admin sekarang mengakhiri sesi admin lama saat dibuka dan selalu menampilkan formulir username/password sebelum dashboard.

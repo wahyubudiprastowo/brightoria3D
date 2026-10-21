@@ -37,6 +37,7 @@
 [BELUM] Validasi resmi tim akademik Bright Academy atas SEMUA konten kurikulum
 [DONE] Frontend Premium gate + modal paket untuk Quran/Arabic/Adab
 [DONE] Portal admin dengan autentikasi server, cookie HttpOnly, dan registry pengguna privat
+[DONE] Gerbang admin meminta ulang username/password setiap portal dibuka
 [DONE] Login pemain email/password serta pencatatan pulau yang dibuka lintas perangkat
 [DONE] Mode Tamu membuka peta, game dasar, Latihan, dan Ekspedisi; login dipindahkan ke fitur akun/lanjutan
 [DONE] Iqra' Jilid 2-6 gratis dengan account gate; Tilawah 30 Juz tetap Premium

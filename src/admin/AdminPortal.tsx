@@ -28,7 +28,6 @@ import {
 } from 'lucide-react';
 import { PREMIUM_PLANS, formatRupiah } from '../subscription/premiumAccess';
 import {
-  checkAdminSession,
   getAdminUsers,
   loginAdmin,
   logoutAdmin,
@@ -391,23 +390,16 @@ export function AdminPortal({ open, onClose }: AdminPortalProps) {
     if (!open) return;
     let active = true;
     setAccessState('checking');
-    checkAdminSession()
-      .then(async (authenticated) => {
+    // Portal admin selalu meminta autentikasi baru saat dibuka. Cookie lama
+    // diakhiri lebih dulu agar tombol "Masuk sebagai admin" tidak pernah
+    // langsung melewati formulir username/password.
+    logoutAdmin()
+      .catch(() => undefined)
+      .finally(() => {
         if (!active) return;
-        setAccessState(authenticated ? 'unlocked' : 'locked');
-        if (authenticated) {
-          setUsersLoading(true);
-          try {
-            const nextUsers = await getAdminUsers();
-            if (active) setUsers(nextUsers);
-          } catch {
-            if (active) setNotice('Registry pengguna belum dapat dimuat.');
-          } finally {
-            if (active) setUsersLoading(false);
-          }
-        }
-      })
-      .catch(() => { if (active) setAccessState('locked'); });
+        setUsers([]);
+        setAccessState('locked');
+      });
     return () => { active = false; };
   }, [open]);
 
@@ -486,7 +478,7 @@ export function AdminPortal({ open, onClose }: AdminPortalProps) {
             <button type="submit" className="admin-entry-button" disabled={loginBusy}><KeyRound /> {loginBusy ? 'Memverifikasi...' : 'Masuk ke Pusat Kendali'}</button>
           </form>
           <div className="admin-entry-warning"><ShieldCheck /><span><b>Dilindungi server.</b> Kredensial tidak disimpan di browser dan sesi admin memakai cookie HttpOnly.</span></div>
-          <small>Direct link: #/admin / Sesi berakhir otomatis setelah 8 jam</small>
+          <small>Direct link: #/admin / Login ulang diwajibkan setiap portal dibuka</small>
         </section>
       </div>
     );

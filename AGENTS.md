@@ -88,6 +88,7 @@ saat diagnosis.
 [ADA] Juice kit: src/game/juice.tsx — confetti, streak, count-up, punch
 [ADA] Sound effects synthesizer: src/game/sound.ts (Web Audio API, SFX pendek, non-loop)
 [ADA] Portal admin terlindungi: rute #/admin, login server, cookie HttpOnly, registry pengguna privat, dan ekspor JSON
+[ADA] Portal admin selalu mengakhiri sesi lama dan meminta ulang username/password saat dibuka
 [ADA] Mode Tamu untuk peta/game dasar/Latihan/Ekspedisi + login email/password saat fitur akun, penyimpanan, Profil, atau Orang Tua dibuka
 [ADA] Iqra' Jilid 2-6 gratis setelah login/daftar; Tilawah 30 Juz tetap Premium
 [ADA] AppErrorBoundary tingkat aplikasi
