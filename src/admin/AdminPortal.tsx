@@ -13,6 +13,8 @@ import {
   Crown,
   Database,
   Download,
+  Eye,
+  EyeOff,
   FileText,
   KeyRound,
   LockKeyhole,
@@ -367,6 +369,7 @@ export function AdminPortal({ open, onClose }: AdminPortalProps) {
   const [accessState, setAccessState] = useState<'checking' | 'locked' | 'unlocked'>('checking');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [users, setUsers] = useState<AdminUserRecord[]>([]);
@@ -390,6 +393,9 @@ export function AdminPortal({ open, onClose }: AdminPortalProps) {
     if (!open) return;
     let active = true;
     setAccessState('checking');
+    setPassword('');
+    setShowPassword(false);
+    setLoginError(null);
     // Portal admin selalu meminta autentikasi baru saat dibuka. Cookie lama
     // diakhiri lebih dulu agar tombol "Masuk sebagai admin" tidak pernah
     // langsung melewati formulir username/password.
@@ -437,6 +443,7 @@ export function AdminPortal({ open, onClose }: AdminPortalProps) {
       await loginAdmin(username, password);
       setAccessState('unlocked');
       setPassword('');
+      setShowPassword(false);
       setSnapshot(readAdminSnapshot());
       setUsersLoading(true);
       try { setUsers(await getAdminUsers()); }
@@ -473,7 +480,7 @@ export function AdminPortal({ open, onClose }: AdminPortalProps) {
           <p>Masukkan akun pengelola resmi untuk membuka data pengguna dan aktivitas Brightoria.</p>
           <form className="admin-login-form" onSubmit={unlock}>
             <label><span>Username admin</span><div><UserCheck /><input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" required /></div></label>
-            <label><span>Password admin</span><div><KeyRound /><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required /></div></label>
+            <label><span>Password admin</span><div><KeyRound /><input type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required /><button type="button" className="admin-login-password-toggle" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Sembunyikan password admin' : 'Tampilkan password admin'} title={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}>{showPassword ? <EyeOff /> : <Eye />}</button></div></label>
             {loginError && <div className="admin-login-error" role="alert">{loginError}</div>}
             <button type="submit" className="admin-entry-button" disabled={loginBusy}><KeyRound /> {loginBusy ? 'Memverifikasi...' : 'Masuk ke Pusat Kendali'}</button>
           </form>

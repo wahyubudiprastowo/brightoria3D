@@ -1407,6 +1407,10 @@ body:has(.adventure-shell) .bdp-fab {
 .admin-login-form label > div:focus-within { border-color: #2a907d; box-shadow: 0 0 0 3px #2a907d1a; }
 .admin-login-form svg { width: 16px; color: #617871; }
 .admin-login-form input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: #23483f; font: inherit; font-size: 11px; }
+.admin-login-password-toggle { width: 32px; height: 32px; flex: 0 0 auto; display: grid; place-items: center; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #4e6d65; cursor: pointer; }
+.admin-login-password-toggle:hover { background: #e6f0ed; color: #0e6558; }
+.admin-login-password-toggle:focus-visible { outline: 2px solid #2a907d; outline-offset: 1px; }
+.admin-login-password-toggle svg { width: 17px; height: 17px; }
 .admin-login-error { padding: 9px 10px; border: 1px solid #e9afbe; border-radius: 7px; background: #fff1f4; color: #98213e; font-size: 9px; line-height: 1.4; }
 .admin-entry-button:disabled { opacity: .62; cursor: wait; }
 .admin-entry-loading > svg { width: 42px; color: #146858; animation: admin-spin 1.4s linear infinite; }

@@ -352,3 +352,4 @@ terbukti bermanfaat dan tidak mengorbankan fitur apa pun.
 - Pengunjung tamu mendapat banner status yang ringkas; pemain terdaftar tetap memperoleh pencatatan aktivitas lintas perangkat.
 - Portal admin tetap memakai login username/password terpisah yang diverifikasi server dan tidak dapat diakses melalui sesi tamu.
 - Setiap pembukaan portal admin kini mengakhiri cookie sesi lama terlebih dahulu, sehingga formulir username/password selalu muncul sebelum dashboard.
+- Form admin mendapat kontrol mata untuk memeriksa password. Untuk autentikasi lokal, `npm run dev:full` menjalankan Vercel Dev agar endpoint `/api` ikut aktif; `dev.bat` juga memakai mode lengkap ini.

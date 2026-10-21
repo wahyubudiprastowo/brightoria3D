@@ -8,6 +8,8 @@
 > tetapi belum aktif tanpa Client ID resmi.
 > Setiap pembukaan portal admin selalu meminta ulang username/password; cookie
 > admin lama diakhiri sebelum dashboard dapat ditampilkan.
+> `npm run dev:full` menjalankan Vercel Dev pada port 5174 agar API login
+> tersedia; `npm run dev` hanya untuk inspeksi UI tanpa autentikasi.
 
 > **Akses Iqra 21 Oktober 2026:** Iqra' Jilid 2-6 gratis untuk akun terdaftar.
 > Tamu diarahkan ke Masuk/Daftar, bukan ke modal harga Premium. Tilawah 30 Juz

@@ -287,6 +287,9 @@ interface World {
   tidak ada lagi kunci admin di `sessionStorage` atau kredensial di bundle.
 - Saat portal dibuka, sesi admin lama diakhiri dan gerbang username/password
   selalu ditampilkan. Sesi baru hanya dibuat setelah kredensial diverifikasi server.
+- Form admin menyediakan kontrol tampil/sembunyikan password. Pengembangan lokal
+  yang memerlukan autentikasi harus memakai `npm run dev:full` (Vercel Dev +
+  Vite); `npm run dev` hanya menyediakan frontend dan tidak melayani `/api`.
 - `DailyPractice` dan `ExpeditionLauncher` dimuat dalam Mode Tamu agar tombol
   Latihan/Ekspedisi tetap tersedia. `CharacterPicker`, `ParentInsight`,
   `AiCompanion`, dan badge pemain baru dimuat setelah sesi pemain sah.

@@ -26,11 +26,24 @@ interface ApiPayload {
 }
 
 async function apiRequest(path: string, init?: RequestInit): Promise<ApiPayload> {
-  const response = await fetch(path, {
-    credentials: 'same-origin',
-    ...init,
-    headers: init?.body ? { 'content-type': 'application/json', ...init.headers } : init?.headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      credentials: 'same-origin',
+      ...init,
+      headers: init?.body ? { 'content-type': 'application/json', ...init.headers } : init?.headers,
+    });
+  } catch {
+    throw new Error('Server akun tidak dapat dijangkau. Jalankan ulang aplikasi dengan npm run dev:full.');
+  }
+
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) {
+    throw new Error(import.meta.env.DEV
+      ? 'API login tidak aktif pada server lokal. Hentikan server lama lalu jalankan npm run dev:full.'
+      : `Layanan akun memberi respons yang tidak valid (HTTP ${response.status}).`);
+  }
+
   const payload = await response.json().catch(() => ({})) as ApiPayload;
   if (!response.ok) throw new Error(payload.error || 'Layanan Brightoria belum dapat dihubungi.');
   return payload;
