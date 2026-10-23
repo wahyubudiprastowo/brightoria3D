@@ -250,6 +250,15 @@ diminta Masuk/Daftar, tetapi tidak memilih paket atau melakukan pembayaran.
 `Tilawah 30 Juz` tetap dikunci oleh Premium gate. Materi free trial tetap dapat
 dibuka tanpa akun dan tanpa pembelian.
 
+Patch 23 Oktober 2026 mengganti placeholder Jilid 2-6 dengan reader lengkap
+dari repository referensi. Jilid 2, 3, 4, 5, dan 6 masing-masing memiliki 30
+halaman (150 halaman lanjutan; 182 halaman jika digabung dengan Jilid 1).
+Setiap jilid memiliki tab dan progres lokal tersendiri, navigasi halaman/lintas
+jilid, serta audio contoh berbasis Web Speech API ketika blok Arab diketuk.
+Urutan fokusnya adalah huruf sambung dan mad; kasrah/dhammah; tanwin, sukun,
+dan qalqalah; alif lam/tasydid/bacaan mushaf; lalu tajwid, waqaf, gharib, dan
+latihan tartil. Tampilan reader telah diverifikasi pada desktop dan mobile.
+
 Materi tetap draft hingga divalidasi tim tahsin/tahfidz Bright Academy.
 
 ---

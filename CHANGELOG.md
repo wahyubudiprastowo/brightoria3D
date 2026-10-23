@@ -1,3 +1,12 @@
+## 2026-10-23 - Iqra Jilid 2-6 lengkap
+
+- Mengintegrasikan dataset Iqra' Jilid 2, 3, 4, 5, dan 6 dari repository referensi pengguna; setiap jilid berisi 30 halaman, sehingga tersedia 150 halaman lanjutan dan 182 halaman total bersama Jilid 1.
+- Mengubah kartu `Iqra' Jilid 2-6` agar langsung membuka reader nyata pada Jilid 2 setelah account gate berhasil.
+- Menambahkan tab enam jilid, navigasi halaman/lintas jilid, audio ketuk TTS Arab, progres lokal terpisah per jilid, serta status selesai halaman.
+- Mempertahankan Jilid 1 sebagai akses tamu dan Jilid 2-6 sebagai fitur gratis setelah login/daftar; tidak ada checkout Premium untuk Iqra 2-6.
+- Memperbaiki layout reader desktop/mobile agar header materi dan blok bacaan tidak terpotong pada viewport sempit.
+- Tidak ada dependency atau musik latar baru. Seluruh materi Iqra tetap draft hingga divalidasi tim tahsin/tahfidz Bright Academy.
+
 ## 2026-10-19 - Portal Admin lokal Brightoria
 
 - Menambahkan portal admin responsif yang dapat dibuka dari Ruang Orang Tua, rute `#/admin`, atau pintasan `Ctrl+Shift+A`.

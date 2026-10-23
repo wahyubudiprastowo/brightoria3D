@@ -14,7 +14,7 @@ import { isArabicTtsAvailable, speakArabic } from './quranTts';
 import { Confetti } from '../juice';
 import { sfx } from '../sound';
 import { quranItemsByIsland, type QuranPathItem } from './quranAdventureContent';
-import { IqraReader, Juz30Reader } from './QuranReaders';
+import { IqraReader, Juz30Reader, type IqraJilid } from './QuranReaders';
 import { getRecitationUrl } from './quranReaderData';
 import { QuranMemoryArena, QURAN_MEMORY_CSS } from './QuranMemoryArena';
 import { PremiumUpgradeModal } from '../../subscription/PremiumUpgradeModal';
@@ -1058,6 +1058,7 @@ export default function QuranGame({
   const [evidence, setEvidence] = useState<HijaiyahEvidence>(() => loadEvidence());
   const [activeLetterId, setActiveLetterId] = useState<string | null>(null);
   const [activePathId, setActivePathId] = useState<string | null>(null);
+  const [iqraInitialJilid, setIqraInitialJilid] = useState<IqraJilid>(1);
   const [accountActive, setAccountActive] = useState(
     () => document.documentElement.dataset.brightoriaAuthenticated === 'true',
   );
@@ -1132,6 +1133,12 @@ export default function QuranGame({
     }
     setActivePathId(item.id);
     if (item.id === 'iqra-1-free') {
+      setIqraInitialJilid(1);
+      setView('iqraReader');
+      return;
+    }
+    if (item.id === 'iqra-2-6-account') {
+      setIqraInitialJilid(2);
       setView('iqraReader');
       return;
     }
@@ -1162,7 +1169,7 @@ export default function QuranGame({
               {view === 'garden' && 'Taman Pixel Juz 30'}
               {view === 'memoryArena' && "Arena Hafalan Qur'an"}
               {view === 'pathDetail' && (activePathItem?.title ?? 'Jalur Materi Qur\'an')}
-              {view === 'iqraReader' && "Iqra' Jilid 1"}
+              {view === 'iqraReader' && "Iqra' Jilid 1-6"}
               {view === 'juz30Reader' && 'Mushaf Juz 30'}
             </h2>
           </div>
@@ -1290,7 +1297,14 @@ export default function QuranGame({
           <QuranPathDetail item={activePathItem} onBack={backToMap} />
         )}
 
-        {view === 'iqraReader' && <IqraReader onBack={backToMap} />}
+        {view === 'iqraReader' && (
+          <IqraReader
+            onBack={backToMap}
+            initialJilid={iqraInitialJilid}
+            accountActive={accountActive}
+            onRequireAccount={() => window.dispatchEvent(new CustomEvent('brightoria:request-auth', { detail: { mode: 'register' } }))}
+          />
+        )}
 
         {view === 'juz30Reader' && <Juz30Reader onBack={backToMap} />}
 

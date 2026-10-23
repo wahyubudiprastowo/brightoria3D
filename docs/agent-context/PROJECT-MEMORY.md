@@ -1,3 +1,9 @@
+> **Checkpoint 23 Oktober 2026 - Iqra lengkap:** dataset Iqra' Jilid 2-6
+> dari repository referensi sudah diintegrasikan sebagai lima buku berisi
+> masing-masing 30 halaman. Bersama Jilid 1, reader kini memiliki 182 halaman,
+> audio ketuk, navigasi lintas jilid, dan progres lokal per jilid. Jilid 2-6
+> tetap gratis setelah login/daftar dan seluruh konten masih draft akademik.
+
 > **Checkpoint 21 Oktober 2026 - Mode Tamu & login lanjutan:** pemain dapat
 > membuka peta, mencoba game dasar, Latihan, dan Ekspedisi tanpa akun. Login email/password baru
 > diminta untuk penyimpanan aktivitas akun, Profil, Ruang Orang Tua, dan fitur
@@ -15,7 +21,7 @@
 > Fitur tanpa backend seperti transaksi, fraud, afiliasi, dan audit server tidak
 > lagi dipresentasikan sebagai modul operasional.
 
-> **Akses Iqra 21 Oktober 2026:** Iqra' Jilid 2-6 gratis untuk akun terdaftar.
+> **Akses Iqra 23 Oktober 2026:** Iqra' Jilid 2-6 berisi 150 halaman nyata dan gratis untuk akun terdaftar.
 > Tamu diarahkan ke Masuk/Daftar, bukan ke modal harga Premium. Tilawah 30 Juz
 > tetap Premium.
 

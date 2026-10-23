@@ -7,11 +7,17 @@ import {
   CircleStop,
   Headphones,
   LoaderCircle,
+  Lock,
   Pause,
   Search,
   Volume2,
 } from 'lucide-react';
 import { IQRA_1_PAGES } from './iqraBook1Data';
+import { IQRA_2_PAGES } from './iqraBook2Data';
+import { IQRA_3_PAGES } from './iqraBook3Data';
+import { IQRA_4_PAGES } from './iqraBook4Data';
+import { IQRA_5_PAGES } from './iqraBook5Data';
+import { IQRA_6_PAGES } from './iqraBook6Data';
 import { speakArabic } from './quranTts';
 import {
   getAyahAudioUrl,
@@ -21,11 +27,34 @@ import {
   type QuranAyah,
 } from './quranReaderData';
 
-const IQRA_PROGRESS_KEY = 'brightoria.quran.iqra1.pages.v1';
 const JUZ30_PROGRESS_KEY = 'brightoria.quran.juz30.reader.v1';
 
+export type IqraJilid = 1 | 2 | 3 | 4 | 5 | 6;
+
+const IQRA_BOOKS = {
+  1: IQRA_1_PAGES,
+  2: IQRA_2_PAGES,
+  3: IQRA_3_PAGES,
+  4: IQRA_4_PAGES,
+  5: IQRA_5_PAGES,
+  6: IQRA_6_PAGES,
+} as const;
+
+const IQRA_BOOK_DESCRIPTIONS: Record<IqraJilid, string> = {
+  1: 'Huruf hijaiyah tunggal dan fathah dasar',
+  2: 'Huruf sambung dan bacaan panjang fathah',
+  3: 'Kasrah, dhammah, dan mad ya/wau',
+  4: 'Tanwin, sukun, qalqalah, dan latihan sambungan',
+  5: 'Alif lam, tasydid, mad, dan bacaan mushaf',
+  6: 'Tajwid dasar, tanda waqaf, gharib, dan tartil',
+};
+
+function iqraProgressKey(jilid: IqraJilid) {
+  return `brightoria.quran.iqra${jilid}.pages.v1`;
+}
+
 const READER_CSS = `
-.quran-full-reader { display:grid; gap:12px; color:#17403a; min-height:0; }
+.quran-full-reader { display:grid; gap:12px; color:#17403a; min-height:0; flex:0 0 auto; }
 .quran-reader-toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; padding:12px; border:1px solid #cdeadf; border-radius:16px; background:linear-gradient(135deg,#f6fff9,#fff7df); }
 .quran-reader-toolbar h3 { margin:0; font-size:18px; }
 .quran-reader-toolbar p { margin:3px 0 0; color:#55736b; font-size:11px; }
@@ -63,12 +92,18 @@ const READER_CSS = `
 .quran-ayah-latin { margin-top:6px; color:#4f6d65; font-size:11px; line-height:1.45; }
 .quran-ayah-meaning { margin-top:5px; color:#745f45; font-size:11px; line-height:1.45; }
 .quran-ayah-play { flex:0 0 auto; width:34px; height:34px; padding:0; border-radius:50%; }
+.iqra-book-tabs { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:7px; padding:4px; }
+.iqra-book-tab { min-height:50px; border:1px solid #cdeadf; border-radius:12px; background:#fff; color:#17403a; cursor:pointer; font:inherit; font-size:11px; font-weight:900; display:flex; align-items:center; justify-content:center; gap:5px; }
+.iqra-book-tab:hover,.iqra-book-tab.active { border-color:#17856f; background:#eaf8f1; }
+.iqra-book-tab.active { color:#fff; background:#17856f; }
+.iqra-book-tab.locked { color:#856f45; background:#fff8e8; border-color:#ead5a5; }
+.iqra-book-access-note { margin:0; padding:8px 11px; border:1px solid #efdfba; border-radius:11px; background:#fff8e8; color:#735a2d; font-size:10px; line-height:1.45; }
 .iqra-page-tabs { display:flex; flex-wrap:wrap; gap:6px; max-height:130px; overflow:auto; padding:3px; }
 .iqra-page-tab { width:38px; height:34px; border:1px solid #cdeadf; border-radius:10px; background:#fff; color:#17403a; cursor:pointer; font-weight:900; }
 .iqra-page-tab.active { background:#17856f; color:#fff; border-color:#17856f; }
 .iqra-page-tab.done:not(.active) { background:#e4f5ec; color:#126153; }
-.iqra-book-page { display:grid; gap:12px; }
-.iqra-page-heading { text-align:center; border-bottom:1px solid #dceee7; padding-bottom:12px; }
+.iqra-book-page { display:grid; gap:12px; min-height:min(440px,58vh); }
+.iqra-page-heading { position:static !important; z-index:auto; display:grid !important; grid-template-columns:minmax(0,1fr); justify-items:center; align-items:initial; gap:4px; width:100%; height:auto !important; min-height:0; padding:0 0 12px !important; text-align:center; border:0; border-bottom:1px solid #dceee7; background:transparent; backdrop-filter:none; }
 .iqra-page-heading h3 { margin:0 0 4px; font-size:19px; }
 .iqra-page-heading p { margin:0; color:#59756e; font-size:11px; line-height:1.45; }
 .iqra-preview { margin-top:10px; font-family:'Noto Naskh Arabic','Amiri',serif; direction:rtl; font-size:30px; color:#17403a; }
@@ -78,7 +113,7 @@ const READER_CSS = `
 .iqra-item:hover { border-color:#58bea5; background:#f2fbf6; }
 .iqra-item.red { color:#b44735; }
 .iqra-page-nav { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-top:4px; }
-@media (max-width:760px) { .quran-reader-layout{grid-template-columns:1fr}.quran-reader-sidebar{max-height:210px}.quran-reader-content{max-height:none}.quran-ayah-text{font-size:22px}.iqra-item{min-width:88px;font-size:22px} }
+@media (max-width:760px) { .quran-reader-layout{grid-template-columns:1fr}.quran-reader-sidebar{max-height:210px}.quran-reader-content{max-height:none}.quran-ayah-text{font-size:22px}.iqra-item{min-width:88px;font-size:22px}.iqra-book-tabs{grid-template-columns:repeat(3,minmax(0,1fr))} }
 `;
 
 function loadDone(key: string): string[] {
@@ -99,17 +134,72 @@ function saveDone(key: string, values: string[]) {
   }
 }
 
-export function IqraReader({ onBack }: { onBack: () => void }) {
+function speakIqra(text: string) {
+  let clean = text.replace(/[〇۝○]/g, ' ').trim();
+  const transformation = clean.split(/=|->|➡/).map((part) => part.trim()).filter(Boolean);
+  if (transformation.length > 1) clean = transformation[transformation.length - 1];
+  const namedLetter = clean.split(':').map((part) => part.trim()).filter(Boolean);
+  if (namedLetter.length > 1) clean = namedLetter[namedLetter.length - 1];
+  void speakArabic(clean.replace(/\|/g, ' ').replace(/\s+/g, ' ').trim());
+}
+
+export function IqraReader({
+  onBack,
+  initialJilid = 1,
+  accountActive,
+  onRequireAccount,
+}: {
+  onBack: () => void;
+  initialJilid?: IqraJilid;
+  accountActive: boolean;
+  onRequireAccount: () => void;
+}) {
+  const [activeJilid, setActiveJilid] = useState<IqraJilid>(initialJilid);
   const [pageIndex, setPageIndex] = useState(0);
-  const [completed, setCompleted] = useState<string[]>(() => loadDone(IQRA_PROGRESS_KEY));
-  const page = IQRA_1_PAGES[pageIndex];
+  const [completed, setCompleted] = useState<string[]>(() => loadDone(iqraProgressKey(initialJilid)));
+  const pages = IQRA_BOOKS[activeJilid];
+  const page = pages[pageIndex];
   const pageDone = completed.includes(page.id);
+
+  function selectJilid(jilid: IqraJilid) {
+    if (jilid > 1 && !accountActive) {
+      onRequireAccount();
+      return;
+    }
+    setActiveJilid(jilid);
+    setPageIndex(0);
+    setCompleted(loadDone(iqraProgressKey(jilid)));
+  }
 
   function markPageDone() {
     if (pageDone) return;
     const next = [...completed, page.id];
     setCompleted(next);
-    saveDone(IQRA_PROGRESS_KEY, next);
+    saveDone(iqraProgressKey(activeJilid), next);
+  }
+
+  function goPrevious() {
+    if (pageIndex > 0) {
+      setPageIndex((value) => value - 1);
+      return;
+    }
+    if (activeJilid > 1) {
+      const previousJilid = (activeJilid - 1) as IqraJilid;
+      const previousPages = IQRA_BOOKS[previousJilid];
+      setActiveJilid(previousJilid);
+      setCompleted(loadDone(iqraProgressKey(previousJilid)));
+      setPageIndex(previousPages.length - 1);
+    }
+  }
+
+  function goNext() {
+    if (pageIndex < pages.length - 1) {
+      setPageIndex((value) => value + 1);
+      return;
+    }
+    if (activeJilid < 6) {
+      selectJilid((activeJilid + 1) as IqraJilid);
+    }
   }
 
   return (
@@ -117,14 +207,37 @@ export function IqraReader({ onBack }: { onBack: () => void }) {
       <style>{READER_CSS}</style>
       <div className="quran-reader-toolbar">
         <div>
-          <h3>Iqra' Jilid 1 Lengkap</h3>
-          <p>{IQRA_1_PAGES.length} halaman latihan huruf dan fathah. Ketuk bacaan untuk mendengar contoh pelafalan.</p>
+          <h3>Iqra' Jilid {activeJilid} Lengkap</h3>
+          <p>{pages.length} halaman {IQRA_BOOK_DESCRIPTIONS[activeJilid].toLowerCase()}. Ketuk setiap bacaan untuk mendengar contoh.</p>
         </div>
-        <span className="quran-reader-stat"><Check size={14} /> {completed.length}/{IQRA_1_PAGES.length} halaman</span>
+        <span className="quran-reader-stat"><Check size={14} /> {completed.length}/{pages.length} halaman</span>
       </div>
 
+      <div className="iqra-book-tabs" aria-label="Pilih jilid Iqra">
+        {([1, 2, 3, 4, 5, 6] as IqraJilid[]).map((jilid) => {
+          const locked = jilid > 1 && !accountActive;
+          return (
+            <button
+              type="button"
+              key={jilid}
+              className={'iqra-book-tab' + (activeJilid === jilid ? ' active' : '') + (locked ? ' locked' : '')}
+              onClick={() => selectJilid(jilid)}
+              aria-label={locked ? `Iqra Jilid ${jilid}, masuk atau daftar gratis untuk membuka` : `Buka Iqra Jilid ${jilid}`}
+            >
+              {locked && <Lock size={13} />} Jilid {jilid}
+            </button>
+          );
+        })}
+      </div>
+
+      {!accountActive && (
+        <p className="iqra-book-access-note">
+          Jilid 1 dapat dicoba sebagai tamu. Masuk atau daftar gratis untuk membuka seluruh 150 halaman Jilid 2-6 dan menyimpan progres belajar.
+        </p>
+      )}
+
       <div className="iqra-page-tabs" aria-label="Pilih halaman Iqra">
-        {IQRA_1_PAGES.map((item, index) => (
+        {pages.map((item, index) => (
           <button
             type="button"
             key={item.id}
@@ -152,7 +265,7 @@ export function IqraReader({ onBack }: { onBack: () => void }) {
                   type="button"
                   className={'iqra-item' + (item.isRed ? ' red' : '')}
                   key={`${page.id}-${rowIndex}-${itemIndex}`}
-                  onClick={() => speakArabic(item.arabic)}
+                  onClick={() => speakIqra(item.arabic)}
                   title="Dengarkan contoh"
                 >
                   {item.arabic}
@@ -163,17 +276,18 @@ export function IqraReader({ onBack }: { onBack: () => void }) {
           ))}
         </div>
         <div className="iqra-page-nav">
-          <button type="button" className="quran-audio-btn" onClick={() => setPageIndex((value) => Math.max(0, value - 1))} disabled={pageIndex === 0}>
+          <button type="button" className="quran-audio-btn" onClick={goPrevious} disabled={activeJilid === 1 && pageIndex === 0}>
             <ChevronLeft size={15} /> Sebelumnya
           </button>
           <button type="button" className={'quran-audio-btn ' + (pageDone ? '' : 'primary')} onClick={markPageDone} disabled={pageDone}>
             <Check size={15} /> {pageDone ? 'Sudah dipelajari' : 'Tandai selesai'}
           </button>
-          <button type="button" className="quran-audio-btn" onClick={() => setPageIndex((value) => Math.min(IQRA_1_PAGES.length - 1, value + 1))} disabled={pageIndex === IQRA_1_PAGES.length - 1}>
-            Berikutnya <ChevronRight size={15} />
+          <button type="button" className="quran-audio-btn" onClick={goNext} disabled={activeJilid === 6 && pageIndex === pages.length - 1}>
+            {pageIndex === pages.length - 1 && activeJilid < 6 ? `Lanjut Jilid ${activeJilid + 1}` : 'Berikutnya'} <ChevronRight size={15} />
           </button>
         </div>
       </section>
+      <p className="quran-audio-note">Materi Iqra ini masih berstatus draft dan perlu ditinjau tim tahsin/tahfidz Bright Academy sebelum digunakan sebagai kurikulum resmi.</p>
       <button type="button" className="quran-audio-btn" onClick={onBack}><ChevronLeft size={15} /> Kembali ke jalur materi</button>
     </div>
   );

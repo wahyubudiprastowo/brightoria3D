@@ -59,7 +59,7 @@ export const quranPathItems: QuranPathItem[] = [
     ],
   },
   {
-    id: 'iqra-2-6-account', island: 'quran', tier: 'account', title: "Iqra' Jilid 2-6", subtitle: 'Kasrah, dhammah, tanwin, mad, waqaf, dan gharib', badge: 'Gratis dengan Akun', focus: 'Latihan bertahap dari harakat i/u sampai hukum nun sukun, tanda waqaf, dan persiapan mushaf.', sample: 'بِ - بُ - بًا - بَا - مَنْ آمَنَ', sourceNote: "Materi gratis lanjutan untuk pemain yang sudah masuk atau mendaftar akun Brightoria.", cta: 'Buka materi Iqra',
+    id: 'iqra-2-6-account', island: 'quran', tier: 'account', title: "Iqra' Jilid 2-6", subtitle: '150 halaman sambung, harakat, tajwid, waqaf, dan tartil', badge: 'Gratis dengan Akun', focus: 'Lima jilid lengkap, masing-masing 30 halaman, dari huruf sambung dan mad sampai tajwid dasar, tanda waqaf, gharib, serta persiapan membaca mushaf.', sample: 'بِ - بُ - بًا - بَا - مَنْ آمَنَ', sourceNote: "Diadaptasi dari struktur Iqra' Jilid 2-6 pada repo Qur'an Learning Adventure dan tersedia gratis bagi pemain yang sudah masuk atau mendaftar.", cta: 'Buka 150 halaman Iqra',
     lessons: [
       { id: 'iqra-2-kasrah', title: 'Kasrah dan dhammah', arabic: 'بِ بُ تِ تُ', latin: 'bi, bu, ti, tu', meaning: 'Mengenal bunyi pendek i dan u.', note: 'Materi lanjutan gratis untuk mengenali harakat secara bertahap setelah masuk ke akun.', practice: 'Baca pasangan bi-bu, ti-tu, lalu bedakan posisi tanda harakatnya.' },
       { id: 'iqra-4-mad', title: 'Mad pendek-panjang', arabic: 'بَ - بَا', latin: 'ba - baa', meaning: 'Membedakan bunyi pendek dan panjang.', note: 'Anak mulai belajar tidak semua huruf dibaca dengan durasi sama.', practice: 'Tepuk satu kali untuk ba pendek, dua kali untuk baa panjang.' },

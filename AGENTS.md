@@ -1,5 +1,11 @@
 # AGENTS.md — Mandatory Operating Contract (Updated Audit & Modernization)
 
+> **Checkpoint 23 Oktober 2026 — Iqra lengkap:** pembaca Iqra kini memuat
+> Jilid 1 (32 halaman) serta Jilid 2-6 (masing-masing 30 halaman; total 182
+> halaman). Jilid 2-6 gratis setelah login/daftar, memiliki tab jilid,
+> navigasi halaman, audio ketuk via TTS, dan progres lokal terpisah per jilid.
+> Seluruh isi tetap draft sampai divalidasi tim tahsin/tahfidz Bright Academy.
+
 > **Checkpoint 21 Oktober 2026 — Mode Tamu & autentikasi lanjutan:** peta dan
 > game dasar dapat dicoba tanpa login. Login email/password memakai Vercel Functions,
 > hash `scrypt`, cookie HttpOnly bertanda tangan, dan record privat Vercel Blob.
@@ -92,9 +98,9 @@ saat diagnosis.
 [ADA] Tombol mata password admin + `npm run dev:full` menjalankan Vercel Dev/API lokal
 [ADA] Portal admin faktual: ringkasan, registry pengguna, aktivitas pulau, inventaris materi/game, akses, status sistem, draft info, dan laporan; tanpa tab transaksi/afiliasi palsu
 [ADA] Mode Tamu untuk peta/game dasar/Latihan/Ekspedisi + login email/password saat fitur akun, penyimpanan, Profil, atau Orang Tua dibuka
-[ADA] Iqra' Jilid 2-6 gratis setelah login/daftar; Tilawah 30 Juz tetap Premium
+[ADA] Reader Iqra' 1-6 berisi 182 halaman (32 + 5x30), audio ketuk, dan progres per jilid; Jilid 2-6 gratis setelah login/daftar
 [ADA] AppErrorBoundary tingkat aplikasi
-[ADA] Chunk vendor terpisah; audit 2026-09-20: three ~1.175 MB, lucide ~13 KB, app ~486 KB (sebelum gzip)
+[ADA] Chunk vendor terpisah; build 2026-10-23: three ~1.175 MB, lucide ~24,7 KB, app ~736 KB (sebelum gzip)
 [CATATAN] Masih ada file .bak dan skrip patch lama; jangan menganggap seluruh repo bebas artefak
 [BELUM] Aktivasi Google OAuth, payment/entitlement server, reset password, 2FA, audit admin, integrasi meeting, test otomatis CI/CD
 [BELUM] Build Android Capacitor yang sudah dites end-to-end pada perangkat fisik

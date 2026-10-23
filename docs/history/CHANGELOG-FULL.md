@@ -1,3 +1,13 @@
+## 2026-10-23 - Iqra Jilid 2-6 lengkap
+
+- Menyalin dataset sumber Iqra' Jilid 2-6 yang diminta pengguna dari repository `Qur-an-Learning-Adventure-Platform` ke modul Quran Brightoria.
+- Menambahkan lima file data baru dengan 30 halaman per jilid dan menghubungkannya ke `QuranReaders.tsx`.
+- Reader kini menyediakan tab Jilid 1-6, 182 halaman total, progres localStorage per jilid, perpindahan lintas jilid, dan audio TTS saat bacaan diketuk.
+- Account gate tetap berlaku hanya untuk Jilid 2-6: tamu dapat mencoba Jilid 1, sedangkan login/daftar gratis membuka 150 halaman lanjutan tanpa Premium checkout.
+- Kartu jalur Quran kini menyatakan jumlah halaman faktual dan langsung membuka reader, bukan detail placeholder dua lesson.
+- Memperbaiki reset CSS elemen `header` di dalam halaman Iqra agar aturan header global tidak merusak layout mobile.
+- Diverifikasi melalui typecheck, production build, inspeksi browser desktop, dan emulasi mobile 390x844. Semua materi tetap draft akademik.
+
 ## 2026-10-19 - Portal Admin lokal Brightoria
 
 - Menambahkan `src/admin/AdminPortal.tsx` sebagai dashboard fullscreen yang mengikuti tampilan operasional Brightoria tanpa menyalin data pengguna, pembayaran, atau peringatan palsu dari repository referensi.

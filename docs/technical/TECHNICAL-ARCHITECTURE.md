@@ -269,6 +269,19 @@ interface World {
   batas keamanan server. Produksi wajib memindahkan materi berbayar ke API
   terautentikasi dan menerbitkan entitlement dari server setelah transaksi sah.
 
+## Reader Iqra 1-6 (23 Oktober 2026)
+
+- `QuranReaders.tsx` menggabungkan `iqraBook1Data.ts` sampai
+  `iqraBook6Data.ts` dalam satu reader responsif tanpa dependency baru.
+- Jilid 1 memiliki 32 halaman; Jilid 2-6 masing-masing 30 halaman. Progress
+  disimpan terpisah pada `brightoria.quran.iqra{jilid}.pages.v1`.
+- `QuranGame.tsx` membuka reader pada Jilid 1 dari kartu Free Trial dan pada
+  Jilid 2 dari kartu account-gated. Tamu yang memilih tab Jilid 2-6 memicu
+  modal Masuk/Daftar; akun aktif dapat berpindah bebas di semua jilid.
+- Blok bacaan memanggil TTS Arab existing setelah tindakan pengguna. Ini audio
+  contoh perangkat, bukan rekaman guru/qari tersertifikasi dan bukan musik latar.
+- Konten dan urutan pedagogis tetap draft hingga review tahsin/tahfidz resmi.
+
 ## Portal Admin dan Identity Server (19-20 Oktober 2026)
 
 - `src/admin/AdminPortal.tsx` adalah shell dashboard fullscreen yang dibuka dari
